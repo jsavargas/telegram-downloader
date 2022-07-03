@@ -1,0 +1,18 @@
+[DEFAULT_PATH]
+grupo_name = /download/
+
+[REGEX_DOWNLOAD]
+grupo_name = grupo_name _ Capítulo
+
+[REGEX_CAPTION]
+grupo_name = /^Cap[ií]tulo.+?(\d{3,4})/i
+
+[REGEX_RENAME]
+hastaencontrarte = /grupo_name.+?(\d{1}).+?(\w{3}$)/0\1.\2/
+
+[CHANNELS]
+grupo_name_1
+grupo_name_2
+grupo_name_3
+grupo_name
+
