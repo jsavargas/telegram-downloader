@@ -1,0 +1,7 @@
+*.pyc
+*.session 
+*.txt
+*.dict
+
+.env
+TODO
