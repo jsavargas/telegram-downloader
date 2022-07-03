@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1></h1>
+
+
+    </div>
+</div>
+
+
+<div class="col-sm-12">
+
+<form name="configdownload">
+
+    <div class="form-group row">
+
+        <div class="col-sm-2">
+            <label for="inputPassword4">Groups</label>
+            <select id="inputState" class="form-control" onchange="location = this.value;">
+                <option>Groups</option>
+                {% for channel in channels %}
+                <option value="/group/{{channel}}" {% if group == channel %}selected="selected"{% endif %}>{{channel}}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-sm-3">
+            <label for="inputPassword4">Regex download</label>
+            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" name="regex_download" value="{{regex_download}}" onKeyUp="searchRerex()">
+        </div>
+
+        <div class="col-sm-3">
+            <label for="inputPassword4">Regex rename</label>
+            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" name="regex_rename" value="{{regex_rename}}" onKeyUp="searchRerex()">
+        </div>
+
+        <div class="col-sm-3">
+            <label for="inputPassword4">Folder download</label>
+            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" name="folder_download" value="{{folder_download}}">
+        </div>
+
+        <input id="group" name="group" type="hidden" value="{{group}}">
+
+        <div class="col-sm-3">
+            <i class="fa-solid fa-floppy-disk fa-2x" onclick="save()"></i>
+        </div>
+
+    </div>
+</form>
+
+
+</div>
+
+<div id="data_telegram">
+
+
+{% include 'telegram_table.html' %}
+
+
+</div>
+
+
+
+
+
+<script>
+
+    function searchRerex() {
+        
+        console.log(document.configdownload.group.value)
+        console.log(document.configdownload)
+        console.log($(document.configdownload).serialize())  
+        console.log(decodeURIComponent($(document.configdownload).serialize()))  
+
+        $.ajax({
+            url: `/group/` + document.configdownload.group.value,
+            data: $(document.configdownload).serialize(),
+            type: "POST",
+        }).done(function (response) { //
+
+            $('#data_telegram').empty();
+            $("#data_telegram").html(response);
+
+        });
+
+    }
+
+    function save() {
+        
+        console.log(document.configdownload.group.value)
+        console.log(document.configdownload)
+        console.log($(document.configdownload).serialize())  
+        console.log(decodeURIComponent($(document.configdownload).serialize()))  
+
+        $.ajax({
+            url: `/save/` + document.configdownload.group.value,
+            data: $(document.configdownload).serialize(),
+            type: "POST",
+        }).done(function (response) { //
+
+
+        });
+
+    }
+
+
+    function ssearchRerex(id) {
+
+        console.log(id)
+        console.log(name)
+
+        $('#inputSeries-' + id).empty();
+        $('#inputSeries-' + id).append('.... Buscando Información');
+        $("#inputSeries-" + id).append('<option value="search">SEARCH IN SONARR...</option>');
+
+
+
+        $.ajax({
+            url: `/sonarr`,
+            data: { search: name },
+            type: "GET",
+        }).done(function (response) { //
+            $('#inputSeries-' + id).empty();
+            $.each(JSON.parse(response), function (index, itemData) {
+                console.log(itemData.title)
+                //Existing
+                switch (itemData.profileId) {
+                    case 0:
+                        Existing = ''
+                        break;
+                    default:
+                        Existing = 'Existing'
+                    // code block
+                }
+
+                $("#inputSeries-" + id).append(`<option value=${itemData.tvdbId}>${itemData.title} (${itemData.year}) ${itemData.network} [${Existing}]</option>`);
+            });
+
+
+        });
+    }
+
+
+
+
+
+
+</script>
+{% endblock %}
+
+

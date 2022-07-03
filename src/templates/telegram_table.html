@@ -1,0 +1,42 @@
+
+
+
+<div id="data_telegram">
+
+
+
+<table class="table table-striped table-responsive" id="asteroidTable">
+    <thead>
+        <tr>
+            <th>regex</th>
+            <th>regex</th>
+            <th>id</th>
+            <th>date</th>
+            <th>file_name</th>
+            <th>caption</th>
+            <th>width</th>
+            <th>file_size</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for d in data %}
+        <tr>
+            <td>{% if regex[d.id]==True %}<i class="fa-solid fa-check" style="color:green"></i>{% else %}<i class="fa-solid fa-xmark" style="color:red"></i>{% endif %}</td>
+            <td>{{ rename[d.id] }}</td>
+            <td>{{ d.id }}</td>
+            <td>{{ d.date }}</td>
+            <td>{{ d.video.file_name }}</td>
+            <td>{{ d.caption }}</td>
+            <td>{{ d.video.width }}x{{ d.video.height }}</td>
+            <td>{{ human_readable_size(d.video.file_size) }}</td>
+            <th><i class="fa-solid fa-download"></i></th>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+</div>
+
+
+
