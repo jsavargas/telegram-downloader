@@ -30,7 +30,7 @@
             <td>{{ d.caption }}</td>
             <td>{{ d.video.width }}x{{ d.video.height }}</td>
             <td>{{ human_readable_size(d.video.file_size) }}</td>
-            <th><i class="fa-solid fa-download"></i></th>
+            <th><i class="fa-solid fa-download" {% if regex[d.id]==False %} style="color:red" {% endif %} onclick="downloadFile('{{group}}',{{d.id}})"></i></th>
             </tr>
         {% endfor %}
     </tbody>

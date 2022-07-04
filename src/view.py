@@ -17,7 +17,7 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 data = None
 
-
+DICCIONARY_PATH = utils.config.DICCIONARY_PATH
 
 
 
@@ -25,9 +25,9 @@ data = None
 async def home():
 
     global data
+    rename = {}
 
-    if not data:
-        data = await utils.telegram.test()
+    data = await utils.telegram.get_chat_history()
 
    
     regex = {}
@@ -38,7 +38,7 @@ async def home():
     channels = utils.config.getChannels()
 
     return render_template(
-        "index.html", data=data, regex=regex, channels=channels
+        "index.html", data=data, regex=regex, channels=channels, rename=rename
     )
 
 
@@ -66,14 +66,20 @@ async def groupData(group):
         _folder_download = utils.config.getDownloadPath(group)
         _regex_rename = utils.config.getRegex_rename(group)
         
-        file_dict = f"dictionary.{group}.dict"
+        os.makedirs(DICCIONARY_PATH, exist_ok=True)
+        file_dict = f"{DICCIONARY_PATH}/dictionary.{group}.dict"
 
-        if os.path.exists(file_dict):
-            with open(file_dict, 'rb') as config_dictionary_file:    
-                data = pickle.load(config_dictionary_file)
-                #print(data)
+        if request.method == 'POST':
+            if os.path.exists(file_dict):
+                with open(file_dict, 'rb') as config_dictionary_file:    
+                    data = pickle.load(config_dictionary_file)
+                    #print(data)
+            else:
+                data = await utils.telegram.get_chat_history(group)
+                with open(file_dict, 'wb') as config_dictionary_file:
+                    pickle.dump(data, config_dictionary_file)
         else:
-            data = await utils.telegram.test(group)
+            data = await utils.telegram.get_chat_history(group)
             with open(file_dict, 'wb') as config_dictionary_file:
                 pickle.dump(data, config_dictionary_file)
 
@@ -137,6 +143,34 @@ async def save(group):
 
 
     return f"[{group}]"
+
+
+
+
+
+
+
+@app.route('/pyrogram/downloadFile',methods=['POST'])
+async def downloadFile():
+
+    print("|||||||||||||||||||||||||||||||||||||  downloadFile",flush=True)
+
+    _group = request.form.get('group')
+    _message_id = request.form.get('message_id')
+
+    print(_group,flush=True)
+    print(_message_id,flush=True)
+
+
+    data = await utils.telegram.downloadFile(_group,_message_id)
+
+
+    return data
+
+
+
+
+
 
 
 

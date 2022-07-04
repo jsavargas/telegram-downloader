@@ -1,14 +1,19 @@
 import configparser
 import os
+import re
 
 
 
-PATH_CONFIG = '/config/config.ini'
+CONFIG_PATH = '/config'
 DOWNLOAD_PATH = '/download'
+
+CONFIG = f'{CONFIG_PATH}/config.ini'
+DICCIONARY_PATH = f'{CONFIG_PATH}/dictionary'
+
 
 def read_config_file():
     config = configparser.ConfigParser(allow_no_value=True)
-    config.read(PATH_CONFIG)
+    config.read(CONFIG)
     return config
 
 def getChannels():
@@ -76,13 +81,13 @@ def setDownloadPath(channel, value):
 
     if not os.path.abspath(value) == os.path.abspath(DOWNLOAD_PATH) :
         if value == '': value = DOWNLOAD_PATH
-        print(f"IIFFFF setDownloadPath >> [{channel}][{os.path.abspath(value)}]",flush=True)
+        #print(f"IIFFFF setDownloadPath >> [{channel}][{os.path.abspath(value)}]",flush=True)
 
         #config.add_section('DEFAULT_PATH')
         
         config['DEFAULT_PATH'][channel] = os.path.abspath(value)
 
-        with open(PATH_CONFIG, 'w') as configfile:
+        with open(CONFIG, 'w') as configfile:
             config.write(configfile)
 
 
@@ -96,7 +101,7 @@ def setRegex_download(channel, value):
 
         config['REGEX_DOWNLOAD'][channel] = value
 
-        with open(PATH_CONFIG, 'w') as configfile:
+        with open(CONFIG, 'w') as configfile:
             config.write(configfile)
 
 
@@ -110,8 +115,35 @@ def setRegex_rename(channel, value):
 
         config['REGEX_RENAME'][channel] = value
 
-        with open(PATH_CONFIG, 'w') as configfile:
+        with open(CONFIG, 'w') as configfile:
             config.write(configfile)
 
 
     return value
+
+
+
+def getRegexFilename(group,file_name):
+
+    try:
+
+        _regex_rename = getRegex_rename(group)
+        mrr = re.match('/(.*)/(.*)/', _regex_rename)
+        if mrr:
+            filename_rename = re.sub(mrr.group(1), mrr.group(2), file_name, flags=re.I)
+            return filename_rename
+        else: return file_name
+
+      
+
+
+    except Exception as inst:
+        print("Exception config getRegexFilename ", flush=True)    # the exception instance
+        print(type(inst) , flush=True)    # the exception instance
+        print(inst.args , flush=True)     # arguments stored in .args
+        print(inst , flush=True)          # __str__ allows args to be printed directly,
+
+
+
+
+    return file_name
