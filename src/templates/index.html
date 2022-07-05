@@ -104,6 +104,8 @@
 
         save()
 
+        $("#i-" + message_id).css('color', 'rgb(149 131 39)');
+
         console.log(group)
         console.log(message_id)
         
@@ -116,6 +118,11 @@
             type: "POST",
         }).done(function (response) { //
             console.log(response)
+
+
+            if (response) {
+                $("#i-" + message_id).css('color', 'green');
+            }
         });
 
 

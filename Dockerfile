@@ -7,14 +7,19 @@ COPY ./requirements.txt /app/requirements.txt
 # switch working directory
 WORKDIR /app
 
+#RUN apk update && apk add tzdata
+
 # install the dependencies and packages in the requirements file
-RUN pip install -r requirements.txt
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
 # copy every content from the local file to the image
 COPY src /app
+COPY entry.sh /entry.sh
+
+#RUN echo '*       *       *       *       *       run-parts /entry.sh > /entry.log' >> /etc/crontabs/root
 
 # configure the container to run in an executed manner
-ENTRYPOINT [ "python" ]
+ENTRYPOINT [ "sh" ]
 
-CMD ["view.py" ]
+CMD ["/entry.sh" ]
 

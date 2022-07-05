@@ -8,6 +8,7 @@ import pdb
 
 import utils.telegram
 import utils.config
+import utils.db
 
 from flask import Flask, request, session, render_template
 
@@ -26,8 +27,9 @@ async def home():
 
     global data
     rename = {}
+    data = {}
 
-    data = await utils.telegram.get_chat_history()
+    #data = await utils.telegram.get_chat_history()
 
    
     regex = {}
@@ -98,34 +100,31 @@ async def groupData(group):
                 regex[d.id] = True
                 mrr = re.match('/(.*)/(.*)/', _regex_rename)
                 if mrr: 
-                    print(f"group 1 [{mrr.group(1)}]", flush=True)
-                    print(f"group 2 [{mrr.group(2)}]", flush=True)
                     filename_rename = re.sub(mrr.group(1), mrr.group(2), d.video.file_name, flags=re.I)
-                    print(f"filename_rename [{filename_rename}]", flush=True)
+                    #print(f"filename_rename [{filename_rename}]", flush=True)
                     rename[d.id] = filename_rename
                 else: rename[d.id] = d.video.file_name
             else:
                 regex[d.id] = False
 
-    except :
-        print("error", flush=True)
+        downloaded = utils.db.getDownloaded(group)
 
+    except Exception as e:
+        print(f" >>>>>>> Exception [{e}]" ,flush=True)
 
     if request.method == 'POST':
-        return render_template(
-            "telegram_table.html", group=group, data=data, regex=regex, channels=channels, regex_download=_regex_download, folder_download=_folder_download, regex_rename=_regex_rename, rename=rename
-        )
+        page = "telegram_table.html"
     else:
-        return render_template(
-            "index.html", group=group, data=data, regex=regex, channels=channels, regex_download=_regex_download, folder_download=_folder_download, regex_rename=_regex_rename, rename=rename
-        )
+        page = "index.html"
+
+    return render_template(
+        page, group=group, data=data, regex=regex, channels=channels, regex_download=_regex_download, folder_download=_folder_download, regex_rename=_regex_rename, rename=rename, downloaded=downloaded
+    )
 
 
 
 @app.route('/save/<group>',methods=['POST'])
 async def save(group):
-
-
     _regex_download = request.form.get('regex_download').replace('/','')
     _regex_rename = request.form.get('regex_rename')
     _folder_download = request.form.get('folder_download')
@@ -140,32 +139,35 @@ async def save(group):
     _regex_download = utils.config.setRegex_download(group,_regex_download)
     _regex_rename = utils.config.setRegex_rename(group,_regex_rename)
 
-
-
     return f"[{group}]"
-
-
-
-
 
 
 
 @app.route('/pyrogram/downloadFile',methods=['POST'])
 async def downloadFile():
 
-    print("|||||||||||||||||||||||||||||||||||||  downloadFile",flush=True)
 
-    _group = request.form.get('group')
-    _message_id = request.form.get('message_id')
-
-    print(_group,flush=True)
-    print(_message_id,flush=True)
+    try:
+        downloaded = False
 
 
-    data = await utils.telegram.downloadFile(_group,_message_id)
+        _group = request.form.get('group')
+        _message_id = request.form.get('message_id')
+
+        print(_group,flush=True)
+        print(_message_id,flush=True)
 
 
-    return data
+        data = await utils.telegram.downloadFile(_group,_message_id)
+
+        if data: downloaded = utils.db.setDownloaded(_group,_message_id)
+
+        return 'True'
+    except Exception as e:
+        print(f" >>>>>>> Exception [{e}]" ,flush=True)
+        return 'False'
+
+
 
 
 

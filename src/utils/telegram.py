@@ -17,7 +17,7 @@ BOT_TOKEN = os.environ['BOT_TOKEN']
 PUID = os.environ['PUID']
 PGID = os.environ['PGID']
 
-
+progress_array = {}
 
 async def get_chat_history(group='me',limit=30):
 
@@ -71,36 +71,40 @@ async def downloadFile(group,message_id):
                 temp_file_path = os.path.join(utils.config.DOWNLOAD_PATH,file_name)
                 final_file_path = os.path.join(_folder_download,file_name)
 
-                message_bot = await botSend(f"downloadind file in: {temp_file_path}, {sizeof_fmt(message.video.file_size)}")
+                print(f"telegram downloadFile [{temp_file_path}]", flush=True)
+                print(f"telegram downloadFile [{final_file_path}]", flush=True)
 
-                await app.download_media(message, file_name=temp_file_path, progress=progress)
+                text = f"downloadind file in: {temp_file_path}, {sizeof_fmt(message.video.file_size)}"
+
+                message_bot = await botSend(text)
+
+                await app.download_media(message, file_name=temp_file_path, progress=progress, progress_args=[message_bot,text,group,message_id])
 
                 os.makedirs(_folder_download, exist_ok=True)
 
+                print(f"moving file: {temp_file_path} to {final_file_path}", flush=True)
                 message_bot = await botSend(f"moving file: {temp_file_path} to {final_file_path}",message_bot)
-                
+
                 shutil.move(temp_file_path, final_file_path)
 
                 os.chown(final_file_path, int(PUID), int(PGID))
                 os.chmod(final_file_path, 0o666)
 
                 time.sleep(2)
+                print(f"download file: {final_file_path}, {sizeof_fmt(message.video.file_size)}", flush=True)
                 message_bot = await botSend(f"download file: {final_file_path}, {sizeof_fmt(message.video.file_size)}",message_bot)
 
-
-
-      
-
+        return True
 
     except Exception as inst:
-        print("Exception telegram downloadFile ", flush=True)    # the exception instance
+        print(f"Exception telegram downloadFile [{inst}]", flush=True)    # the exception instance
+        await botSend(f"Exception telegram downloadFile: {inst}")
         print(type(inst) , flush=True)    # the exception instance
         print(inst.args , flush=True)     # arguments stored in .args
         print(inst , flush=True)          # __str__ allows args to be printed directly,
 
+        return False
 
-
-    return ""
 
 
 def sizeof_fmt(num, suffix="B"):
@@ -110,11 +114,34 @@ def sizeof_fmt(num, suffix="B"):
         num /= 1024.0
     return f"{num:.1f}Yi{suffix}"
 
-def progress(current, total):
-    int_value = int(float("{:.2f}".format((current / total) * 100)) // 1)
 
-    if ( (int_value) % 5 == 0): 
-        print(f"download: {current * 100 / total:.1f}% ", sep='', end='\r', flush=True)
+# Keep track of the progress while downloading
+async def progress(current, total, *args):
+
+    try:
+        global progress_array
+
+        message_id, text, group, id = args[0], args[1], args[2], int(args[3])
+
+        int_value = int(float("{:.2f}".format(current * 100 / total)) // 1)
+        #print(f"progress progress [{int_value}][{progress_array}]", flush=True)    # the exception instance
+        
+        if id not in progress_array:
+            progress_array[id] = int_value   
+        
+        if progress_array[id] != int_value:
+            progress_array[id] = int_value
+            if ( (int_value) % 10 == 0): 
+                #print(f"{current * 100 / total}% {args}",  flush=True)
+                await botSend(f"{text} {current * 100 / total:.1f}%",message_id)
+        if int_value == 100:
+            progress_array.pop(id)
+
+    except Exception as e:
+        print(f"ERROR progress {e}",  flush=True)
+
+    
+
 
 async def botSend(message,message_bot=None):
     try:
@@ -123,7 +150,6 @@ async def botSend(message,message_bot=None):
             else: return await xbot.edit_message_text(OWNER, message_id=message_bot.id,text=message)
 
     except Exception as error:
-
         print('__name__',error,flush=True)
   
 
@@ -138,5 +164,5 @@ def ifDIgit(channel):
 if __name__ == "__main__":
 
     print('__name__')
-    #loop = asyncio.get_event_loop()
-    #loop.run_until_complete(test())
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(botSend("prueba"))

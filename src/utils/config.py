@@ -10,9 +10,9 @@ DOWNLOAD_PATH = '/download'
 CONFIG = f'{CONFIG_PATH}/config.ini'
 DICCIONARY_PATH = f'{CONFIG_PATH}/dictionary'
 
+config = configparser.ConfigParser(allow_no_value=True)
 
 def read_config_file():
-    config = configparser.ConfigParser(allow_no_value=True)
     config.read(CONFIG)
     return config
 
@@ -24,8 +24,6 @@ def getChannels():
 
     return CHANNELS
 
-    for CHANNEL in CHANNELS:
-        print(f"getChannels [{CHANNEL}]", flush=True)
 
 def getDownloadPath(channel):
     config = read_config_file()
@@ -44,14 +42,14 @@ def getDownloadPath(channel):
     else: return DOWNLOAD_PATH
         
 def getRegex_download(channel):
-    print(f"getRegex_download >> [{channel}]",flush=True)
+    #print(f"getRegex_download >> [{channel}]",flush=True)
     config = read_config_file()
 
     _regex = ''
 
     REGEX_DOWNLOAD = config['REGEX_DOWNLOAD']
     for REGEX in REGEX_DOWNLOAD:
-        print(f"getRegex_download || [{REGEX}]", flush=True)
+        #print(f"getRegex_download || [{REGEX}]", flush=True)
         if str(channel).lower() == str(REGEX).lower():
             _regex = REGEX_DOWNLOAD[REGEX]
             break
@@ -59,14 +57,14 @@ def getRegex_download(channel):
     return _regex
 
 def getRegex_rename(channel):
-    print(f"getRegex_download >> [{channel}]",flush=True)
+    #print(f"getRegex_download >> [{channel}]",flush=True)
     config = read_config_file()
 
     _regex = ''
 
     REGEX_RENAME = config['REGEX_RENAME']
     for REGEX in REGEX_RENAME:
-        print(f"REGEX_RENAME || [{REGEX}]", flush=True)
+        #print(f"REGEX_RENAME || [{REGEX}]", flush=True)
         if str(channel).lower() == str(REGEX).lower():
             _regex = REGEX_RENAME[REGEX]
             break
