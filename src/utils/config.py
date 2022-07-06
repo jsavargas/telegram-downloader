@@ -8,6 +8,7 @@ CONFIG_PATH = '/config'
 DOWNLOAD_PATH = '/download'
 
 CONFIG = f'{CONFIG_PATH}/config.ini'
+CLIENT_NAME = f'{CONFIG_PATH}/my_account'
 DICCIONARY_PATH = f'{CONFIG_PATH}/dictionary'
 
 config = configparser.ConfigParser(allow_no_value=True)
