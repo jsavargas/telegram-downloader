@@ -6,6 +6,8 @@ __pycache__
 *.dict
 *.bak
 *.ini
+*~
+*.dev.*
 
 .env
 TODO
