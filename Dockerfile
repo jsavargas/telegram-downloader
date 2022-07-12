@@ -16,6 +16,8 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 COPY src /app
 COPY entry.sh /entry.sh
 
+EXPOSE 5000
+
 #RUN echo '*       *       *       *       *       run-parts /entry.sh > /entry.log' >> /etc/crontabs/root
 
 # configure the container to run in an executed manner
