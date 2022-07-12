@@ -76,6 +76,7 @@ async def downloadFile(group,message_id):
 
                 text = f"downloadind file in: {temp_file_path}, {sizeof_fmt(message.video.file_size)}"
 
+                print(f"downloadind file in: {temp_file_path} , {sizeof_fmt(message.video.file_size)}", flush=True)
                 message_bot = await botSend(text)
 
                 await app.download_media(message, file_name=temp_file_path, progress=progress, progress_args=[message_bot,text,group,message_id])
