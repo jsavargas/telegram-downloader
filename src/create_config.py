@@ -4,11 +4,15 @@ from pyrogram import Client
 
 import utils.config
 
+print(f" >>>>>>> APP_ID [{os.environ['APP_ID']}]" ,flush=True)
+print(f" >>>>>>> API_HASH [{os.environ['API_HASH']}]" ,flush=True)
+print(f" >>>>>>> BOT_TOKEN [{os.environ['BOT_TOKEN']}]" ,flush=True)
+
+
 APP_ID = int(os.environ['APP_ID'])
 API_HASH = os.environ['API_HASH']
 BOT_TOKEN = os.environ['BOT_TOKEN']
 
-utils.config.CONFIG_PATH
 
 
 if __name__ == "__main__":
