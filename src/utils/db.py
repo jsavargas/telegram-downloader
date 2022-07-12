@@ -4,8 +4,8 @@ from datetime import datetime
 
 def getDownloaded(group):
 
+    dataId = []
     try:
-        dataId = []
         with open('/config/downloaded.txt','r') as f: 
             for line in f: 
                 #process(line) 
@@ -17,7 +17,8 @@ def getDownloaded(group):
         return dataId
 
     except Exception as e:
-        print('ERROR setDownloaded', e)
+        return dataId
+        print('ERROR getDownloaded', e)
         return False
 
 
