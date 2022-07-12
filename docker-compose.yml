@@ -1,0 +1,31 @@
+
+version: "3.9"
+services:
+  telegram-downloader-flask:
+    image: jsavargas/telegram-downloader-flask:developer
+    container_name: telegram-downloader-flask #t-flask
+    environment:
+      - PUID=99
+      - PGID=100
+      - OWNER=@jsavargas
+      - APP_ID=11
+      - API_HASH=e80ad
+      - BOT_TOKEN=454:IluzJheMr9m-p4
+      - TZ=America/Santiago
+    volumes:
+      - ./config:/config
+      - /mnt/user/download/telegram:/download
+    ports:
+      - 5555:5000
+        
+        
+        
+# OWNER = Tu usuario
+# BOT_TOKEN = token del bot donde se enviaran notificaciones
+        
+
+# docker exec -it telegram-downloader-flask sh
+# python create_config.py  # CREATE /config/my_account => pyrogram
+
+# docker exec -it telegram-downloader-flask python create_config.py
+
