@@ -1,0 +1,137 @@
+import os
+import pickle
+import re
+import pdb, asyncio, json
+import sys
+import argparse
+
+
+from pyrogram import Client
+from pyrogram.errors import FloodWait
+from tabulate import tabulate
+from tabulate import tabulate
+
+import utils.config
+import utils.db
+import utils.telegram
+
+OWNER = os.environ['OWNER']
+APP_ID = int(os.environ['APP_ID'])
+API_HASH = os.environ['API_HASH']
+BOT_TOKEN = os.environ['BOT_TOKEN']
+
+PUID = os.environ['PUID']
+PGID = os.environ['PGID']
+
+
+__version__ = "VERSION 0.0.5"
+
+
+async def main(args):
+
+    try:
+        data = []
+
+        _regex_download = utils.config.getRegex_download(args.group)
+        _folder_download = utils.config.getDownloadPath(args.group)
+        _regex_rename = utils.config.getRegex_rename(args.group)
+
+
+        DICCIONARY_PATH = utils.config.DICCIONARY_PATH
+
+        file_dict = f"{DICCIONARY_PATH}/dictionary.{args.group}.dict"
+
+        if os.path.exists(file_dict):
+            with open(file_dict, 'rb') as config_dictionary_file:    
+                data = pickle.load(config_dictionary_file)
+
+
+        regex, rename = utils.config.getFileRename(data,_regex_download,_regex_rename)
+        downloaded = utils.db.getDownloaded(args.group)
+
+
+        print("*"*90)
+        print(f' [*] folder_download  => [{_folder_download}]',flush=True)
+        print(f' [*] regex_download   => [{_regex_download}]',flush=True)
+        print(f' [*] regex_rename     => [{_regex_rename}]',flush=True)
+
+        print("")
+
+        t_data = []
+        for d in data:
+            #print(f' file_name [{d.id}]:{d.video.file_name}',flush=True)
+            down = True if d.id in downloaded else False
+            if regex[d.id]:
+                t_data.append([d.id,down,regex[d.id],rename[d.id],d.video.file_name])
+                #print(f' file_name {down} => [{d.id}]:{regex[d.id]} - [{rename[d.id]}] => [{d.video.file_name}]',flush=True)
+
+        print(tabulate(t_data, headers=[ 'ID', 'Downloaded','Enabled downloading','New Name', 'File Name'], tablefmt='pretty',stralign='left'))
+
+
+        print("")
+        print("")
+
+        if args.download:
+            for d in data:
+                down = True if d.id in downloaded else False
+                if regex[d.id] and not down:
+                    print(f' [!] Download : [{down}] [{d.video.file_name}] => [{rename[d.id]}]',flush=True)
+
+                    downloading = await utils.telegram.downloadFile(args.group,d.id)
+
+                    if downloading: downloading = utils.db.setDownloaded(args.group,d.id)
+
+
+
+
+    except Exception as e:
+        print('__name__',e,flush=True)
+        
+
+
+
+
+
+
+async def botSend(message,message_bot=None):
+    try:
+        async with Client("/config/bot", api_id=APP_ID, api_hash=API_HASH,bot_token=BOT_TOKEN) as xbot:
+            if message_bot == None: return await xbot.send_message(OWNER, message)
+            else: return await xbot.edit_message_text(OWNER, message_id=message_bot.id,text=message)
+
+    except Exception as error:
+
+        print('__name__',error,flush=True)
+  
+
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="MKV Tools - Delete Spam.")
+    parser.add_argument('-v','--version', action='version', version="%(prog)s " + __version__)
+
+                    
+    parser.add_argument('-g', '--group', type=str, required=True, help='group to process')
+    parser.add_argument('-d', '--download', action='store_true', help='download files')
+    
+
+
+
+    args = parser.parse_args()
+    return args
+
+
+if __name__ == "__main__":
+    try:
+
+        args = parse_args()
+        
+        if args: print(args)
+
+        asyncio.run(main(args))
+
+    except Exception as error:
+        print(f"[!] Missing group telegram, example: python {sys.argv[0]} --group 'groupTelegram' ", flush=True)
+        print(f"[!] ERROR {error} ", flush=True)
+
+
