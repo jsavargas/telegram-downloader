@@ -14,8 +14,31 @@ DICCIONARY_PATH = f'{CONFIG_PATH}/dictionary'
 config = configparser.ConfigParser(allow_no_value=True)
 
 def read_config_file():
-    config.read(CONFIG)
-    return config
+
+    if not os.path.exists(CONFIG):
+        print(f'CREATE DEFAULT CONFIG FILE : {CONFIG}')
+
+        config.read(CONFIG)
+
+        config['DEFAULT_PATH'] = {}
+        config['DEFAULT_PATH']['grupo_name_1'] = '/download'
+
+        config['CHANNELS'] = {}
+        config['CHANNELS']['grupo_name_1'] = None
+
+        config['REGEX_RENAME'] = {}
+        config['REGEX_RENAME']['grupo_name_1'] = '/grupo_name.+?(\d{1}).+?(\w{3}$)/0\\1.\\2/'
+
+        config['REGEX_DOWNLOAD'] = {}
+        config['REGEX_DOWNLOAD']['grupo_name_1'] = 'grupo_name _ Capítulo'
+
+        with open(CONFIG, 'w') as configfile:    # save
+            config.write(configfile)
+        return config
+
+    else:
+        config.read(CONFIG)
+        return config
 
 def getChannels():
     print("getChannels")
@@ -27,51 +50,85 @@ def getChannels():
 
 
 def getDownloadPath(channel):
-    config = read_config_file()
-    folderFlag=False
 
-    
+    try:
+        config = read_config_file()
+        folderFlag=False
 
-    DEFAULT_PATH = config['DEFAULT_PATH']
-    for ID in DEFAULT_PATH:
-        if str(ID).lower() == str(channel).lower():
-            _DOWNLOAD_PATH = DEFAULT_PATH[ID]
-            folderFlag=True
-            break
-    
-    if folderFlag: return _DOWNLOAD_PATH
-    else: return DOWNLOAD_PATH
+        DEFAULT_PATH = config['DEFAULT_PATH']
+        for ID in DEFAULT_PATH:
+            if str(ID).lower() == str(channel).lower():
+                _DOWNLOAD_PATH = DEFAULT_PATH[ID]
+                folderFlag=True
+                break
         
-def getRegex_download(channel):
-    #print(f"getRegex_download >> [{channel}]",flush=True)
-    config = read_config_file()
+        if folderFlag: return _DOWNLOAD_PATH
+        else: return DOWNLOAD_PATH
+    except Exception as e:
+        print(f" >>>>>>> Exception getDownloadPath [{e}]" ,flush=True)
+        return DOWNLOAD_PATH
 
+def getRegex_download(channel):
     _regex = ''
 
-    REGEX_DOWNLOAD = config['REGEX_DOWNLOAD']
-    for REGEX in REGEX_DOWNLOAD:
-        #print(f"getRegex_download || [{REGEX}]", flush=True)
-        if str(channel).lower() == str(REGEX).lower():
-            _regex = REGEX_DOWNLOAD[REGEX]
-            break
+    try:
+        #print(f"getRegex_download >> [{channel}]",flush=True)
+        config = read_config_file()
 
-    return _regex
+        REGEX_DOWNLOAD = config['REGEX_DOWNLOAD']
+        for REGEX in REGEX_DOWNLOAD:
+            #print(f"getRegex_download || [{REGEX}]", flush=True)
+            if str(channel).lower() == str(REGEX).lower():
+                _regex = REGEX_DOWNLOAD[REGEX]
+                break
+
+        return _regex
+    except Exception as e:
+        print(f" >>>>>>> Exception getRegex_download [{e}]" ,flush=True)
+        return _regex
+
 
 def getRegex_rename(channel):
-    #print(f"getRegex_download >> [{channel}]",flush=True)
-    config = read_config_file()
-
     _regex = ''
 
-    REGEX_RENAME = config['REGEX_RENAME']
-    for REGEX in REGEX_RENAME:
-        #print(f"REGEX_RENAME || [{REGEX}]", flush=True)
-        if str(channel).lower() == str(REGEX).lower():
-            _regex = REGEX_RENAME[REGEX]
-            break
+    try:
+        #print(f"getRegex_download >> [{channel}]",flush=True)
+        config = read_config_file()
 
-    return _regex
+        REGEX_RENAME = config['REGEX_RENAME']
+        for REGEX in REGEX_RENAME:
+            #print(f"REGEX_RENAME || [{REGEX}]", flush=True)
+            if str(channel).lower() == str(REGEX).lower():
+                _regex = REGEX_RENAME[REGEX]
+                break
 
+        return _regex
+    except Exception as e:
+        print(f" >>>>>>> Exception getRegex_rename [{e}]" ,flush=True)
+        return _regex
+
+def getFileRename(data,_regex_download,_regex_rename):
+
+    regex = {}
+    rename = {}
+
+    try:
+        for d in data:
+            if re.match(_regex_download, d.video.file_name,re.I):
+                regex[d.id] = True
+                mrr = re.match('/(.*)/(.*)/', _regex_rename)
+                if mrr: 
+                    filename_rename = re.sub(mrr.group(1), mrr.group(2), d.video.file_name, flags=re.I)
+                    #print(f"filename_rename [{filename_rename}]", flush=True)
+                    rename[d.id] = filename_rename
+                else: rename[d.id] = d.video.file_name
+            else:
+                regex[d.id] = False
+
+        return regex,rename
+    except Exception as e:
+        print(f" >>>>>>> Exception getFileRename [{e}]" ,flush=True)
+        return regex, rename
 
 def setDownloadPath(channel, value):
     config = read_config_file()
