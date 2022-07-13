@@ -41,7 +41,6 @@ def read_config_file():
         return config
 
 def getChannels():
-    print("getChannels")
     config = read_config_file()
 
     CHANNELS = config['CHANNELS']

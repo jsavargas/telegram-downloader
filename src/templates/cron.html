@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+
+
+
+
+
+
+
+<div id="data_telegram">
+
+
+    <table class="table table-striped table-responsive" id="asteroidTable">
+        <thead>
+            <tr>
+                <th>Group</th>
+                <th>Name</th>
+                <th>schedule</th>
+                <th>date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for channel in channels %}
+            <tr>
+                <td><a href="/group/{{ channel }}">{{ channel }}</a> </td>
+                <td>{{ channel }}</td>
+                <td> <input id="cron-{{channel}}" type="text" class="form-control" placeholder="Custom Cron Schedule" aria-label="Cron" aria-describedby="basic-addon1" disabled> </td>
+                <td> <input type="checkbox" aria-label="Checkbox for following text input" onclick="var input = document.getElementById('cron-{{channel}}'); if(this.checked){ input.disabled = false; input.focus();}else{input.disabled=true;}"> </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+</div>
+    
+    
+    
+    
+
+
+
+
+<script>
+
+    function searchRerex() {
+        
+        console.log(document.configdownload.group.value)
+        console.log(document.configdownload)
+        console.log($(document.configdownload).serialize())  
+        console.log(decodeURIComponent($(document.configdownload).serialize()))  
+
+        $.ajax({
+            url: `/group/` + document.configdownload.group.value,
+            data: $(document.configdownload).serialize(),
+            type: "POST",
+        }).done(function (response) { //
+
+            $('#data_telegram').empty();
+            $("#data_telegram").html(response);
+
+        });
+
+    }
+
+    function save() {
+        
+        console.log(document.configdownload.group.value)
+        console.log(document.configdownload)
+        console.log($(document.configdownload).serialize())  
+        console.log(decodeURIComponent($(document.configdownload).serialize()))  
+
+        $.ajax({
+            url: `/save/` + document.configdownload.group.value,
+            data: $(document.configdownload).serialize(),
+            type: "POST",
+        }).done(function (response) { //
+
+
+        });
+
+    }
+
+    function downloadFile(group,message_id) {
+
+        save()
+
+        $("#i-" + message_id).css('color', 'rgb(149 131 39)');
+
+        console.log(group)
+        console.log(message_id)
+        
+        data = {'group':group, 'message_id':message_id}
+        console.log(data)
+
+        $.ajax({
+            url: `/pyrogram/downloadFile`,
+            data: data,
+            type: "POST",
+        }).done(function (response) { //
+            console.log(response)
+
+
+            if (response) {
+                $("#i-" + message_id).css('color', 'green');
+            }
+        });
+
+
+    }
+
+
+
+
+
+
+
+
+</script>
+{% endblock %}
+
+

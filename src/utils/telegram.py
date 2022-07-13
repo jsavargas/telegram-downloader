@@ -19,12 +19,11 @@ PGID = os.environ['PGID']
 
 progress_array = {}
 
-async def get_chat_history(group='me',limit=30):
+async def get_chat_history(group='me',limit=30, init=None):
 
     data = []
 
     try:
-
 
         async with Client("/config/my_account", api_id=APP_ID, api_hash=API_HASH) as app:
             #await xbot.send_message(OWNER, OWNER)
@@ -33,11 +32,20 @@ async def get_chat_history(group='me',limit=30):
 
             print(f"[!] >>>>>>> chat.title [{chat.title}]" ,flush=True)
 
-            async for message in app.get_chat_history(ifDIgit(group),limit=limit):
-                #print(f" >>>>>>> [{message.media}]" ,flush=True)
-                if str(message.media) == "MessageMediaType.VIDEO":
-                    data.append(message) 
+            if not init:
+                async for message in app.get_chat_history(ifDIgit(group),limit=limit):
+                    #print(f" >>>>>>> [{message.media}]" ,flush=True)
+                    if str(message.media) == "MessageMediaType.VIDEO":
+                        data.append(message) 
+            else:
 
+                list = intToArray(init,limit)
+
+                messages = await app.get_messages(ifDIgit(group),list)
+                for message in messages:
+                    if str(message.media) == "MessageMediaType.VIDEO":
+                        data.append(message) 
+                id=None
 
         print(f" >>>>>>> SALIENDO [{data}]" ,flush=True)
 
@@ -46,7 +54,15 @@ async def get_chat_history(group='me',limit=30):
 
 
     return data
-    
+
+def intToArray(init,limit):
+    init = int(init)
+    _numbers = []
+    for i in range(init, init + limit):
+        _numbers.append(i)
+    return _numbers
+
+
 async def downloadFile(group,message_id):
 
     try:
@@ -107,7 +123,6 @@ async def downloadFile(group,message_id):
         return False
 
 
-
 def sizeof_fmt(num, suffix="B"):
     for unit in ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"]:
         if abs(num) < 1024.0:
@@ -140,8 +155,6 @@ async def progress(current, total, *args):
 
     except Exception as e:
         print(f"ERROR progress {e}",  flush=True)
-
-    
 
 
 async def botSend(message,message_bot=None):

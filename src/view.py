@@ -53,6 +53,7 @@ async def groupData(group):
     regex = {}
     rename = {}
     data = []
+    downloaded = []
 
     regex_download = ''
     _regex_download = ''
@@ -62,7 +63,12 @@ async def groupData(group):
 
     try:
         #if not data:
-        
+        limit = request.args.get('limit', default = 30, type = int)
+        init = request.args.get('init', default = None, type = str)
+
+        print(f" [!] GET >>> limit [{limit}]", flush=True)
+        print(f" [!] GET >>> init [{init}]", flush=True)
+
         channels = utils.config.getChannels()
         _regex_download = utils.config.getRegex_download(group)
         _folder_download = utils.config.getDownloadPath(group)
@@ -81,7 +87,7 @@ async def groupData(group):
                 with open(file_dict, 'wb') as config_dictionary_file:
                     pickle.dump(data, config_dictionary_file)
         else:
-            data = await utils.telegram.get_chat_history(group)
+            data = await utils.telegram.get_chat_history(group,limit=limit, init=init)
             with open(file_dict, 'wb') as config_dictionary_file:
                 pickle.dump(data, config_dictionary_file)
 
@@ -95,18 +101,8 @@ async def groupData(group):
             print(f" [!] POST >>> _regex_rename [{_regex_rename}]", flush=True)
             print(f" [!] POST >>> _folder_download [{_folder_download}]", flush=True)
     
-        for d in data:
-            if re.match(_regex_download, d.video.file_name,re.I):
-                regex[d.id] = True
-                mrr = re.match('/(.*)/(.*)/', _regex_rename)
-                if mrr: 
-                    filename_rename = re.sub(mrr.group(1), mrr.group(2), d.video.file_name, flags=re.I)
-                    #print(f"filename_rename [{filename_rename}]", flush=True)
-                    rename[d.id] = filename_rename
-                else: rename[d.id] = d.video.file_name
-            else:
-                regex[d.id] = False
 
+        regex, rename = utils.config.getFileRename(data,_regex_download,_regex_rename)
         downloaded = utils.db.getDownloaded(group)
 
     except Exception as e:
@@ -120,6 +116,30 @@ async def groupData(group):
     return render_template(
         page, group=group, data=data, regex=regex, channels=channels, regex_download=_regex_download, folder_download=_folder_download, regex_rename=_regex_rename, rename=rename, downloaded=downloaded
     )
+
+
+@app.route('/cron')
+async def cron():
+
+    global data
+    rename = {}
+    data = {}
+
+    #data = await utils.telegram.get_chat_history()
+
+   
+    regex = {}
+    for d in data:
+        regex[d.id] = d.id
+
+
+    channels = utils.config.getChannels()
+
+    return render_template(
+        "cron.html", data=data, regex=regex, channels=channels, rename=rename
+    )
+
+
 
 
 
