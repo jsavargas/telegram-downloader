@@ -116,14 +116,19 @@ def getFileRename(data,_regex_download,_regex_rename):
 
     try:
         for d in data:
-            if re.match(_regex_download, d.video.file_name,re.I):
+            if d.video.file_name == None: 
+                filename = d.caption
+            else:
+                filename = d.video.file_name
+
+            if re.match(_regex_download, filename,re.I):
                 regex[d.id] = True
                 mrr = re.match('/(.*)/(.*)/', _regex_rename)
                 if mrr: 
-                    filename_rename = re.sub(mrr.group(1), mrr.group(2), d.video.file_name, flags=re.I)
+                    filename_rename = re.sub(mrr.group(1), mrr.group(2), filename, flags=re.I)
                     #print(f"filename_rename [{filename_rename}]", flush=True)
                     rename[d.id] = filename_rename
-                else: rename[d.id] = d.video.file_name
+                else: rename[d.id] = filename
             else:
                 regex[d.id] = False
 
