@@ -4,6 +4,7 @@ import re
 import pdb, asyncio, json
 import sys
 import argparse
+import time
 
 
 from pyrogram import Client
@@ -24,8 +25,9 @@ PUID = os.environ['PUID']
 PGID = os.environ['PGID']
 
 
-__version__ = "VERSION 0.0.5"
-
+__version__ = "VERSION 0.0.6"
+_INIT = utils.config._INIT
+_LIMIT = utils.config._LIMIT
 
 async def main(args):
 
@@ -40,11 +42,16 @@ async def main(args):
         DICCIONARY_PATH = utils.config.DICCIONARY_PATH
 
         file_dict = f"{DICCIONARY_PATH}/dictionary.{args.group}.dict"
+        
+        #pdb.set_trace()
 
-        if os.path.exists(file_dict):
+        if os.path.exists(file_dict) and args.limit == _LIMIT and (time.time() - os.path.getmtime(file_dict) < 10 * 60):
             with open(file_dict, 'rb') as config_dictionary_file:    
                 data = pickle.load(config_dictionary_file)
-
+        else:
+            data = await utils.telegram.get_chat_history(args.group, init=args.init, limit=args.limit)
+            with open(file_dict, 'wb') as config_dictionary_file:
+                pickle.dump(data, config_dictionary_file)
 
         regex, rename = utils.config.getFileRename(data,_regex_download,_regex_rename)
         downloaded = utils.db.getDownloaded(args.group)
@@ -55,6 +62,7 @@ async def main(args):
         print(f' [*] regex_download   => [{_regex_download}]',flush=True)
         print(f' [*] regex_rename     => [{_regex_rename}]',flush=True)
 
+
         print("")
 
         t_data = []
@@ -62,10 +70,10 @@ async def main(args):
             #print(f' file_name [{d.id}]:{d.video.file_name}',flush=True)
             down = True if d.id in downloaded else False
             if regex[d.id]:
-                t_data.append([d.id,down,regex[d.id],rename[d.id],d.video.file_name])
+                t_data.append([d.id, down, regex[d.id], rename[d.id], d.video.file_name, d.caption])
                 #print(f' file_name {down} => [{d.id}]:{regex[d.id]} - [{rename[d.id]}] => [{d.video.file_name}]',flush=True)
 
-        print(tabulate(t_data, headers=[ 'ID', 'Downloaded','Enabled downloading','New Name', 'File Name'], tablefmt='pretty',stralign='left'))
+        print(tabulate(t_data, headers=[ 'ID', 'Downloaded','Enabled','New Name', 'File Name', 'Caption'], tablefmt='pretty',stralign='left'))
 
 
         print("")
@@ -112,6 +120,10 @@ def parse_args():
 
                     
     parser.add_argument('-g', '--group', type=str, required=True, help='group to process')
+    parser.add_argument('-i', '--init', type=str, default=_INIT, required=False, help='group to process')
+    parser.add_argument('-l', '--limit', type=int, default=_LIMIT, required=False, help='group to process')
+ 
+ 
     parser.add_argument('-d', '--download', action='store_true', help='download files')
     
 

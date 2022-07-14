@@ -47,7 +47,7 @@ async def get_chat_history(group='me',limit=30, init=None):
                         data.append(message) 
                 id=None
 
-        print(f" >>>>>>> SALIENDO [{data}]" ,flush=True)
+        #print(f" >>>>>>> SALIENDO [{data}]" ,flush=True)
 
     except:
         return data

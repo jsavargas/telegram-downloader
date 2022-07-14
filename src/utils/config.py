@@ -11,6 +11,9 @@ CONFIG = f'{CONFIG_PATH}/config.ini'
 CLIENT_NAME = f'{CONFIG_PATH}/my_account'
 DICCIONARY_PATH = f'{CONFIG_PATH}/dictionary'
 
+_INIT = None
+_LIMIT = 30
+
 config = configparser.ConfigParser(allow_no_value=True)
 
 def read_config_file():
