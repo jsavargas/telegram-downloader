@@ -67,28 +67,34 @@ async def downloadFile(group,message_id):
 
     try:
 
-        print(f"telegram downloadFile [{group}] [{message_id}]", flush=True)
+        #print(f"telegram downloadFile [{group}] [{message_id}]", flush=True)
 
         _regex_download = utils.config.getRegex_download(group)
         _folder_download = utils.config.getDownloadPath(group)
         _regex_rename = utils.config.getRegex_rename(group)
 
-        print(f"telegram downloadFile [{_regex_download}]", flush=True)
-        print(f"telegram downloadFile [{_folder_download}]", flush=True)
-        print(f"telegram downloadFile [{_regex_rename}]", flush=True)
+        #print(f"telegram downloadFile [{_regex_download}]", flush=True)
+        #print(f"telegram downloadFile [{_folder_download}]", flush=True)
+        #print(f"telegram downloadFile [{_regex_rename}]", flush=True)
 
         async with Client("/config/my_account", api_id=APP_ID, api_hash=API_HASH) as app:
 
             f = await app.get_messages(group,[int(message_id)])
             for message in f:
-                file_name = utils.config.getRegexFilename(group,message.video.file_name)
-                print(f"telegram downloadFile message [{file_name}]", flush=True)
+
+                if message.video.file_name == None: 
+                    filename = message.caption
+                else:
+                    filename = message.video.file_name
+
+                file_name = utils.config.getRegexFilename(group,filename)
+                #print(f"telegram downloadFile message [{file_name}]", flush=True)
 
                 temp_file_path = os.path.join(utils.config.DOWNLOAD_PATH,file_name)
                 final_file_path = os.path.join(_folder_download,file_name)
 
-                print(f"telegram downloadFile [{temp_file_path}]", flush=True)
-                print(f"telegram downloadFile [{final_file_path}]", flush=True)
+                #print(f"telegram downloadFile [{temp_file_path}]", flush=True)
+                #print(f"telegram downloadFile [{final_file_path}]", flush=True)
 
                 text = f"downloadind file in: {temp_file_path}, {sizeof_fmt(message.video.file_size)}"
 

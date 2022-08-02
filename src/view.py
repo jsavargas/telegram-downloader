@@ -88,6 +88,9 @@ async def groupData(group):
                     pickle.dump(data, config_dictionary_file)
         else:
             data = await utils.telegram.get_chat_history(group,limit=limit, init=init)
+
+            print(f" [!] GET >>> data [{data}]", flush=True)
+
             with open(file_dict, 'wb') as config_dictionary_file:
                 pickle.dump(data, config_dictionary_file)
 

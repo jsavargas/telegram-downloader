@@ -78,7 +78,7 @@ async def main(args):
 
         print("")
         print("")
-
+        time.sleep(10) 
         if args.download:
             for d in data:
                 down = True if d.id in downloaded else False
