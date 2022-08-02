@@ -1,7 +1,7 @@
 __pycache__
 
 *.pyc
-*.session
+*.session 
 *.dict
 *.bak
 *.ini
@@ -11,3 +11,6 @@ __pycache__
 .env
 TODO
 *session-journal
+config/downloaded.txt
+leeme.txt
+bash.txt
