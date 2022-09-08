@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+
+
+
+<form name="configdownload">
+
+    <div class="form-group row">
+
+        <div class="col-sm-2">
+            <label for="inputPassword4">Groups</label>
+            <select id="inputState" class="form-control" onchange="location = this.value;">
+                <option>Groups</option>
+                {% for channel in channels %}
+                <option value="/config/edit/{{channel}}" {% if group == channel %}selected="selected"{% endif %}>{{channel}}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-sm-3">
+            <label for="inputPassword4">Regex download</label>
+            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/.*/" name="regex_download" value="{{regex_download}}" onKeyUp="searchRerex()">
+        </div>
+
+        <div class="col-sm-3">
+            <label for="inputPassword4">Regex rename</label>
+            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/(.*)/\1/" name="regex_rename" value="{{regex_rename}}" onKeyUp="searchRerex()">
+        </div>
+
+        <div class="col-sm-3">
+            <label for="inputPassword4">Folder download</label>
+            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/downloads" name="folder_download" value="{{folder_download}}">
+        </div>
+
+        <input id="group" name="group" type="hidden" value="{{group}}">
+
+        <div class="col-sm-1">
+            <i class="fa-solid fa-floppy-disk fa-2x" onclick="save()"></i>
+        </div>
+
+    </div>
+</form>
+
+
+
+{% for configGroup in configGroups %}
+<form name="configdownload" class="form-inline" >
+
+    <div class="form-group row">
+
+        <div class="col-sm-2">
+            <label for="inputPassword4">Groups</label>
+            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/.*/" name="regex_download" value="{{configGroup.group}}" onKeyUp="searchRerex()" readonly>
+        </div>
+
+        <div class="col-sm-3">
+            <label for="inputPassword4">Regex download</label>
+            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/.*/" name="regex_download" value="{{configGroup.regex_download}}" onKeyUp="searchRerex()">
+        </div>
+
+
+        <div class="col-sm-3">
+            <label for="inputPassword4">Regex rename</label>
+            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/(.*)/\1/" name="regex_rename" value="{{configGroup.regex_rename}}" onKeyUp="searchRerex()">
+        </div>
+
+        <div class="col-sm-3">
+            <label for="inputPassword4">Folder download</label>
+            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/downloads" name="folder_download" value="{{configGroup.folder_download}}">
+        </div>
+
+        <input id="group" name="group" type="hidden" value="{{group}}">
+
+        
+        <div class="col-sm-1">
+
+                  <i class="fa-solid fa-floppy-disk fa-2x" onclick="save()"></i>
+        </div>
+
+    </div>
+</form>
+{% endfor %}
+
+
+
+
+  
+
+
+
+
+
+<script>
+
+    function searchRerex() {
+        
+        console.log(document.configdownload.group.value)
+        console.log(document.configdownload)
+        console.log($(document.configdownload).serialize())  
+        console.log(decodeURIComponent($(document.configdownload).serialize()))  
+
+        $.ajax({
+            url: `/detail/regex/get/` + document.configdownload.group.value,
+            data: $(document.configdownload).serialize(),
+            type: "POST",
+        }).done(function (response) { //
+
+            $('#data_telegram').empty();
+            $("#data_telegram").html(response);
+
+        });
+
+    }
+
+    function save() {
+        
+        console.log(document.configdownload.group.value)
+        console.log(document.configdownload)
+        console.log($(document.configdownload).serialize())  
+        console.log(decodeURIComponent($(document.configdownload).serialize()))  
+
+        $.ajax({
+            url: `/detail/regex/set/` + document.configdownload.group.value,
+            data: $(document.configdownload).serialize(),
+            type: "POST",
+        }).done(function (response) { //
+
+
+        });
+
+    }
+
+    function downloadFile(group,message_id) {
+
+        save()
+
+        $("#i-" + message_id).css('color', 'rgb(149 131 39)');
+
+        console.log(group)
+        console.log(message_id)
+        
+        data = {'group':group, 'message_id':message_id}
+        console.log(data)
+
+        $.ajax({
+            url: `/pyrogram/downloadFile`,
+            data: data,
+            type: "POST",
+        }).done(function (response) { //
+            console.log(response)
+
+
+            if (response) {
+                $("#i-" + message_id).css('color', 'green');
+            }
+        });
+
+
+    }
+
+
+
+
+
+
+
+
+</script>
+{% endblock %}
+
+

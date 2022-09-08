@@ -9,7 +9,6 @@ import pdb
 import utils.telegram
 import utils.config
 import utils.db
-import utils.db
 
 from flask import Flask, request, session, render_template, jsonify
 
@@ -112,7 +111,7 @@ async def todb():
                 newdata.file_size      = d.video.file_size
                 newdata.status         = ""
 
-                result = newDatabase.saveData(newdata)
+                result = newDatabase.saveGroup(newdata)
                 print(f" >>>>>>> newDatabase [{result}]" ,flush=True)
 
         if request.method == 'POST':

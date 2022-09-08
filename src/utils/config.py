@@ -137,6 +137,35 @@ def getFileRename(data,_regex_download,_regex_rename):
         print(f" >>>>>>> Exception getFileRename [{e}]" ,flush=True)
         return regex, rename
 
+def getFileRename2(data,_regex_download,_regex_rename):
+
+    regex = {}
+    rename = {}
+
+    try:
+        for d in data:
+
+            if d.file_name == None: 
+                filename = d.caption
+            else:
+                filename = d.file_name
+
+            if re.match(_regex_download, filename,re.I):
+                regex[d.id] = True
+                mrr = re.match('/(.*)/(.*)/', _regex_rename)
+                if mrr: 
+                    filename_rename = re.sub(mrr.group(1), mrr.group(2), filename, flags=re.I)
+                    #print(f"filename_rename [{filename_rename}]", flush=True)
+                    rename[d.id] = filename_rename
+                else: rename[d.id] = filename
+            else:
+                regex[d.id] = False
+
+        return regex,rename
+    except Exception as e:
+        print(f" >>>>>>> Exception getFileRename [{e}]" ,flush=True)
+        return regex, rename
+
 def setDownloadPath(channel, value):
     config = read_config_file()
 

@@ -1,11 +1,11 @@
 import os
 import time
 import shutil
-import pdb, asyncio, json
+import asyncio
+import json
+import pdb
 
 from pyrogram import Client
-from pyrogram.errors import FloodWait
-from tabulate import tabulate
 
 import utils.config
 
@@ -19,9 +19,13 @@ PGID = os.environ['PGID']
 
 progress_array = {}
 
+
+
 async def get_chat_history(group='me',limit=30, init=None):
 
     data = []
+
+
 
     try:
 
@@ -36,7 +40,9 @@ async def get_chat_history(group='me',limit=30, init=None):
                 async for message in app.get_chat_history(ifDIgit(group),limit=limit):
                     #print(f" >>>>>>> [{message.media}]" ,flush=True)
                     if str(message.media) == "MessageMediaType.VIDEO":
-                        data.append(message) 
+                        data.append(message)
+
+
             else:
 
                 list = intToArray(init,limit)

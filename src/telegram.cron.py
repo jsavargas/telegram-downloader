@@ -10,7 +10,6 @@ import time
 from pyrogram import Client
 from pyrogram.errors import FloodWait
 from tabulate import tabulate
-from tabulate import tabulate
 
 import utils.config
 import utils.db
@@ -28,6 +27,26 @@ PGID = os.environ['PGID']
 __version__ = "VERSION 0.0.6"
 _INIT = utils.config._INIT
 _LIMIT = utils.config._LIMIT
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="MKV Tools - Delete Spam.")
+    parser.add_argument('-v','--version', action='version', version="%(prog)s " + __version__)
+
+                    
+    parser.add_argument('-g', '--group', type=str, required=True, help='group to process')
+    parser.add_argument('-i', '--init', type=str, default=_INIT, required=False, help='group to process')
+    parser.add_argument('-l', '--limit', type=int, default=_LIMIT, required=False, help='group to process')
+ 
+ 
+    parser.add_argument('-d', '--download', action='store_true', help='download files')
+    
+
+
+
+    args = parser.parse_args()
+    return args
+
 
 async def main(args):
 
@@ -78,8 +97,9 @@ async def main(args):
 
         print("")
         print("")
-        time.sleep(10) 
         if args.download:
+            time.sleep(10) 
+            
             for d in data:
                 down = True if d.id in downloaded else False
                 if regex[d.id] and not down:
@@ -113,24 +133,6 @@ async def botSend(message,message_bot=None):
   
 
 
-
-def parse_args():
-    parser = argparse.ArgumentParser(description="MKV Tools - Delete Spam.")
-    parser.add_argument('-v','--version', action='version', version="%(prog)s " + __version__)
-
-                    
-    parser.add_argument('-g', '--group', type=str, required=True, help='group to process')
-    parser.add_argument('-i', '--init', type=str, default=_INIT, required=False, help='group to process')
-    parser.add_argument('-l', '--limit', type=int, default=_LIMIT, required=False, help='group to process')
- 
- 
-    parser.add_argument('-d', '--download', action='store_true', help='download files')
-    
-
-
-
-    args = parser.parse_args()
-    return args
 
 
 if __name__ == "__main__":

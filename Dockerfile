@@ -12,16 +12,20 @@ WORKDIR /app
 # install the dependencies and packages in the requirements file
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
+ENV FLASK_APP=app.py
+ENV FLASK_RUN_HOST=0.0.0.0
+ENV FLASK_DEBUG=1
+
 # copy every content from the local file to the image
 COPY src /app
-COPY entry.sh /entry.sh
+#COPY entry.sh /entry.sh
 
 EXPOSE 5000
 
 #RUN echo '*       *       *       *       *       run-parts /entry.sh > /entry.log' >> /etc/crontabs/root
 
 # configure the container to run in an executed manner
-ENTRYPOINT [ "sh" ]
 
-CMD ["/entry.sh" ]
+#CMD ["/entry.sh" ]
+CMD ["flask", "run"]
 
