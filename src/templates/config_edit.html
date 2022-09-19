@@ -39,9 +39,10 @@
         <input id="group" name="group" type="hidden" value="{{configGroups[0].group}}">
         <input id="ID" name="ID" type="hidden" value="{{configGroups[0].ID}}">
 
-        <div class="col-sm-1 p-1 align-self-end">
+        <div class="col-sm-1 py-1 align-self-end">
             <i class="fa-solid fa-floppy-disk fa-2x" onclick="save()"></i>
-            <i class="fa-solid fa-arrows-rotate fa-2x" onclick="reload()"></i>
+            <i class="ps-1 fa-solid fa-sync fa-2x" onclick="reload()"></i>
+
         </div>
 
     </div>
@@ -62,6 +63,9 @@
 
 
 <script>
+
+
+
 
     function searchRerex() {
         
@@ -102,11 +106,13 @@
 
     function reload() {
 
+        $(".fa-sync").addClass("fa-spin");
+        
         console.log(document.configdownload.group.value)
         console.log(document.configdownload)
         console.log($(document.configdownload).serialize())  
         console.log(decodeURIComponent($(document.configdownload).serialize()))  
-
+        
         $.ajax({
             url: `/reload/` + document.configdownload.group.value,
             data: $(document.configdownload).serialize(),
@@ -114,6 +120,7 @@
         }).done(function (response) { //
             $('#data_telegram').empty();
             $("#data_telegram").html(response);
+            $(".fa-sync").removeClass("fa-spin");
         });
 
     }

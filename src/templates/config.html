@@ -12,34 +12,29 @@
 
         <div class="col-sm-2">
             <label for="inputPassword4">Groups</label>
-            <select id="inputState" class="form-control" onchange="location = this.value;">
-                <option>Groups</option>
-                {% for channel in channels %}
-                <option value="/config/edit/{{channel}}" {% if group == channel %}selected="selected"{% endif %}>{{channel}}</option>
-                {% endfor %}
-            </select>
+            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="group" name="group" value="">
         </div>
 
         <div class="col-sm-3">
             <label for="inputPassword4">Regex download</label>
-            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/.*/" name="regex_download" value="{{regex_download}}" onKeyUp="searchRerex()">
+            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/.*/" name="regex_download" value="">
         </div>
 
         <div class="col-sm-3">
             <label for="inputPassword4">Regex rename</label>
-            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/(.*)/\1/" name="regex_rename" value="{{regex_rename}}" onKeyUp="searchRerex()">
+            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/(.*)/\1/" name="regex_rename" value="">
         </div>
 
         <div class="col-sm-3">
             <label for="inputPassword4">Folder download</label>
-            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/downloads" name="folder_download" value="{{folder_download}}">
+            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/downloads" name="folder_download" value="">
         </div>
 
-        <input id="group" name="group" type="hidden" value="{{group}}">
 
-        <div class="col-sm-1">
+        <div class="col-sm-1 py-1 align-self-end">
             <i class="fa-solid fa-floppy-disk fa-2x" onclick="save()"></i>
         </div>
+
 
     </div>
 </form>
@@ -48,13 +43,13 @@
 
 
 {% for configGroup in configGroups %}
-<form name="configdownload" class="form-inline" >
+<form name="configdownload-{{configGroup.group}}" class="form-inline" >
 
     <div class="form-group row">
 
         <div class="col-sm-2">
             <label for="inputPassword4">Groups</label>
-            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/.*/" name="regex_download" value="{{configGroup.group}}" onKeyUp="searchRerex()" readonly>
+            <input name="group" type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/.*/" name="regex_download" value="{{configGroup.group}}" onKeyUp="searchRerex()" readonly>
         </div>
 
         <div class="col-sm-3">
@@ -73,13 +68,8 @@
             <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/downloads" name="folder_download" value="{{configGroup.folder_download}}">
         </div>
 
-        <input id="group" name="group" type="hidden" value="{{group}}">
+        <input id="group" name="group" type="hidden" value="{{configGroup.group}}">
 
-        
-        <div class="col-sm-1">
-
-                  <i class="fa-solid fa-floppy-disk fa-2x" onclick="save()"></i>
-        </div>
 
     </div>
 </form>
@@ -95,6 +85,9 @@
 
 
 <script>
+
+
+
 
     function searchRerex() {
         
@@ -119,6 +112,8 @@
     function save() {
         
         console.log(document.configdownload.group.value)
+
+
         console.log(document.configdownload)
         console.log($(document.configdownload).serialize())  
         console.log(decodeURIComponent($(document.configdownload).serialize()))  
@@ -128,11 +123,35 @@
             data: $(document.configdownload).serialize(),
             type: "POST",
         }).done(function (response) { //
-
-
+            location.reload();
         });
 
     }
+
+
+    function reload(obj) {
+
+        
+        console.log(obj)
+        alert(obj)
+        
+        $(".fa-sync").addClass("fa-spin");
+
+        console.log(document.configdownload.group.value)
+        console.log(document.configdownload)
+        console.log($(document.configdownload).serialize())  
+        console.log(decodeURIComponent($(document.configdownload).serialize()))  
+
+        $.ajax({
+            url: `/reload/` + document.configdownload.group.value,
+            data: $(document.configdownload).serialize(),
+            type: "POST",
+        }).done(function (response) { //
+            $(".fa-sync").removeClass("fa-spin");
+        });
+
+    }
+
 
     function downloadFile(group,message_id) {
 

@@ -24,7 +24,7 @@
         <input id="group" name="group" type="hidden" value="{{group}}">
 
         <div class="col-sm-1 p-1 align-self-end">
-            <i class="fa-solid fa-arrows-rotate fa-2x" onclick="reload()"></i>
+            <i class="fa-solid fa-sync fa-2x" onclick="reload()"></i>
         </div>
 
     </div>
@@ -84,6 +84,7 @@
 
     }
     function reload() {
+        $(".fa-sync").addClass("fa-spin");
 
         console.log(document.configdownload.group.value)
         console.log(document.configdownload)
@@ -97,6 +98,7 @@
         }).done(function (response) { //
             $('#data_telegram').empty();
             $("#data_telegram").html(response);
+            $(".fa-sync").removeClass("fa-spin");
         });
 
     }
