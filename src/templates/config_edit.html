@@ -9,7 +9,7 @@
 
 <form name="configdownload">
 
-    <div class="form-group row">
+    <div class="form-group row p-1 align-items-center">
 
         <div class="col-sm-2">
             <label for="inputPassword4">Groups</label>
@@ -23,7 +23,7 @@
 
         <div class="col-sm-3">
             <label for="inputPassword4">Regex download</label>
-            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/.*/" name="regex_download" value="{{configGroups[0].regex_rename}}" onKeyUp="searchRerex()">
+            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/.*/" name="regex_download" value="{{configGroups[0].regex_download}}" onKeyUp="searchRerex()">
         </div>
 
         <div class="col-sm-3">
@@ -39,8 +39,9 @@
         <input id="group" name="group" type="hidden" value="{{configGroups[0].group}}">
         <input id="ID" name="ID" type="hidden" value="{{configGroups[0].ID}}">
 
-        <div class="col-sm-1">
+        <div class="col-sm-1 p-1 align-self-end">
             <i class="fa-solid fa-floppy-disk fa-2x" onclick="save()"></i>
+            <i class="fa-solid fa-arrows-rotate fa-2x" onclick="reload()"></i>
         </div>
 
     </div>
@@ -83,7 +84,7 @@
     }
 
     function save() {
-        
+
         console.log(document.configdownload.group.value)
         console.log(document.configdownload)
         console.log($(document.configdownload).serialize())  
@@ -94,11 +95,49 @@
             data: $(document.configdownload).serialize(),
             type: "POST",
         }).done(function (response) { //
+               
+        });
+
+    }
+
+    function reload() {
+
+        console.log(document.configdownload.group.value)
+        console.log(document.configdownload)
+        console.log($(document.configdownload).serialize())  
+        console.log(decodeURIComponent($(document.configdownload).serialize()))  
+
+        $.ajax({
+            url: `/reload/` + document.configdownload.group.value,
+            data: $(document.configdownload).serialize(),
+            type: "POST",
+        }).done(function (response) { //
+            $('#data_telegram').empty();
+            $("#data_telegram").html(response);
+        });
+
+    }
+
+
+    function add() {
+        
+        console.log(document.configdownload.group.value)
+        console.log($(document.configdownload).serialize())  
+        console.log(decodeURIComponent($(document.configdownload).serialize()))  
+
+        $.ajax({
+            url: `/detail/regex/add/` + document.configdownload.group.value,
+            data: $(document.configdownload).serialize(),
+            type: "POST",
+        }).done(function (response) { //
 
 
         });
 
     }
+
+
+    
 
     function downloadFile(group,message_id) {
 
@@ -111,18 +150,19 @@
         
         data = {'group':group, 'message_id':message_id}
         console.log(data)
-
+        
         $.ajax({
             url: `/pyrogram/downloadFile`,
             data: data,
             type: "POST",
         }).done(function (response) { //
             console.log(response)
-
-
+            
             if (response) {
                 $("#i-" + message_id).css('color', 'green');
             }
+        }).fail(function (response) { //
+            $("#i-" + message_id).css('color', 'red');            
         });
 
 

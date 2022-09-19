@@ -27,14 +27,17 @@ def home(group=None):
 
     print(f" >>>>>>> history [{data}]" ,flush=True)
 
+    configGroups = newDatabase.getConfigGroup(group)
+    if configGroups:
+        _regex_download     = configGroups[0]['regex_download']
+        _regex_rename       = configGroups[0]['regex_rename']
+        _folder_download    = configGroups[0]['folder_download']
 
-
-    #return jsonify(data)
+    regex, rename = utils.config.getFileRename2(data,_regex_download,_regex_rename)
 
     return render_template(
-        'index_all.html', group=group, data=data, regex='regex', channels=groups, regex_download='_regex_download', folder_download='_folder_download', regex_rename='_regex_rename', rename='rename', downloaded=downloaded
+        'index_all.html', group=group, data=data, regex=regex, rename=rename, channels=groups
     )
-
 
 
 @detail.route('/detail/edit/<group>',methods=['GET','POST'])
@@ -55,28 +58,12 @@ def edit(group=None):
 
     regex = {}
     rename = {}
-    configGroups = []
+
     configGroups = newDatabase.getConfigGroup(group)
     if configGroups:
         _regex_download     = configGroups[0]['regex_download']
         _regex_rename       = configGroups[0]['regex_rename']
         _folder_download    = configGroups[0]['folder_download']
-    else:
-        configGroups.append({})
-        configGroups[0]['group']            = group
-        configGroups[0]['regex_download']   = ""
-        configGroups[0]['regex_rename']     = ""
-        configGroups[0]['folder_download']  = ""
-        configGroups[0]['ID']               = ""
-
-
-    #dataGroup = Object()
-    #dataGroup.group              = group       
-    #dataGroup.regex_download     = _regex_download       
-    #dataGroup.regex_name         = _regex_rename  
-    #dataGroup.folder_download    = _folder_download          
-    #dataGroup.status             = True        
-    #configGroup = newDatabase.saveConfigGroup(dataGroup)
 
 
     regex, rename = utils.config.getFileRename2(data,_regex_download,_regex_rename)
@@ -85,7 +72,6 @@ def edit(group=None):
     print(f" [!] groupData >>> regex [{regex}] ", flush=True)
     print(f" [!] groupData >>> rename [{rename}] ", flush=True)
 
-    #return jsonify(data)
 
     return render_template(
         'config_edit.html', groups=groups, data=data, configGroups=configGroups, regex=regex, rename=rename, downloaded=downloaded
@@ -96,7 +82,6 @@ def edit(group=None):
 
 @detail.route('/detail/regex/get/<group>',methods=['GET','POST'])
 async def groupData(group):
-
 
     channels = []
     regex = {}
@@ -167,12 +152,22 @@ async def save(group):
     print(f" [!] POST >>> _regex_rename [{_regex_rename}]", flush=True)
     print(f" [!] POST >>> _folder_download [{_folder_download}]", flush=True)
 
+    data = Object()
+
+    data.group = group
+    data.regex_download = _regex_download
+    data.regex_rename = _regex_rename
+    data.folder_download = _folder_download
+    data.status = 1
+
+    configGroups = newDatabase.saveConfigGroup(data)
+    return f"[{configGroups}]"
 
     #_folder_download = utils.config.setDownloadPath(group,_folder_download)
     #_regex_download = utils.config.setRegex_download(group,_regex_download)
     #_regex_rename = utils.config.setRegex_rename(group,_regex_rename)
 
-    return f"[{group}]"
+    return f"[{data}]"
 
 
 

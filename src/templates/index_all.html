@@ -9,7 +9,7 @@
 
 <form name="configdownload">
 
-    <div class="form-group row">
+    <div class="form-group row p-1 align-items-center">
 
         <div class="col-sm-5">
             <label for="inputPassword4">Groups</label>
@@ -19,6 +19,12 @@
                 <option value="/detail/{{channel}}" {% if group == channel %}selected="selected"{% endif %}>{{channel}}</option>
                 {% endfor %}
             </select>
+        </div>
+
+        <input id="group" name="group" type="hidden" value="{{group}}">
+
+        <div class="col-sm-1 p-1 align-self-end">
+            <i class="fa-solid fa-arrows-rotate fa-2x" onclick="reload()"></i>
         </div>
 
     </div>
@@ -74,6 +80,23 @@
         }).done(function (response) { //
 
 
+        });
+
+    }
+    function reload() {
+
+        console.log(document.configdownload.group.value)
+        console.log(document.configdownload)
+        console.log($(document.configdownload).serialize())  
+        console.log(decodeURIComponent($(document.configdownload).serialize()))  
+
+        $.ajax({
+            url: `/reload/` + document.configdownload.group.value,
+            data: $(document.configdownload).serialize(),
+            type: "POST",
+        }).done(function (response) { //
+            $('#data_telegram').empty();
+            $("#data_telegram").html(response);
         });
 
     }

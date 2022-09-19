@@ -1,6 +1,8 @@
-
+TgCrypto
 tabulate
 Pyrogram
 asyncio
 Flask
 asgiref
+
+

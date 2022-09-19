@@ -1,5 +1,10 @@
-import sqlite3
+import os
 import time
+import sqlite3
+
+import utils
+import asyncio
+
 
 class Database:
 
@@ -9,223 +14,297 @@ class Database:
 
         conn = sqlite3.connect(self.DATABASE)
 
-        conn.execute("CREATE TABLE IF NOT EXISTS students ('name' TEXT, 'addr' TEXT, 'city' TEXT, 'pin' TEXT)")
-        conn.execute("CREATE TABLE IF NOT EXISTS downloader ( 'group' TEXT, 'regex' TEXT, 'regex_name' TEXT, 'id' INTEGER, 'date' TEXT, 'file_name' TEXT, 'caption' TEXT, 'width' TEXT, 'file_size' INTEGER, 'status' TEXT)")
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS students ('name' TEXT, 'addr' TEXT, 'city' TEXT, 'pin' TEXT)")
+        conn.execute("CREATE TABLE IF NOT EXISTS downloader ( 'group' TEXT, 'regex' TEXT, 'regex_name' TEXT, 'id' INTEGER, 'date' TEXT, 'file_name' TEXT, 'caption' TEXT, 'width' TEXT, 'file_size' INTEGER, 'status' BOOLEAN)")
         conn.execute("CREATE TABLE IF NOT EXISTS groups ( ID INTEGER PRIMARY KEY AUTOINCREMENT, 'group' TEXT, 'regex_download' TEXT, 'regex_rename' TEXT, 'folder_download' TEXT, 'status' BOOLEAN )")
-
 
         createSecondaryIndex = "CREATE UNIQUE INDEX IF NOT EXISTS index_group_id ON downloader('group','id')"
         conn.execute(createSecondaryIndex)
 
-
         conn.close()
 
-
-    def getHistory(self,group=None):
+    def getHistory(self, group=None):
         conn = sqlite3.connect(self.DATABASE)
         conn.row_factory = sqlite3.Row
 
-        if group==None:
+        if group == None:
             query = "SELECT * FROM downloader ORDER BY `group`,`id` DESC "
         else:
             query = f"SELECT * FROM downloader where `group` = '{group}' ORDER BY `group`,`id` DESC"
 
-        print(f" >>>>>>> getHistory [{query}]" ,flush=True)
+        print(f" >>>>>>> getHistory [{query}]", flush=True)
 
         data = conn.execute(query).fetchall()
 
         conn.close()
 
-        
-        return [studentDef(*row) for row in data]
-
+        return [downloaderObj(*row) for row in data]
 
         return "getHistory"
+
+    def getLastIDHistory(self,group=None):
+        conn = sqlite3.connect(self.DATABASE)
+        cursor=conn.cursor()
+
+        if group:
+            query = f"SELECT max(id) FROM downloader where `group` = '{group}'"
+
+            print(f" >>>>>>> getLastIDHistory [{query}]" ,flush=True)
+
+            cursor.execute(query)
+            lastID = cursor.fetchone()[0]
+        else:
+            lastID = 0
+
+        conn.close()
+        
+        print(f" >>>>>>> getLastIDHistory [{lastID}]" ,flush=True)
+        
+        return lastID
+
+        
+
 
 
 
 
     def getGroups(self):
 
-        return ["hijosdeldesiertocaps","laleydebaltazarcapitulos",
-        "laleydebaltazar","hastaencontrarte","traicionada_mega","laleydebaltazarcl"]
+        return ["hijosdeldesiertocaps", "laleydebaltazarcapitulos",
+                "laleydebaltazar", "hastaencontrarte", "traicionada_mega", "laleydebaltazarcl"]
 
-    def getConfigGroup(self,group=None):
+    def getConfigGroup(self, group=None):
 
         conn = sqlite3.connect(self.DATABASE)
         conn.row_factory = sqlite3.Row
 
-        if group==None:
+        if group == None:
             query = "SELECT * FROM groups ORDER BY `group`,`id` ASC "
         else:
             query = f"SELECT * FROM groups where `group` = '{group}' ORDER BY `group`,`id` ASC"
 
-        print(f" >>>>>>> getHistory [{query}]" ,flush=True)
+        print(f" >>>>>>> getHistory [{query}]", flush=True)
 
         data = conn.execute(query).fetchall()
 
         conn.close()
+        if not data:
+            data = []
+            data.append({})
+            data[0]['group'] = group
+            data[0]['regex_download'] = ""
+            data[0]['regex_rename'] = ""
+            data[0]['folder_download'] = ""
+            data[0]['ID'] = ""
 
         return [row for row in data]
-        return [studentDef(*row) for row in data]
 
-    def saveConfigGroup(self,config):
+    def saveConfigGroup(self, config):
 
-        print(f" >>>>>>> saveConfigGroup [{config}]" ,flush=True)
-        print(f" >>>>>>> saveConfigGroup [{config.regex_download}]" ,flush=True)
+        print(f" >>>>>>> saveConfigGroup [{config}]", flush=True)
+        print(
+            f" >>>>>>> saveConfigGroup [{config.regex_download}]", flush=True)
 
         try:
-            
-            sqliteConnection  = sqlite3.connect(self.DATABASE)
+
+            sqliteConnection = sqlite3.connect(self.DATABASE)
             cursor = sqliteConnection.cursor()
+            sqliteConnection.row_factory = sqlite3.Row
 
+            resp = sqliteConnection.execute(
+                f"SELECT * FROM groups WHERE `group` = '{config.group}'").fetchall()
 
-            count = cursor.execute("INSERT INTO groups (`group`, 'regex_download', 'regex_rename', 'folder_download', 'status' ) VALUES (?,?,?,?,?)",(config.group, config.regex_download, config.regex_name, config.folder_download, config.status) )
+            print(f" >>>>>>> SELECT * FROM groups [{resp}]", flush=True)
+
+            if resp:
+                try:
+
+                    print(f" >>>>>>> UPDATE", flush=True)
+                    count = cursor.execute("UPDATE groups SET `regex_download`=?,`regex_rename`=?,`folder_download`=?,`status`=? WHERE `group`=?", (
+                        config.regex_download, config.regex_rename, config.folder_download, config.status, config.group))
+                    sqliteConnection.commit()
+                    print(
+                        f" >>>>>>> Record successfully UPDATE [{count}]", flush=True)
+                    cursor.close()
+
+                    return 10
+                except Exception as e:
+                    print(
+                        f" >>>>>>> Record Exception UPDATE [{e}]", flush=True)
+
+            count = cursor.execute("INSERT INTO groups (`group`, 'regex_download', 'regex_rename', 'folder_download', 'status' ) VALUES (?,?,?,?,?)", (
+                config.group, config.regex_download, config.regex_rename, config.folder_download, config.status))
             #count = cursor.execute("INSERT INTO students (name , addr , city , pin  ) VALUES (?,?,?,?)",(str(data.group),data.regex,str(data.regex_name),str(data.id)) )
             #count = cursor.execute("INSERT INTO downloader ('group', 'regex', 'regex_name', 'id'  ) VALUES (?,?,?,?)",(str(data.group),data.regex,str(data.regex_name),str(data.id)) )
-                
+
             sqliteConnection.commit()
             msg = "Record successfully added"
-            print(f" >>>>>>> Record successfully added [{count}]" ,flush=True)
+            print(f" >>>>>>> Record successfully added [{count}]", flush=True)
             cursor.close()
-
-
-            time.sleep(3)
         except:
             msg = "error in insert operation"
-            print(f" >>>>>>> error in insert operation" ,flush=True)
+            print(f" >>>>>>> error in insert operation", flush=True)
 
             sqliteConnection.rollback()
-            time.sleep(3)
-        
+
         finally:
             if sqliteConnection:
                 sqliteConnection.close()
 
-            time.sleep(3)
             return cursor.rowcount
 
         return cursor.rowcount
 
-
-    def saveData(self,data,group):
-
+    def saveData(self, data):
 
         try:
 
             #data.group, data.regex, data.regex_name, data.id, data.date, data.file_name, data.caption, data.width, data.file_size, data.status
-            print(f" >>>>>>> saveData [{d.group}]" ,flush=True)
-            print(f" >>>>>>> saveData [{d.regex}]" ,flush=True)
-            print(f" >>>>>>> saveData [{d.regex_name}]" ,flush=True)
-            print(f" >>>>>>> saveData [{d.id}]" ,flush=True)
-            print(f" >>>>>>> saveData [{d.date}]" ,flush=True)
-            print(f" >>>>>>> saveData [{d.file_name}]" ,flush=True)
-            print(f" >>>>>>> saveData [{d.caption}]" ,flush=True)
-            print(f" >>>>>>> saveData [{d.width}]" ,flush=True)
-            print(f" >>>>>>> saveData [{d.file_size}]" ,flush=True)
-            print(f" >>>>>>> saveData [{d.status}]" ,flush=True)
+            print(f" >>>>>>> saveData [{data.group}]", flush=True)
+            print(f" >>>>>>> saveData [{data.regex}]", flush=True)
+            print(f" >>>>>>> saveData [{data.regex_name}]", flush=True)
+            print(f" >>>>>>> saveData [{data.id}]", flush=True)
+            print(f" >>>>>>> saveData [{data.date}]", flush=True)
+            print(f" >>>>>>> saveData [{data.file_name}]", flush=True)
+            print(f" >>>>>>> saveData [{data.caption}]", flush=True)
+            print(f" >>>>>>> saveData [{data.width}]", flush=True)
+            print(f" >>>>>>> saveData [{data.file_size}]", flush=True)
+            print(f" >>>>>>> saveData [{data.status}]", flush=True)
 
-            
-            sqliteConnection  = sqlite3.connect(self.DATABASE)
+            sqliteConnection = sqlite3.connect(self.DATABASE)
             cursor = sqliteConnection.cursor()
 
-
-            count = cursor.execute("INSERT INTO downloader ('group', 'regex', 'regex_name', 'id', 'date', 'file_name', 'caption', 'width', 'file_size', 'status') VALUES (?,?,?,?,?,?,?,?,?,?)",(d.group, d.regex, d.regex_name, d.id, d.date, d.file_name, d.caption, d.width, d.file_size, d.status) )
+            count = cursor.execute("INSERT INTO downloader ('group', 'regex', 'regex_name', 'id', 'date', 'file_name', 'caption', 'width', 'file_size', 'status') VALUES (?,?,?,?,?,?,?,?,?,?)", (
+                data.group, data.regex, data.regex_name, data.id, data.date, data.file_name, data.caption, data.width, data.file_size, data.status))
             #count = cursor.execute("INSERT INTO students (name , addr , city , pin  ) VALUES (?,?,?,?)",(str(data.group),data.regex,str(data.regex_name),str(data.id)) )
             #count = cursor.execute("INSERT INTO downloader ('group', 'regex', 'regex_name', 'id'  ) VALUES (?,?,?,?)",(str(data.group),data.regex,str(data.regex_name),str(data.id)) )
-                
+
             sqliteConnection.commit()
             msg = "Record successfully added"
-            print(f" >>>>>>> Record successfully added [{count}]" ,flush=True)
+            print(f" >>>>>>> Record successfully added [{count}]", flush=True)
             cursor.close()
 
-
-            time.sleep(3)
-        except:
-            msg = "error in insert operation"
-            print(f" >>>>>>> error in insert operation" ,flush=True)
+        except Exception as e:
+            print(f" >>>>>>> error in insert operation [{e}]", flush=True)
 
             sqliteConnection.rollback()
-            time.sleep(3)
-        
+
         finally:
             if sqliteConnection:
                 sqliteConnection.close()
 
-            time.sleep(3)
             return cursor.rowcount
 
         return cursor.rowcount
 
+    def updateData(self, group, id, _file_name):
 
+        try:
 
-    def telegramtoData(self,data,group):
+            dirname = os.path.dirname(_file_name)
+            basename = os.path.basename(_file_name)
+
+            #data.group, data.regex, data.regex_name, data.id, data.date, data.file_name, data.caption, data.width, data.file_size, data.status
+
+            sqliteConnection = sqlite3.connect(self.DATABASE)
+            cursor = sqliteConnection.cursor()
+
+            count = cursor.execute(
+                "UPDATE downloader SET `status`=?, regex_name=? WHERE `group`=? AND `id`=?", (1, basename, group, id))
+            #count = cursor.execute("INSERT INTO students (name , addr , city , pin  ) VALUES (?,?,?,?)",(str(data.group),data.regex,str(data.regex_name),str(data.id)) )
+            #count = cursor.execute("INSERT INTO downloader ('group', 'regex', 'regex_name', 'id'  ) VALUES (?,?,?,?)",(str(data.group),data.regex,str(data.regex_name),str(data.id)) )
+
+            sqliteConnection.commit()
+            msg = "Record successfully added"
+            print(f" >>>>>>> Record successfully added updateData [{count}]", flush=True)
+            cursor.close()
+
+            return True
+
+        except Exception as e:
+            print(f" >>>>>>> error in insert operation [{e}]", flush=True)
+
+            sqliteConnection.rollback()
+            return False
+
+        finally:
+            if sqliteConnection:
+                sqliteConnection.close()
+
+            return True
+            return cursor.rowcount
+
+        return True
+        return cursor.rowcount
+
+    def telegramtoData(self, data, group):
 
         newdata = []
         for d in data:
             try:
-                print(f" >>>>>>> telegramtoData [{d}]" ,flush=True)
 
                 newObject = Object()
-                newObject.group          = group
-                newObject.regex          = ""
-                newObject.regex_name     = ""
-                newObject.id             = d.id
-                newObject.date           = d.date
-                newObject.file_name      = d.video.file_name
-                newObject.caption        = d.caption 
-                newObject.width          = f"{d.video.width}x{d.video.height}"
-                newObject.file_size      = d.video.file_size
-                newObject.status         = ""
+                newObject.group = group
+                newObject.regex = ""
+                newObject.regex_name = ""
+                newObject.id = d.id
+                newObject.date = d.date
+                newObject.file_name = d.video.file_name
+                newObject.caption = d.caption
+                newObject.width = f"{d.video.width}x{d.video.height}"
+                newObject.file_size = d.video.file_size
+                newObject.status = ""
 
                 newdata.append(newObject)
 
                 self.saveData(newObject)
 
-            except:
-                msg = "error in insert operation"
-                print(f" >>>>>>> error in insert operation" ,flush=True)
+                print(
+                    f" >>>>>>> telegramtoData file_size [{newObject.file_size}]", flush=True)
+            except Exception as e:
+                print(
+                    f" >>>>>>> telegramtoData error in insert operation [{e}]", flush=True)
+
         return newdata
-
-
-
-
 
 
 class Data:
 
-    group         = ''
-    regex         = ''
-    regex_name    = ''
-    id            = ''
-    date          = ''
-    file_name     = ''
-    caption       = ''
-    width         = ''
-    file_size     = ''
-    status        = ''
+    group = ''
+    regex = ''
+    regex_name = ''
+    id = ''
+    date = ''
+    file_name = ''
+    caption = ''
+    width = ''
+    file_size = ''
+    status = ''
 
 
-class studentDef(object):
-    def __init__(self, group, regex, regex_name, id, date, file_name, caption, width, file_size , status ):
-        self.group        = group       
-        self.regex        = regex       
-        self.regex_name   = regex_name  
-        self.id           = id          
-        self.date         = date        
-        self.file_name    = file_name   
-        self.caption      = caption     
-        self.width        = width       
-        self.file_size    = int(file_size)   
-        self.status       = status      
+class downloaderObj(object):
+    def __init__(self, group, regex, regex_name, id, date, file_name, caption, width, file_size, status):
+        self.group = group
+        self.regex = regex
+        self.regex_name = regex_name
+        self.id = id
+        self.date = date
+        self.file_name = file_name
+        self.caption = caption
+        self.width = width
+        self.file_size = int(file_size)
+        self.status = status
+
 
 class dataGroup(object):
     def __init__(self, group, regex_download, regex_name, folder_download, status):
-        self.group              = group       
-        self.regex_download     = regex_download       
-        self.regex_name         = regex_name  
-        self.folder_download    = folder_download          
-        self.status             = status        
+        self.group = group
+        self.regex_download = regex_download
+        self.regex_name = regex_name
+        self.folder_download = folder_download
+        self.status = status
+
 
 class Object(object):
     pass

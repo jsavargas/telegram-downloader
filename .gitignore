@@ -7,7 +7,7 @@ __pycache__
 *.ini
 *~
 *.dev.*
-
+*_
 .env
 TODO
 *session-journal
@@ -15,3 +15,10 @@ config/downloaded.txt
 leeme.txt
 bash.txt
 database.db
+
+
+telegram.cli.py
+utils.py
+telegram.cron.py
+
+

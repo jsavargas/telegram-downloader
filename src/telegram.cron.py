@@ -92,7 +92,7 @@ async def main(args):
                 t_data.append([d.id, down, regex[d.id], rename[d.id], d.video.file_name, d.caption])
                 #print(f' file_name {down} => [{d.id}]:{regex[d.id]} - [{rename[d.id]}] => [{d.video.file_name}]',flush=True)
 
-        print(tabulate(t_data, headers=[ 'ID', 'Downloaded','Enabled','New Name', 'File Name', 'Caption'], tablefmt='pretty',stralign='left'))
+        print(tabulate(t_data, headers=[ 'ID', 'Finish','Enabled','New Name', 'File Name', 'Caption'], tablefmt='pretty',stralign='left'))
 
 
         print("")

@@ -79,10 +79,6 @@ async def downloadFile(group,message_id):
         _folder_download = utils.config.getDownloadPath(group)
         _regex_rename = utils.config.getRegex_rename(group)
 
-        #print(f"telegram downloadFile [{_regex_download}]", flush=True)
-        #print(f"telegram downloadFile [{_folder_download}]", flush=True)
-        #print(f"telegram downloadFile [{_regex_rename}]", flush=True)
-
         async with Client("/config/my_account", api_id=APP_ID, api_hash=API_HASH) as app:
 
             f = await app.get_messages(group,[int(message_id)])
@@ -119,7 +115,6 @@ async def downloadFile(group,message_id):
                 os.chown(final_file_path, int(PUID), int(PGID))
                 os.chmod(final_file_path, 0o666)
 
-                time.sleep(2)
                 print(f"download file: {final_file_path}, {sizeof_fmt(message.video.file_size)}", flush=True)
                 message_bot = await botSend(f"download file: {final_file_path}, {sizeof_fmt(message.video.file_size)}",message_bot)
 
@@ -133,6 +128,117 @@ async def downloadFile(group,message_id):
         print(inst , flush=True)          # __str__ allows args to be printed directly,
 
         return False
+
+
+
+async def downloadFile2(group,message_id):
+
+    try:
+        #TODO: get filename desde la base de datos 
+
+        
+
+        _file_name, file_size = downloadFile_temp(group,message_id)
+        print(f"download file: {final_file_path}, {sizeof_fmt(message.video.file_size)}", flush=True)
+
+        _file_name = renameFile_temp(group,_file_name)
+        print(f"download file: {final_file_path}, {sizeof_fmt(message.video.file_size)}", flush=True)
+
+        _file_name = moveFile_temp(_file_name)
+        print(f"download file: {final_file_path}, {sizeof_fmt(message.video.file_size)}", flush=True)
+
+    except Exception as inst:
+        print(f"Exception telegram downloadFile [{inst}]", flush=True)    # the exception instance
+
+
+
+
+
+
+
+
+async def downloadFile_temp(group,message_id):
+
+    print(f"downloadFile_temp: {group}, {message_id}", flush=True)
+
+    try:
+        async with Client("/config/my_account", api_id=APP_ID, api_hash=API_HASH) as app:
+
+            f = await app.get_messages(group,[int(message_id)])
+            for message in f:
+
+                if message.video.file_name == None: 
+                    filename = message.caption
+                else:
+                    filename = message.video.file_name
+
+                temp_file_path = os.path.join(utils.config.DOWNLOAD_PATH,filename)
+
+                await app.download_media(message, file_name=temp_file_path, progress=progress, progress_args=[message_bot,text,group,message_id])
+
+
+        return temp_file_path,message.video.file_size
+
+    except Exception as inst:
+        print(f"Exception telegram downloadFile [{inst}]", flush=True)    # the exception instance
+        await botSend(f"Exception telegram downloadFile: {inst}")
+        print(type(inst) , flush=True)    # the exception instance
+        print(inst.args , flush=True)     # arguments stored in .args
+        print(inst , flush=True)          # __str__ allows args to be printed directly,
+
+        return None
+
+
+async def renameFile_temp(group,filename):
+    try:
+
+        newDatabase = Database()
+        configGroups = newDatabase.getConfigGroup(group)
+        if configGroups:
+            _regex_download     = configGroups[0]['regex_download']
+            _regex_rename       = configGroups[0]['regex_rename']
+            _folder_download    = configGroups[0]['folder_download']
+    
+        regex, rename = utils.config.getFileRename2(data,_regex_download,_regex_rename)
+
+
+
+        return temp_file_path,message.video.file_size
+
+    except Exception as inst:
+        print(f"Exception telegram downloadFile [{inst}]", flush=True)    # the exception instance
+        await botSend(f"Exception telegram downloadFile: {inst}")
+        print(type(inst) , flush=True)    # the exception instance
+        print(inst.args , flush=True)     # arguments stored in .args
+        print(inst , flush=True)          # __str__ allows args to be printed directly,
+
+        return None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def sizeof_fmt(num, suffix="B"):

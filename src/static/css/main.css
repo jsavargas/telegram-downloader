@@ -4,3 +4,20 @@
     font-size: 14px;
 }
 
+.ellipsis {
+    /*max-width: 100px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;*/
+}
+.nowrap {
+    /*max-width: 100px;
+    text-overflow: ellipsis;
+    overflow: hidden;*/
+    white-space: nowrap;
+}
+
+.navbar-brand {
+
+    padding-left: 55px;
+}
