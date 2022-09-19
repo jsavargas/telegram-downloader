@@ -1,43 +1,41 @@
-
-
-
 <div id="data_telegram" class="py-3">
 
+    <div class="table-responsive">
 
-<table class="table table-striped" id="asteroidTable">
-    <thead>
-        <tr>
-            <th>group</th>
-            <th>id</th>
-            <th>regex</th>
-            <th>width</th>
-            <th>file_size</th>
-            <th>regex rename</th>
-            <th>file_name</th>
-            <th>caption</th>
-            <th>date</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for d in data %}
-        <tr>
-            <td><a href="/detail/edit/{{d.group}}">{{ d.group }}</a></td>
-            <td>{{ d.id }}</td>
-            <td>{% if regex[d.id]==True %}<i class="fa-solid fa-check" style="color:green"></i>{% else %}<i class="fa-solid fa-xmark" style="color:red"></i>{% endif %}</td>
-            <td class="nowrap">{{ d.width }}</td>
-            <td class="nowrap">{{ human_readable_size(d.file_size) }}</td>
-            <td class="nowrap"><b>{{ rename[d.id] }}</b></td>
-            <td class="nowrap">{{ d.file_name }}</td>
-            <td class="ellipsis">{{ d.caption }}</td>
-            <td>{{ d.date }}</td>
-            <th><i id="i-{{d.id}}" class="fa-solid fa-download" {% if d.status %} style="color:green" style="color:red" {% endif %} onclick="downloadFile('{{d.group}}',{{d.id}})"></i></th>
-            </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        <table class="table table-striped" id="asteroidTable">
+            <thead>
+                <tr>
+                    <th>group</th>
+                    <th>id</th>
+                    <th>regex</th>
+                    <th>width</th>
+                    <th>file_size</th>
+                    <th>regex rename</th>
+                    <th>file_name</th>
+                    <th>caption</th>
+                    <th>date</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in data %}
+                <tr>
+                    <td><a href="/detail/edit/{{d.group}}">{{ d.group }}</a></td>
+                    <td>{{ d.id }}</td>
+                    <td>{% if regex[d.id]==True %}<i class="fa-solid fa-check" style="color:green"></i>{% else %}<i
+                            class="fa-solid fa-xmark" style="color:red"></i>{% endif %}</td>
+                    <td class="nowrap">{{ d.width }}</td>
+                    <td class="nowrap">{{ human_readable_size(d.file_size) }}</td>
+                    <td class="nowrap"><b>{{ rename[d.id] }}</b></td>
+                    <td class="nowrap">{{ d.file_name }}</td>
+                    <td class="ellipsis">{{ d.caption }}</td>
+                    <td>{{ d.date }}</td>
+                    <th><i id="i-{{d.id}}" class="fa-solid fa-download" {% if d.status %} style="color:green"
+                            style="color:red" {% endif %} onclick="downloadFile('{{d.group}}',{{d.id}})"></i></th>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
+    </div>
 </div>
-
-
-
