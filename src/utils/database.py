@@ -14,8 +14,7 @@ class Database:
 
         conn = sqlite3.connect(self.DATABASE)
 
-        conn.execute(
-            "CREATE TABLE IF NOT EXISTS students ('name' TEXT, 'addr' TEXT, 'city' TEXT, 'pin' TEXT)")
+        conn.execute("CREATE TABLE IF NOT EXISTS students ('name' TEXT, 'addr' TEXT, 'city' TEXT, 'pin' TEXT)")
         conn.execute("CREATE TABLE IF NOT EXISTS downloader ( 'group' TEXT, 'regex' TEXT, 'regex_name' TEXT, 'id' INTEGER, 'date' TEXT, 'file_name' TEXT, 'caption' TEXT, 'width' TEXT, 'file_size' INTEGER, 'status' BOOLEAN)")
         conn.execute("CREATE TABLE IF NOT EXISTS groups ( ID INTEGER PRIMARY KEY AUTOINCREMENT, 'group' TEXT, 'regex_download' TEXT, 'regex_rename' TEXT, 'folder_download' TEXT, 'status' BOOLEAN )")
 
@@ -65,11 +64,21 @@ class Database:
 
         
 
-
-
-
-
     def getGroups(self):
+
+        conn = sqlite3.connect(self.DATABASE)
+        conn.row_factory = sqlite3.Row
+
+        query = "SELECT DISTINCT `group` FROM groups ORDER BY `group`,`ID` DESC "
+
+        print(f" >>>>>>> getGroups [{query}]", flush=True)
+
+        data = conn.execute(query).fetchall()
+
+        conn.close()
+
+        return [row['group'] for row in data]
+
 
         return ["hijosdeldesiertocaps", "laleydebaltazarcapitulos",
                 "laleydebaltazar", "hastaencontrarte", "traicionada_mega", "laleydebaltazarcl"]
