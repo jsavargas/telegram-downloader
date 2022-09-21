@@ -1,31 +1,35 @@
 
+# python3 create_config.py  # CREATE /config/my_account => pyrogram
+
 version: "3.9"
 services:
-  telegram-downloader-flask:
-    image: jsavargas/telegram-downloader-flask:developer
-    container_name: telegram-downloader-flask #t-flask
+  telegram-downloader:
+    image: jsavargas/telegram-downloader:alfa
+    container_name: telegram-download #t-flask
     environment:
       - PUID=99
       - PGID=100
       - OWNER=@jsavargas
-      - APP_ID=11
-      - API_HASH=e80ad
-      - BOT_TOKEN=454:IluzJheMr9m-p4
+      - APP_ID=131 # Your Nickname Telegram
+      - API_HASH=3efad
+      - BOT_TOKEN=3945:Pd09m-p9
       - TZ=America/Santiago
     volumes:
       - ./config:/config
-      - /mnt/user/download/telegram:/download
+      - /mnt/user/download/torrent/telegram/bot:/download
+      - /mnt/user/media/media/series:/series
     ports:
       - 5555:5000
-        
-        
+
+
+
         
 # OWNER = Tu usuario
 # BOT_TOKEN = token del bot donde se enviaran notificaciones
         
 
-# docker exec -it telegram-downloader-flask sh
-# python create_config.py  # CREATE /config/my_account => pyrogram
+# docker exec -it telegram-downloader sh
+# python3 create_config.py  # CREATE /config/my_account => pyrogram
 
-# docker exec -it telegram-downloader-flask python create_config.py
+# docker exec -it telegram-downloader python3 create_config.py
 
