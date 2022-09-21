@@ -59,3 +59,6 @@ docker exec -it telegram-download python telegram.cli.py -g traicionada_mega -d
 
 ### Config
 ![](img/002.png)
+
+![](img/003-cli.png)
+
