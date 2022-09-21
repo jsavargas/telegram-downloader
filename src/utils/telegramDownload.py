@@ -5,6 +5,7 @@ import asyncio
 import json
 import pdb
 import re
+from tqdm import tqdm
 
 from pyrogram import Client
 
@@ -34,7 +35,6 @@ async def get_chat_history(group='me',limit=30, init=None):
 
     try:
 
-
         newDatabase = Database()
         lastID = newDatabase.getLastIDHistory(group)
 
@@ -51,8 +51,8 @@ async def get_chat_history(group='me',limit=30, init=None):
             if not init:
                 async for message in app.get_chat_history(ifDIgit(group),limit=limit):
                     print(f" >>>>>>> [{message.id}]" ,flush=True)
+                    if message.id <= lastID: break
                     if str(message.media) == "MessageMediaType.VIDEO":
-                        if message.id <= lastID: break
                         data.append(message)
             else:
 
@@ -85,7 +85,7 @@ async def downloadFile(group,message_id):
         _file_name, caption, file_size, message_bot = await downloadFile_temp(group,message_id)
         print(f" [*] downloadFile: [{_file_name}], [{sizeof_fmt(file_size)}]", flush=True)
 
-        temp_file_path, final_file_path = await getFileRename_temp(group,_file_name,caption)
+        temp_file_path, final_file_path = getFileRename_temp(group,_file_name,caption)
         print(f" [*] downloadFile getFileRename_temp: [{temp_file_path}][{final_file_path}], [{sizeof_fmt(file_size)}]", flush=True)
         message_bot = await botSend(f"moving: {temp_file_path} to {final_file_path}  => {sizeof_fmt(file_size)}",message_bot)
 
@@ -107,6 +107,8 @@ async def downloadFile(group,message_id):
 
 
 async def downloadFile_temp(group,message_id):
+    global pbar
+
     try:
         message_bot = None
         print(f"downloadind {group}\n message_id:{int(message_id)}", flush=True)    # the exception instance
@@ -131,9 +133,10 @@ async def downloadFile_temp(group,message_id):
                 if os.path.exists(temp_file_path) and (message.video.file_size == os.path.getsize(temp_file_path)):
                     print("d >>>>>>>>> downloadFile_temp exists [{}]".format(os.path.getsize(temp_file_path)), flush=True)    # the exception instance
                     return filename,message.caption,message.video.file_size,message_bot
-                                
+                
+                pbar = tqdm(total=100, desc =f" {message_id}")
                 await app.download_media(message, file_name=temp_file_path, progress=progress, progress_args=[message_bot,text,group,message_id])
-
+                pbar.close()
 
         return filename,message.caption,message.video.file_size,message_bot
 
@@ -146,7 +149,7 @@ async def downloadFile_temp(group,message_id):
 
         return None
 
-async def getFileRename_temp(group, file_name,caption=None):
+def getFileRename_temp(group, file_name,caption=None):
 
     try:
         newDatabase = Database()
@@ -223,19 +226,24 @@ async def progress(current, total, *args):
 
     try:
         global progress_array
+        global pbar
+
 
         message_id, text, group, id = args[0], args[1], args[2], int(args[3])
-
+        
         int_value = int(float("{:.2f}".format(current * 100 / total)) // 1)
         #print(f"progress progress [{int_value}][{progress_array}]", flush=True)    # the exception instance
-        
+        if ( (int_value) % 5 == 0): 
+            pbar.n = (int(current * 100 / total))
+            pbar.refresh() 
+
         if id not in progress_array:
             progress_array[id] = int_value   
         
         if progress_array[id] != int_value:
             progress_array[id] = int_value
             if ( (int_value) % 10 == 0): 
-                #print(f"{current * 100 / total}% {args}",  flush=True)
+
                 await botSend(f"{text} {current * 100 / total:.1f}%",message_id)
         if int_value == 100:
             progress_array.pop(id)

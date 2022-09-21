@@ -4,5 +4,5 @@ Pyrogram
 asyncio
 Flask
 asgiref
-
+tqdm
 

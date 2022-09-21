@@ -32,7 +32,7 @@ class Database:
         else:
             query = f"SELECT * FROM downloader where `group` = '{group}' ORDER BY `group`,`id` DESC"
 
-        print(f" >>>>>>> getHistory [{query}]", flush=True)
+        #print(f" >>>>>>> getHistory [{query}]", flush=True)
 
         data = conn.execute(query).fetchall()
 
@@ -71,7 +71,7 @@ class Database:
 
         query = "SELECT DISTINCT `group` FROM groups ORDER BY `group`,`ID` DESC "
 
-        print(f" >>>>>>> getGroups [{query}]", flush=True)
+        #print(f" >>>>>>> getGroups [{query}]", flush=True)
 
         data = conn.execute(query).fetchall()
 
@@ -93,7 +93,7 @@ class Database:
         else:
             query = f"SELECT * FROM groups where `group` = '{group}' ORDER BY `group`,`id` ASC"
 
-        print(f" >>>>>>> getHistory [{query}]", flush=True)
+        #print(f" >>>>>>> getConfigGroup [{query}]", flush=True)
 
         data = conn.execute(query).fetchall()
 

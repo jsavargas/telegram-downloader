@@ -24,7 +24,6 @@ def home():
 
     newDatabase = Database()
 
-
     data = newDatabase.getHistory()
     groups = newDatabase.getGroups()
 

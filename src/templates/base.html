@@ -4,11 +4,10 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Telegram downloader Config </title>
+        <title>Telegram Downloader</title>
 
         <!-- Font Awesome CDN -->
         <script src="https://kit.fontawesome.com/febcac8871.js" crossorigin="anonymous"></script>
-
         <!-- This is the Bootstrap/Bootswatch CSS -->
         <link href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
 
@@ -30,13 +29,20 @@
             {% block content %}{% endblock %}
         </div>
 
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script> -->
 
         <!-- This is the Bootstrap JavaScript. It depends on jQuery. -->
         <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.3/js/bootstrap.min.js"></script>
 
         <!-- Handlebars.js is for front-end templating. -->
-        <script src="////cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
+        <!-- <script src="////cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script> -->
+
+        <script
+        src="https://code.jquery.com/jquery-3.6.1.min.js"
+        integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ="
+        crossorigin="anonymous"></script>
+        
+        <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.tableSortable.js') }}"></script>
 
         <!-- This block will load any extra page-specific JavaScript -->
         {% block footer_scripts %}{% endblock %}
