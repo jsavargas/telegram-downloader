@@ -17,7 +17,6 @@ bash.txt
 database.db
 
 
-telegram.cli.py
 utils.py
 telegram.cron.py
 
