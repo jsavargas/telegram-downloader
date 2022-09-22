@@ -38,18 +38,18 @@ async def get_chat_history(group='me',limit=30, init=None):
         newDatabase = Database()
         lastID = newDatabase.getLastIDHistory(group)
 
-        print(f" [!] get_chat_history lastID [{lastID}]" ,flush=True)
+        #print(f" [!] get_chat_history lastID [{lastID}]" ,flush=True)
 
         async with Client("/config/my_account", api_id=APP_ID, api_hash=API_HASH) as app:
             #await xbot.send_message(OWNER, OWNER)
 
             chat = await app.get_chat(ifDIgit(group))
 
-            print(f"[!] >>>>>>> chat.title [{chat.title}]" ,flush=True)
-            print(f"[!] >>>>>>> lastID [{lastID}]" ,flush=True)
+            #print(f"[!] >>>>>>> chat.title [{chat.title}]" ,flush=True)
+            #print(f"[!] >>>>>>> lastID [{lastID}]" ,flush=True)
             if not init:
                 async for message in app.get_chat_history(ifDIgit(group),limit=limit):
-                    print(f" >>>>>>> [{message.id}]" ,flush=True)
+                    #print(f" >>>>>>> [{message.id}]" ,flush=True)
                     if not lastID == None and message.id <= lastID: break
                     if str(message.media) == "MessageMediaType.VIDEO":
                         data.append(message)
@@ -76,11 +76,8 @@ async def downloadFile(group,message_id):
         #TODO: get filename desde la base de datos
         newDatabase = Database()
 
-        _file_name = 'La ley de Baltazar _ Avance Capítulo 67 _ Mega.mp4'
-        file_size = 23000000
         #TODO:
 
-        print(f"\n\n\n [*]  [*]  [*]  [*]  [*]  [*] downloadFile: [{_file_name}], [{sizeof_fmt(file_size)}]", flush=True)
         _file_name, caption, file_size, message_bot = await downloadFile_temp(group,message_id)
         print(f" [*] downloadFile: [{_file_name}], [{sizeof_fmt(file_size)}]", flush=True)
 
