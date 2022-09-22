@@ -47,11 +47,10 @@ async def get_chat_history(group='me',limit=30, init=None):
 
             print(f"[!] >>>>>>> chat.title [{chat.title}]" ,flush=True)
             print(f"[!] >>>>>>> lastID [{lastID}]" ,flush=True)
-
             if not init:
                 async for message in app.get_chat_history(ifDIgit(group),limit=limit):
                     print(f" >>>>>>> [{message.id}]" ,flush=True)
-                    if message.id <= lastID: break
+                    if not lastID == None and message.id <= lastID: break
                     if str(message.media) == "MessageMediaType.VIDEO":
                         data.append(message)
             else:

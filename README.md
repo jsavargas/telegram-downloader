@@ -1,4 +1,7 @@
-# telegram downloader 
+
+# telegram downloader (alfa) 
+
+
 **telegram downloader is a program to download files from channels that prevent the forwarding of messages to a bot, allowing the download of files using the personal account via the web UI and command line**
 
 ## docker-compose
@@ -62,3 +65,88 @@ docker exec -it telegram-download python telegram.cli.py -g traicionada_mega -d
 
 ![](img/003-cli.png)
 
+## Step by Step
+
+1. Create config
+```
+docker exec -it telegram-download python create_config.py 
+``` 
+![](img/config-001.png)
+
+2. Enter http://IP:Port
+
+![](img/config-002.png)
+
+3. Enter http://IP:Port/config
+
+![](img/config-003.png)
+
+4. Add Group Name download files
+
+![](img/config-004.png)
+
+![](img/config-005.png)
+
+![](img/config-006.png)
+
+![](img/config-007.png)
+
+![](img/config-008.png)
+
+5. Add "Regex download", "Regex rename" and "Folder download"
+
+- **Regex download:** regex to enable files to be downloaded (empty, enable all)
+- **Regex rename:** file renaming regex (empty, do not rename anything)
+- **Folder download:** folder where the files will be downloaded (vacia, descarga en la carpeta por default "/download")
+
+Click here to edit the regular expression options and the folder where the files will be downloaded
+
+### Example:
+**Regex download:** "Regex download"
+>NOTE: regex to enable files to be downloaded (empty, enable all)
+
+**Regex rename:** "/.*(\d{2}).*/new_name_\1.mp4/"
+>NOTE: file renaming regex (empty, do not rename anything)
+
+>NOTE: **Part one:** /.*(\d{2}).*/
+
+>NOTE: **Second Part:** /new_name_\1.mp4/
+
+
+![](img/config-009.png)
+
+![](img/config-010.png)
+
+![](img/config-011.png)
+
+![](img/config-012.png)
+
+![](img/config-013.png)
+
+Download one at a time, one by one
+
+![](img/config-014.png)
+
+![](img/config-015.png)
+
+The arrow turns green when the download is complete
+
+![](img/config-016.png)
+
+
+
+### Another example
+
+Disable downloading of files containing the word "avance"
+
+![](img/config-o-001.png)
+
+## Downloads by terminal
+
+```
+docker exec -it telegram-download python telegram.cli.py -h
+docker exec -it telegram-download python telegram.cli.py -g hastaencontrarte
+
+```
+
+![](img/config-terminal-001.png)
