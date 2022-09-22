@@ -34,7 +34,7 @@ def parse_args():
     parser.add_argument('-g', '--group', type=str, required=True, help='group to process')
     parser.add_argument('-i', '--init', type=str, default=_INIT, required=False, help='init')
     parser.add_argument('-l', '--limit', type=int, default=_LIMIT, required=False, help='limit to list')
-    parser.add_argument('-f', '--force', action='store_true', help='force update list')
+    parser.add_argument('-u', '--update', action='store_true', help='force update list')
  
 
     parser.add_argument('--groups', action='store_true', help='get groups on db')
@@ -86,7 +86,7 @@ async def group(args):
 
         newDatabase = Database()
         newUTILS = UTILS()
-        data = await newUTILS.getHistory(args.group,args.force)
+        data = await newUTILS.getHistory(args.group,args.update)
 
         count = 0
 

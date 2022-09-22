@@ -130,6 +130,7 @@ async def downloadFile_temp(group,message_id):
                     print("d >>>>>>>>> downloadFile_temp exists [{}]".format(os.path.getsize(temp_file_path)), flush=True)    # the exception instance
                     return filename,message.caption,message.video.file_size,message_bot
                 
+                print("")
                 pbar = tqdm(total=100, desc =f" {message_id}")
                 await app.download_media(message, file_name=temp_file_path, progress=progress, progress_args=[message_bot,text,group,message_id])
                 pbar.close()

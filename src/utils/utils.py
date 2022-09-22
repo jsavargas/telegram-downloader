@@ -24,10 +24,10 @@ class UTILS:
         self.limit = 30
         self.init = None
 
-    async def getHistory(self, group=None, force=False):
+    async def getHistory(self, group=None, update=False):
         try:
             newDatabase = Database()
-            if force: 
+            if update: 
                 await self.updateDatabase(group)
             data = newDatabase.getHistory(group)
             configGroups = newDatabase.getConfigGroup(group)
