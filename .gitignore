@@ -17,7 +17,6 @@ bash.txt
 database.db
 
 
-utils.py
 telegram.cron.py
 
 docker-compose.dev.yml
