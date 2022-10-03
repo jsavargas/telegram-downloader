@@ -9,9 +9,14 @@ import time
 
 from tabulate import tabulate
 
-from utils.database import Database
-from utils.utils import UTILS
+from utils.database import Database, Data, Object
 import utils.telegramDownload
+#from utils.wrapperDatabaseTelegram import WrapperDatabaseTelegram
+
+
+from utils.utils import UTILS
+
+
 
 OWNER = os.environ['OWNER']
 APP_ID = int(os.environ['APP_ID'])
@@ -38,6 +43,9 @@ def parse_args():
  
 
     parser.add_argument('--groups', action='store_true', help='get groups on db')
+    
+    parser.add_argument('--document', action='store_true', help='download files')
+    
     parser.add_argument('-d', '--download', action='store_true', help='download files')
     
     args = parser.parse_args()
@@ -88,6 +96,7 @@ async def group(args):
         newUTILS = UTILS()
         data = await newUTILS.getHistory(args.group,args.update)
 
+        args.group = newUTILS.ifDIgit(args.group)
         count = 0
 
         configGroups = newDatabase.getConfigGroup(args.group)

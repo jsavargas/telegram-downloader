@@ -20,3 +20,4 @@ database.db
 telegram.cron.py
 
 docker-compose.dev.yml
+database.sqbpro

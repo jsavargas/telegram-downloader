@@ -2,9 +2,11 @@ import os
 import time
 import sqlite3
 
-import utils
 import asyncio
 
+from flask import (
+    flash
+    )
 
 class Database:
 
@@ -35,12 +37,13 @@ class Database:
         #print(f" >>>>>>> getHistory [{query}]", flush=True)
 
         data = conn.execute(query).fetchall()
+    
+        #flash('getHistory')
 
         conn.close()
 
         return [downloaderObj(*row) for row in data]
 
-        return "getHistory"
 
     def getLastIDHistory(self,group=None):
         conn = sqlite3.connect(self.DATABASE)
@@ -49,8 +52,6 @@ class Database:
         if group:
             query = f"SELECT max(id) FROM downloader where `group` = '{group}'"
 
-            print(f" >>>>>>> getLastIDHistory [{query}]" ,flush=True)
-
             cursor.execute(query)
             lastID = cursor.fetchone()[0]
         else:
@@ -58,7 +59,7 @@ class Database:
 
         conn.close()
         
-        print(f" >>>>>>> getLastIDHistory [{lastID}]" ,flush=True)
+        print(f" Last ID saved: [{group}] [{lastID}]" ,flush=True)
         
         return lastID
 
@@ -170,16 +171,6 @@ class Database:
         try:
 
             #data.group, data.regex, data.regex_name, data.id, data.date, data.file_name, data.caption, data.width, data.file_size, data.status
-            print(f" >>>>>>> saveData [{data.group}]", flush=True)
-            print(f" >>>>>>> saveData [{data.regex}]", flush=True)
-            print(f" >>>>>>> saveData [{data.regex_name}]", flush=True)
-            print(f" >>>>>>> saveData [{data.id}]", flush=True)
-            print(f" >>>>>>> saveData [{data.date}]", flush=True)
-            print(f" >>>>>>> saveData [{data.file_name}]", flush=True)
-            print(f" >>>>>>> saveData [{data.caption}]", flush=True)
-            print(f" >>>>>>> saveData [{data.width}]", flush=True)
-            print(f" >>>>>>> saveData [{data.file_size}]", flush=True)
-            print(f" >>>>>>> saveData [{data.status}]", flush=True)
 
             sqliteConnection = sqlite3.connect(self.DATABASE)
             cursor = sqliteConnection.cursor()
@@ -191,7 +182,7 @@ class Database:
 
             sqliteConnection.commit()
             msg = "Record successfully added"
-            print(f" >>>>>>> Record successfully added [{count}]", flush=True)
+            print(f" >>>>>>> Record successfully added [{data.group}] [{data.id}]", flush=True)
             cursor.close()
 
         except Exception as e:
@@ -294,17 +285,19 @@ class Data:
 
 class downloaderObj(object):
     def __init__(self, group, regex, regex_name, id, date, file_name, caption, width, file_size, status):
-        self.group = group
-        self.regex = regex
-        self.regex_name = regex_name
-        self.id = id
-        self.date = date
-        self.file_name = file_name
-        self.caption = caption
-        self.width = width
-        self.file_size = int(file_size)
-        self.status = status
-
+        try:
+            self.group = group
+            self.regex = regex
+            self.regex_name = regex_name
+            self.id = id
+            self.date = date
+            self.file_name = file_name
+            self.caption = caption
+            self.width = width
+            self.file_size = int(file_size) 
+            self.status = status
+        except Exception as e:
+            pass
 
 class dataGroup(object):
     def __init__(self, group, regex_download, regex_name, folder_download, status):

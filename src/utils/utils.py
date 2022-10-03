@@ -140,3 +140,36 @@ class UTILS:
             return f"{size:.{decimal_places}f} {unit}"
         except Exception as e:
             print('[!] Exception human_readable_size',e,flush=True)
+
+
+    def ifDIgit(self, channel):
+        channel = str(channel)
+        if channel.startswith('-100') or channel.startswith('-'):
+            channel = channel.replace("-100", "-")
+            channel = channel.replace("-", "-100")
+
+        return int(channel) if any(map(str.isdigit,channel)) else channel
+
+
+    def getFilename(self, message):
+        filename = ""
+        file_size = ""
+        if str(message.media) == "MessageMediaType.VIDEO":
+            filename = message.video.file_name
+            file_size = message.video.file_size
+        if str(message.media) == "MessageMediaType.DOCUMENT":
+            filename = message.document.file_name
+            file_size = message.document.file_size
+        return filename
+
+    def getFilesize(self, message):
+        filename = ""
+        file_size = ""
+        if str(message.media) == "MessageMediaType.VIDEO":
+            filename = message.video.file_name
+            file_size = message.video.file_size
+        if str(message.media) == "MessageMediaType.DOCUMENT":
+            filename = message.document.file_name
+            file_size = message.document.file_size
+        return file_size
+

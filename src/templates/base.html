@@ -19,11 +19,27 @@
             <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
         <![endif]-->
 
-
     </head>
     <body>
-
+      
         {% include '_navbar.html' %}
+
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        {{ message }} </br>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+
+                              
+
+     
 
         <div class="container-fluid p-3">
             {% block content %}{% endblock %}
