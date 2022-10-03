@@ -94,9 +94,9 @@ async def group(args):
 
         newDatabase = Database()
         newUTILS = UTILS()
+        args.group = newUTILS.ifDIgit(args.group)
         data = await newUTILS.getHistory(args.group,args.update)
 
-        args.group = newUTILS.ifDIgit(args.group)
         count = 0
 
         configGroups = newDatabase.getConfigGroup(args.group)
