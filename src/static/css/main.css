@@ -21,3 +21,15 @@
 
     padding-left: 55px;
 }
+
+.alert-error {
+    padding: 12px;
+    border-radius: 3px;
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+    border: 2px solid darkred;
+    background-color: red;
+    color: white;
+  }
+  
+

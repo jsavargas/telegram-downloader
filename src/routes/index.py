@@ -27,7 +27,6 @@ def home():
     data = newDatabase.getHistory()
     groups = newDatabase.getGroups()
 
-    print(f" >>>>>>> history [{data}]" ,flush=True)
 
 
     return render_template(
@@ -72,12 +71,10 @@ async def reload(group=None):
             if data:
                 ndata += newDatabase.telegramtoData(data,group)
             
-        print(f" [!] GET >>> ndata [{ndata}]", flush=True)
 
         if not ndata:
             ndata = newDatabase.getHistory()            
         if group: 
-            print(f" [!] GET 3>>> group IS NONE [{group}]", flush=True)
 
             ndata = newDatabase.getHistory(group)
             configGroups = newDatabase.getConfigGroup(group)
@@ -87,13 +84,6 @@ async def reload(group=None):
                 _folder_download    = configGroups[0]['folder_download']
 
                 regex, rename = utils.config.getFileRename2(ndata,_regex_download,_regex_rename)
-
-
-
-        print(f" [!] GET >>> limit [{limit}]", flush=True)
-        print(f" [!] GET >>> init [{init}]", flush=True)
-        print(f" [!] GET >>> ndata [{ndata}]", flush=True)
-
 
     except Exception as e:
         print(f" >>>>>>> Exception [{e}]" ,flush=True)

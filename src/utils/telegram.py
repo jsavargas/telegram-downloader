@@ -8,6 +8,7 @@ import pdb
 from pyrogram import Client
 
 import utils.config
+from utils.utils import UTILS
 
 OWNER = os.environ['OWNER']
 APP_ID = int(os.environ['APP_ID'])
@@ -167,17 +168,22 @@ async def downloadFile_temp(group,message_id):
             f = await app.get_messages(group,[int(message_id)])
             for message in f:
 
-                if message.video.file_name == None: 
+                newutils = UTILS()
+
+                filename = newutils.getFilename(message)
+                file_size = newutils.getFilesize(message)
+
+                if filename == None: 
                     filename = message.caption
                 else:
-                    filename = message.video.file_name
+                    filename = filename
 
                 temp_file_path = os.path.join(utils.config.DOWNLOAD_PATH,filename)
 
                 await app.download_media(message, file_name=temp_file_path, progress=progress, progress_args=[message_bot,text,group,message_id])
 
 
-        return temp_file_path,message.video.file_size
+        return temp_file_path,file_size
 
     except Exception as inst:
         print(f"Exception telegram downloadFile [{inst}]", flush=True)    # the exception instance

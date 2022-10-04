@@ -11,6 +11,7 @@ from pyrogram import Client
 
 import utils.config
 from utils.database import Database, Data, Object
+from utils.utils import UTILS
 
 OWNER = os.environ['OWNER']
 APP_ID = int(os.environ['APP_ID'])
@@ -49,9 +50,12 @@ async def get_chat_history(group='me',limit=30, init=None):
             #print(f"[!] >>>>>>> lastID [{lastID}]" ,flush=True)
             if not init:
                 async for message in app.get_chat_history(ifDIgit(group),limit=limit):
-                    #print(f" >>>>>>> [{message.id}]" ,flush=True)
+                    print(f" >>>>>>> [{message.id}]" ,flush=True)
+                    print(f" >>>>>>> [{message.media}]" ,flush=True)
                     if not lastID == None and message.id <= lastID: break
                     if str(message.media) == "MessageMediaType.VIDEO":
+                        data.append(message)
+                    if str(message.media) == "MessageMediaType.DOCUMENT":
                         data.append(message)
             else:
 
@@ -112,30 +116,35 @@ async def downloadFile_temp(group,message_id):
             f = await app.get_messages(group,[int(message_id)])
             for message in f:
 
-                if message.video.file_name == None: 
+                newutils = UTILS()
+
+                filename = newutils.getFilename(message)
+                file_size = newutils.getFilesize(message)
+
+                if filename == None: 
                     filename = message.caption
                 else:
-                    filename = message.video.file_name
+                    filename = filename
 
 
                 temp_file_path = os.path.join(utils.config.DOWNLOAD_PATH,'temp',filename)
                 os.makedirs(os.path.join(utils.config.DOWNLOAD_PATH,'temp'), exist_ok=True)
 
-                text = f"downloadind {group}\n file in: {temp_file_path}, {sizeof_fmt(message.video.file_size)}"
+                text = f"downloadind {group}\n file in: {temp_file_path}, {sizeof_fmt(file_size)}"
                 print(text, flush=True)    # the exception instance
                 message_bot = await botSend(text)
 
                 
-                if os.path.exists(temp_file_path) and (message.video.file_size == os.path.getsize(temp_file_path)):
+                if os.path.exists(temp_file_path) and (file_size == os.path.getsize(temp_file_path)):
                     print("d >>>>>>>>> downloadFile_temp exists [{}]".format(os.path.getsize(temp_file_path)), flush=True)    # the exception instance
-                    return filename,message.caption,message.video.file_size,message_bot
+                    return filename,message.caption,file_size,message_bot
                 
                 print("")
                 pbar = tqdm(total=100, desc =f" {message_id}")
                 await app.download_media(message, file_name=temp_file_path, progress=progress, progress_args=[message_bot,text,group,message_id])
                 pbar.close()
 
-        return filename,message.caption,message.video.file_size,message_bot
+        return filename,message.caption,file_size,message_bot
 
     except Exception as inst:
         print(f"Exception telegram downloadFile_temp [{inst}]", flush=True)    # the exception instance
@@ -175,12 +184,7 @@ def getFileRename_temp(group, file_name,caption=None):
 
                 
                 return temp_file_path, final_file_path
-            else: 
-                
-            
-                
-                
-                
+            else:
                 return temp_file_path, final_file_path
         
         return temp_file_path, final_file_path
@@ -260,6 +264,11 @@ async def botSend(message,message_bot=None):
   
 
 def ifDIgit(channel):
+    channel = str(channel)
+
+    if channel.startswith('-100') or channel.startswith('-'):
+        channel = channel.replace("-100", "-")
+        channel = channel.replace("-", "-100")
 
     return int(channel) if any(map(str.isdigit,channel)) else channel
 

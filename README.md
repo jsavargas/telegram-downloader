@@ -14,7 +14,7 @@ services:
     environment:
       - PUID=99
       - PGID=100
-      - OWNER=@jsavargas  # Your Nickname Telegram
+      - OWNER=@YourNicknameTelegram  # Your Nickname Telegram
       - APP_ID=131 
       - API_HASH=3efad
       - BOT_TOKEN=3945:Pd09m-p9
@@ -22,12 +22,11 @@ services:
     volumes:
       - ./config:/config
       - /mnt/user/download/torrent/telegram/bot:/download
-      - /mnt/user/media/media/series:/series
     ports:
-      - 5555:5000
+      - 5000:5000
 ```
 
-## Use
+## Use 
 
 ### Configs (Envs)
 - `BOT_TOKEN` - Get it by contacting to [BotFather](https://t.me/botfather)
@@ -44,20 +43,35 @@ docker-compose up -d
 http://IP:5555
 ```
 
-### Use 
+### How to use step by step 
+
+
+#### First: enter the container
 ```bash
 docker exec -it telegram-downloader sh
+```
 
+#### Second: create telegram credentials for use
+```bash
 Create Credenciales
 docker exec -it telegram-download python create_config.py 
+```
 
+
+### CLI usage
+```
+docker exec -it telegram-download python telegram.cli.py -h
+docker exec -it telegram-download python telegram.cli.py --help 
 
 docker exec -it telegram-download python telegram.cli.py -g traicionada_mega 
 docker exec -it telegram-download python telegram.cli.py -g traicionada_mega -d
-
 ```
 
-### UI
+
+
+
+### UI usage
+
 ![](img/001.png)
 
 ### Config
@@ -146,7 +160,8 @@ Disable downloading of files containing the word "avance"
 ```
 docker exec -it telegram-download python telegram.cli.py -h
 docker exec -it telegram-download python telegram.cli.py -g hastaencontrarte
-
+docker exec -it telegram-download python telegram.cli.py -g hastaencontrarte -d
 ```
 
 ![](img/config-terminal-001.png)
+

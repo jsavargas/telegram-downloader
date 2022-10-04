@@ -18,9 +18,12 @@ newDatabase = Database()
 
 @detail.route('/detail/<group>',methods=['GET','POST'])
 @detail.route('/detail/',methods=['GET','POST'])
-def home(group=None):
+async def home(group=None):
 
     downloaded = []
+
+    limit = request.args.get('limit', default = 10, type = int)
+    init = request.args.get('init', default = None, type = str)
 
     data = newDatabase.getHistory(group)
     groups = newDatabase.getGroups()
