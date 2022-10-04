@@ -14,7 +14,7 @@ services:
     environment:
       - PUID=99
       - PGID=100
-      - OWNER=@jsavargas  # Your Nickname Telegram
+      - OWNER=@YourNicknameTelegram  # Your Nickname Telegram
       - APP_ID=131 
       - API_HASH=3efad
       - BOT_TOKEN=3945:Pd09m-p9
@@ -22,9 +22,8 @@ services:
     volumes:
       - ./config:/config
       - /mnt/user/download/torrent/telegram/bot:/download
-      - /mnt/user/media/media/series:/series
     ports:
-      - 5555:5000
+      - 5000:5000
 ```
 
 ## Use
