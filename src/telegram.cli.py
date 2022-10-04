@@ -117,7 +117,7 @@ async def group(args):
             #print(f" >>>>>>> history [{row['group']}]" ,flush=True)
             t_data.append([row['id'], row['group'], row['status'], row['regex'], row['save_name'], row['regex_rename'], row['file_name'], row['caption'], row['width'], row['file_size']])
 
-        print(tabulate(t_data, headers=[ 'ID', 'Group', 'Finish','Enabled','Save Name', 'Regex Name', 'File Name', 'Caption','width', 'file_size'], tablefmt='pretty',stralign='left'))
+        print(tabulate(t_data, headers=[ 'ID', 'Group', 'Finish','Enabled','Saved Name', 'Regex Name', 'File Name', 'Caption','width', 'file_size'], tablefmt='pretty',stralign='left'))
 
         print("")
         print("")
