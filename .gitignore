@@ -1,0 +1,7 @@
+config/my_account.session
+config/database.db
+
+**/__pycache__
+*.bak
+*.log
+docker-compose.dev.yml

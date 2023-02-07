@@ -1,0 +1,21 @@
+docker run --rm --name=t-flask -d -v $(pwd)/src:/app -v $(pwd)/config:/config --env-file .env -p 5555:5000 flask_docker
+
+docker logs -f t-flask
+
+
+
+#docker run --rm --name=t-flask -d -v $(pwd)/src:/app -v $(pwd)/config:/config --env-file .env -p 5555:5000 -it --entrypoint /bin/sh flask_docker
+
+
+docker run --rm --env-file .env -v $(pwd)/src:/app -v $(pwd)/config:/config -it t-flash-dev sh
+
+
+
+
+
+
+crontab -l | { cat; echo "*/10 * * * * python telegram.cron.py hastaencontrarte"; } | crontab -
+
+
+docker build -t jsavargas/telegram-downloader:alfa .
+docker push jsavargas/telegram-downloader:alfa

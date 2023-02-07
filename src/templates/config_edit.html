@@ -1,0 +1,192 @@
+{% extends '_base.html' %}
+
+
+{% block content %}
+
+
+<div id="message"></div>
+
+<div class="col-sm-12">
+
+<form name="configdownload">
+
+    <div class="form-group row p-1 align-items-center">
+
+        <div class="col-sm-2">
+            <label for="inputPassword4">Groups</label>
+            <select id="inputState" class="form-control" onchange="location = this.value;">
+                <option value="/detail/">Groups</option>
+                {% for group in groups %}
+                <option value="/detail/{{group}}" {% if configGroups[0].group == group %}selected="selected"{% endif %}>{{group}}</option>
+                {% endfor %}
+                <option value="/hijosdeldesiertocaps" {% if group == hijosdeldesiertocaps %}selected="selected"{% endif %}>hijosdeldesiertocaps</option>
+                <option value="/laleydebaltazar" {% if group == laleydebaltazar %}selected="selected"{% endif %}>laleydebaltazar</option>
+            </select>
+        </div>
+
+        <div class="col-sm-3">
+            <label for="inputPassword4">Regex download</label>
+            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/.*/" name="regex_download" value="{{configGroups[0].regex_download}}" onKeyUp="searchRerex()">
+        </div>
+
+        <div class="col-sm-3">
+            <label for="inputPassword4">Regex rename</label>
+            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/(.*)/\1/" name="regex_rename" value="{{configGroups[0].regex_rename}}" onKeyUp="searchRerex()">
+        </div>
+
+        <div class="col-sm-3">
+            <label for="inputPassword4">Folder download</label>
+            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/downloads" name="folder_download" value="{{configGroups[0].folder_download}}">
+        </div>
+
+        <input id="group" name="group" type="hidden" value="{{configGroups[0].group}}">
+        <input id="ID" name="ID" type="hidden" value="{{configGroups[0].ID}}">
+        <input id="data" name="data" type="hidden" value="{{data}}">
+
+        <div class="col-sm-1 py-1 align-self-end">
+            <i class="fa-solid fa-floppy-disk fa-2x" onclick="saveRerex()"></i>
+            <!-- <i class="ps-1 fa-solid fa-sync fa-2x" onclick="reload()"></i> -->
+
+        </div>
+
+    </div>
+</form>
+
+
+</div>
+
+<div id="data_telegram">
+
+    {% include 'data_telegram.html' %}
+
+
+</div>
+
+
+
+
+
+<script>
+
+
+
+
+    function searchRerex() {
+        
+        console.log(document.configdownload.group.value)
+        console.log(document.configdownload)
+        console.log($(document.configdownload).serialize())  
+        console.log(decodeURIComponent($(document.configdownload).serialize()))  
+
+        $.ajax({
+            url: `/regex/get/` + document.configdownload.group.value,
+            data: $(document.configdownload).serialize(),
+            type: "POST",
+        }).done(function (response) { //
+            $('#data_telegram').empty();
+            $("#data_telegram").html(response);
+        });
+    }
+
+    function saveRerex(message=true) {
+
+        console.log(document.configdownload.group.value)
+        console.log(document.configdownload)
+        console.log($(document.configdownload).serialize())  
+        console.log(decodeURIComponent($(document.configdownload).serialize()))  
+
+        $.ajax({
+            url: `/regex/set/` + document.configdownload.group.value,
+            data: $(document.configdownload).serialize(),
+            type: "POST",
+        }).done(function (response) { //
+            if (message){
+                $('#message').html(`<div class="alert alert-warning alert-dismissible fade show" role="alert">Save configurations! 
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>`);
+            }
+        });
+
+    }
+
+    function reload() {
+
+        $(".fa-sync").addClass("fa-spin");
+        
+        console.log(document.configdownload.group.value)
+        console.log(document.configdownload)
+        console.log($(document.configdownload).serialize())  
+        console.log(decodeURIComponent($(document.configdownload).serialize()))  
+        
+        $.ajax({
+            url: `/reload/` + document.configdownload.group.value,
+            data: $(document.configdownload).serialize(),
+            type: "POST",
+        }).done(function (response) { //
+            $('#data_telegram').empty();
+            $("#data_telegram").html(response);
+            $(".fa-sync").removeClass("fa-spin");
+        });
+
+    }
+
+
+    function add() {
+        
+        console.log(document.configdownload.group.value)
+        console.log($(document.configdownload).serialize())  
+        console.log(decodeURIComponent($(document.configdownload).serialize()))  
+
+        $.ajax({
+            url: `/detail/regex/add/` + document.configdownload.group.value,
+            data: $(document.configdownload).serialize(),
+            type: "POST",
+        }).done(function (response) { //
+
+
+        });
+
+    }
+
+
+    
+
+    function downloadFile(group,message_id) {
+
+        saveRerex(false)
+
+        $("#i-" + message_id).css('color', 'rgb(149 131 39)');
+
+        console.log(group)
+        console.log(message_id)
+        
+        data = {'group':group, 'message_id':message_id}
+        console.log(data)
+        
+        $.ajax({
+            url: `/regex/downloadFile`,
+            data: data,
+            type: "POST",
+        }).done(function (response) { //
+            console.log(response)
+            
+            if (response) {
+                $("#i-" + message_id).css('color', 'green');
+            }
+        }).fail(function (response) { //
+            $("#i-" + message_id).css('color', 'red');            
+        });
+
+
+    }
+
+
+
+
+
+
+
+
+</script>
+{% endblock %}
+
+
