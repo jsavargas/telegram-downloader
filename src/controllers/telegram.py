@@ -23,6 +23,7 @@ BOT_TOKEN = os.environ['BOT_TOKEN']
 PUID = os.environ['PUID']
 PGID = os.environ['PGID']
 
+DOWNLOAD_INCOMPLETED = os.getenv('DOWNLOAD_INCOMPLETED') or '/download/incompleted'
 
 def ifDIgit(channel):
     channel = str(channel)
@@ -149,15 +150,16 @@ async def downloadFile(group,message_id):
                     text = f"downloadind file in: {temp_file_path}, {sizeof_fmt(message.document.file_size)}"
 
                 message_bot = None
-                download_path = f"/download/{temp_file_path}"
+                download_path = os.path.join(DOWNLOAD_INCOMPLETED,temp_file_path)
 
-                #await app.download_media(message, file_name=download_path, progress=progress, progress_args=[message_bot,text,group,message_id])
+                if not os.path.exists(download_path):
+                    await app.download_media(message, file_name=download_path, progress=progress, progress_args=[message_bot,text,group,message_id])
                 
-                return True, message_bot,group,download_path,file_name,message.caption
+                return True, message_bot, group, download_path, file_name, message.caption
 
     except Exception as e:
         print(f"[!] >>>>>>> except downloadFile [{e}]" ,flush=True)
-        return False, message_bot,group,download_path,file_name,message.caption
+        return False, message_bot, group, download_path, file_name, message.caption
 
 
 

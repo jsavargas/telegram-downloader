@@ -17,7 +17,7 @@ class Database:
         conn = sqlite3.connect(self.DATABASE)
 
         conn.execute("CREATE TABLE IF NOT EXISTS students ('name' TEXT, 'addr' TEXT, 'city' TEXT, 'pin' TEXT)")
-        conn.execute("CREATE TABLE IF NOT EXISTS downloader ( 'group' TEXT, 'regex' TEXT, 'regex_name' TEXT, 'id' INTEGER, 'date' TEXT, 'file_name' TEXT, 'caption' TEXT, 'width' TEXT, 'file_size' INTEGER, 'status' BOOLEAN)")
+        conn.execute("CREATE TABLE IF NOT EXISTS downloader ('id' INTEGER, 'group' TEXT, 'message_id' TEXT, 'new_name' TEXT, 'file_name' TEXT, 'caption' TEXT, 'regex_download' TEXT, 'regex_rename' TEXT, 'folder_download' TEXT, 'download_final_path' TEXT, 'width' TEXT, 'file_size' INTEGER, 'status' BOOLEAN)")
         conn.execute("CREATE TABLE IF NOT EXISTS groups ( ID INTEGER PRIMARY KEY AUTOINCREMENT, 'group' TEXT, 'regex_download' TEXT, 'regex_rename' TEXT, 'folder_download' TEXT, 'status' BOOLEAN )")
 
         createSecondaryIndex = "CREATE UNIQUE INDEX IF NOT EXISTS index_group_id ON downloader('group','id')"
@@ -160,22 +160,21 @@ class Database:
 
         return cursor.rowcount
 
-    def saveData(self, data):
+    def saveData(self, group, message_id, new_name, file_name, caption, regex_download, regex_rename, folder_download, download_final_path, status, width='', file_size=''):
 
         try:
 
-            #data.group, data.regex, data.regex_name, data.id, data.date, data.file_name, data.caption, data.width, data.file_size, data.status
 
             sqliteConnection = sqlite3.connect(self.DATABASE)
             cursor = sqliteConnection.cursor()
 
-            count = cursor.execute("INSERT INTO downloader ('group', 'regex', 'regex_name', 'id', 'date', 'file_name', 'caption', 'width', 'file_size', 'status') VALUES (?,?,?,?,?,?,?,?,?,?)", (
-                data.group, data.regex, data.regex_name, data.id, data.date, data.file_name, data.caption, data.width, data.file_size, data.status))
+            count = cursor.execute("INSERT INTO downloader ('group', 'message_id', 'new_name', 'file_name', 'caption', 'regex_download', 'regex_rename', 'folder_download', 'download_final_path', 'width', 'file_size', 'status') VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (
+                group, message_id, new_name, file_name, caption, regex_download, regex_rename, folder_download, download_final_path, width,file_size,status))
             #count = cursor.execute("INSERT INTO students (name , addr , city , pin  ) VALUES (?,?,?,?)",(str(data.group),data.regex,str(data.regex_name),str(data.id)) )
             #count = cursor.execute("INSERT INTO downloader ('group', 'regex', 'regex_name', 'id'  ) VALUES (?,?,?,?)",(str(data.group),data.regex,str(data.regex_name),str(data.id)) )
 
             sqliteConnection.commit()
-            print(f" [*] Record successfully added [{data.group}] [{data.id}]", flush=True)
+            print(f" [*] Record successfully added [{group}] [{message_id}]", flush=True)
             cursor.close()
 
         except Exception as e:
@@ -191,7 +190,45 @@ class Database:
 
         return cursor.rowcount
 
-    def updateData(self, group, id, _file_name):
+
+    def ifDownloaded(self,group, message_id):
+
+        try:
+            #print(f" ifDownloaded IN: [{group}] [{message_id}] " ,flush=True)
+
+            conn = sqlite3.connect(self.DATABASE)
+            cursor=conn.cursor()
+
+            if group:
+                query = f"SELECT `status` FROM downloader where `group` = '{group}' and `message_id` = '{message_id}' "
+                cursor.execute(query)
+                
+                data = cursor.fetchone()
+                
+                if data: 
+                    status = True
+                else:
+                    status = False
+
+            else:
+                status = False
+
+            conn.close()
+            
+            #print(f" ifDownloaded: [{group}] [{message_id}] [{status}]" ,flush=True)
+            
+            return status
+
+        except Exception as e:
+            print(f" >>>>>>> error database ifDownloaded [{e}]", flush=True)
+
+            return False
+
+
+
+
+
+    def updateDataaaaaaaa(self, group, id, _file_name):
 
         try:
 

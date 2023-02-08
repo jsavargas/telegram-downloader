@@ -200,10 +200,10 @@ async def downloadFile():
 
         
         configGroups = newDatabase.getConfigGroup(_group)    
-        if configGroups:
-            regex_download  = configGroups[0]['regex_download']
-            regex_rename    = configGroups[0]['regex_rename']
-            folder_download    = configGroups[0]['folder_download']
+
+        regex_download  = configGroups[0]['regex_download'] if configGroups else ''
+        regex_rename    = configGroups[0]['regex_rename'] if configGroups else ''
+        folder_download    = configGroups[0]['folder_download'] if configGroups else '/download/completed'
 
         print(f"regex_rename::{configGroups}",flush=True)
         print(f"regex_download::{regex_download}",flush=True)
@@ -243,7 +243,6 @@ def utility_processor():
     def regexDownload(group, file_name, caption=None,regex_download=None,regex_rename=None):
         download = controllers.download.regexDownload(group, file_name, caption,regex_download,regex_rename)
         return download
-
     return dict(regexDownload=regexDownload)
 
 @index.context_processor
@@ -251,5 +250,11 @@ def utility_processor():
     def regexRename(group, file_name, caption=None,regex_download=None,regex_rename=None):
         rename = controllers.download.regexRename(group, file_name, caption,regex_download,regex_rename)
         return rename
-
     return dict(regexRename=regexRename)
+
+@index.context_processor
+def utility_processor():
+    def ifDownloaded(group, message_id):
+        reifDownloaded = controllers.download.ifDownloaded(group, message_id)
+        return reifDownloaded
+    return dict(ifDownloaded=ifDownloaded)

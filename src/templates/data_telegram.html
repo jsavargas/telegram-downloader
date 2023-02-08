@@ -29,7 +29,7 @@
                     <td>{% if regexDownload(group,d.file_name,d.caption,regex_download,regex_rename) %}<i class="fa-solid fa-check" style="color:green"></i>{% else %}<i
                             class="fa-solid fa-xmark" style="color:red"></i>{% endif %}</td>
                     <td class="nowrap">{{ human_readable_size(d.file_size) }}</td>
-                    <td><i id="i-{{d.id}}" class="fa-solid fa-download" {% if d.status %} style="color:green" style="color:red" {% endif %} onclick="downloadFile('{{group}}',{{d.id}})"></i></td>
+                    <td><i id="i-{{d.id}}" class="fa-solid fa-download" {% if ifDownloaded(group,d.id) %} style="color:green" style="color:red" {% endif %} onclick="downloadFile('{{group}}',{{d.id}})"></i></td>
                     <td class="nowrap">{{ d.width }}x{{d.height}}</td>
                     <td class="nowrap"><b>{{ regexRename(group,d.file_name,d.caption,regex_download,regex_rename) }}</b></td>
                     <td class="ellipsis">{{ d.file_name }}</td>
