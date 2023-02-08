@@ -28,13 +28,41 @@ DOWNLOAD_INCOMPLETED = os.getenv('DOWNLOAD_INCOMPLETED') or '/download/incomplet
 def ifDIgit(channel):
     channel = str(channel)
 
-    if channel.startswith('-100') or channel.startswith('-'):
-        channel = channel.replace("-100", "-")
-        channel = channel.replace("-", "-100")
+    if channel.isnumeric():
+        channel = f"-100{channel}"
+    else:
+        channel = channel.lower()
+
 
     return int(channel) if any(map(str.isdigit,channel)) else channel
 
-async def get_chat_history(group='me',limit=20, init=None):
+
+async def getAllChats():
+    try:
+        async with Client("/config/my_account", api_id=APP_ID, api_hash=API_HASH) as app:
+            temp_chat = []
+            #print(f"[!] >>>>>>> GetAllChats []" ,flush=True)
+            AllChats = await app.invoke(GetAllChats(except_ids=[]))
+            #print(f"[!] >>>>>>> chat.title [{AllChats}]" ,flush=True)
+            #print(f"[!] >>>>>>> chat.title [{AllChats.chats[0]}]" ,flush=True)
+
+            for chat in AllChats.chats:
+                print(f"[!] >>>>>>> chat.title [{chat.title}]" ,flush=True)
+                temp = {}
+                temp['id'] = chat.id
+                temp['title'] = chat.title
+                temp['username'] = chat.username if not getattr(chat, 'username',None) == None else chat.id
+                temp_chat.append(temp)
+    
+            return temp_chat
+
+    except Exception as e:
+        print(f"[!] >>>>>>> except GetAllChats [{e}]" ,flush=True)
+
+
+
+
+async def get_chat_history(group='me',limit=50, init=None):
     data = []
 
     try:

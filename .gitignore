@@ -4,4 +4,6 @@ config/database.db
 **/__pycache__
 *.bak
 *.log
+*.logs
+
 docker-compose.dev.yml

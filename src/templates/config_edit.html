@@ -16,11 +16,9 @@
             <label for="inputPassword4">Groups</label>
             <select id="inputState" class="form-control" onchange="location = this.value;">
                 <option value="/detail/">Groups</option>
-                {% for group in groups %}
-                <option value="/detail/{{group}}" {% if configGroups[0].group == group %}selected="selected"{% endif %}>{{group}}</option>
+                {% for chat in chats|sort(attribute='title') %}
+                <option value="/{{ chat.username }}" {% if chat.username|lower == group|lower %}selected="selected"{% endif %}>{{chat.title}} - {{chat.username}}</option>
                 {% endfor %}
-                <option value="/hijosdeldesiertocaps" {% if group == hijosdeldesiertocaps %}selected="selected"{% endif %}>hijosdeldesiertocaps</option>
-                <option value="/laleydebaltazar" {% if group == laleydebaltazar %}selected="selected"{% endif %}>laleydebaltazar</option>
             </select>
         </div>
 

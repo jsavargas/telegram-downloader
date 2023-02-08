@@ -42,7 +42,7 @@ class Database:
 
         conn.close()
 
-        return [downloaderObj(*row) for row in data]
+        return data
 
 
     def getLastIDHistory(self,group=None):
@@ -227,88 +227,6 @@ class Database:
 
 
 
-
-    def updateDataaaaaaaa(self, group, id, _file_name):
-
-        try:
-
-            dirname = os.path.dirname(_file_name)
-            basename = os.path.basename(_file_name)
-
-            #data.group, data.regex, data.regex_name, data.id, data.date, data.file_name, data.caption, data.width, data.file_size, data.status
-
-            sqliteConnection = sqlite3.connect(self.DATABASE)
-            cursor = sqliteConnection.cursor()
-
-            count = cursor.execute(
-                "UPDATE downloader SET `status`=?, regex_name=? WHERE `group`=? AND `id`=?", (1, basename, group, id))
-            #count = cursor.execute("INSERT INTO students (name , addr , city , pin  ) VALUES (?,?,?,?)",(str(data.group),data.regex,str(data.regex_name),str(data.id)) )
-            #count = cursor.execute("INSERT INTO downloader ('group', 'regex', 'regex_name', 'id'  ) VALUES (?,?,?,?)",(str(data.group),data.regex,str(data.regex_name),str(data.id)) )
-
-            sqliteConnection.commit()
-            #print(f" [*] Record successfully added updateData [{group}] [{id}]", flush=True)
-            cursor.close()
-
-            return True
-
-        except Exception as e:
-            print(f" >>>>>>> error in insert operation [{e}]", flush=True)
-
-            sqliteConnection.rollback()
-            return False
-
-        finally:
-            if sqliteConnection:
-                sqliteConnection.close()
-
-            return True
-            return cursor.rowcount
-
-        return True
-        return cursor.rowcount
-
-    def telegramtoData(self, data, group):
-
-        newdata = []
-        for d in data:
-            try:
-
-                newObject = Object()
-                newObject.group = group
-                newObject.regex = ""
-                newObject.regex_name = ""
-                newObject.id = d.id
-                newObject.date = d.date
-                newObject.file_name = d.video.file_name
-                newObject.caption = d.caption
-                newObject.width = f"{d.video.width}x{d.video.height}"
-                newObject.file_size = d.video.file_size
-                newObject.status = ""
-
-                newdata.append(newObject)
-
-                self.saveData(newObject)
-
-                print(f" >>>>>>> telegramtoData file_size [{newObject.file_size}]", flush=True)
-            except Exception as e:
-                print(
-                    f" >>>>>>> telegramtoData error in insert operation [{e}]", flush=True)
-
-        return newdata
-
-
-class Data:
-
-    group = ''
-    regex = ''
-    regex_name = ''
-    id = ''
-    date = ''
-    file_name = ''
-    caption = ''
-    width = ''
-    file_size = ''
-    status = ''
 
 
 class downloaderObj(object):

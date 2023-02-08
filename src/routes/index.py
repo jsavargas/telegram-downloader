@@ -12,7 +12,7 @@ from flask import (
 
 import json
 
-from controllers.database import Database, Data, Object
+from controllers.database import Database
 import controllers.telegram
 import controllers.download
 
@@ -26,30 +26,30 @@ def favicon():
     return ""
 
 @index.route("/")
-def home():
+async def home():
+    global chats
 
-    downloaded = []
+    history = newDatabase.getHistory()
+    chats = await controllers.telegram.getAllChats()
 
-    #flash('You were successfully logged in')
 
-    return render_template('index.html')
-    return render_template(
-        'index.html', 
-        data=data, 
-        regex='regex', 
-        channels=groups, 
-        regex_download='_regex_download', 
-        folder_download='_folder_download', 
-        regex_rename='_regex_rename', 
-        rename='rename', 
-        downloaded=downloaded
+    print(f" [!] getAllChats [{chats}]", flush=True)
+
+
+    return render_template('index.html',
+        countAll=len(history),
+        chats=chats
     )
 
 
 @index.route("/<group>")
 async def group(group=None):
+    global chats
+
     data = []
     try:
+        group = group.strip().lower()
+
         print(f" [!] GET >>> index.route group [{group}]", flush=True)
 
         data = await controllers.telegram.get_chat_history(group)
@@ -67,7 +67,8 @@ async def group(group=None):
         print(f" [!] Exception index.route group[{group}]", flush=True)
 
 
-    return render_template('index.html',
+    return render_template('data.html',
+        chats=chats, 
         group=group, 
         data=data,
         regex_download=regex_download,
@@ -78,6 +79,8 @@ async def group(group=None):
 @index.route('/edit/<group>',methods=['GET','POST'])
 async def edit(group=None):
     global data
+    global chats
+
     downloaded = []
 
     try:
@@ -98,6 +101,7 @@ async def edit(group=None):
 
     return render_template('config_edit.html',
         group=group, 
+        chats=chats, 
         data=data,
         regex_download=regex_download,
         regex_rename=regex_rename,

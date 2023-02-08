@@ -72,7 +72,7 @@ def ifDownloaded(group, message_id):
         newDatabase = Database()
 
         status = newDatabase.ifDownloaded(group, message_id)
-        print(f" [*] successfully ifDownloaded: [{group}][{message_id}] [{status}]", flush=True)
+        #print(f" [*] successfully ifDownloaded: [{group}][{message_id}] [{status}]", flush=True)
 
         return status
     except Exception as e:
