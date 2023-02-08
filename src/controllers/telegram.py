@@ -62,26 +62,13 @@ async def getAllChats():
 
 
 
-async def get_chat_history(group='me',limit=50, init=None):
+async def get_chat_history(group='me',limit=100, init=None):
     data = []
 
     try:
         print(f"[!] >>>>>>> get_chat_history [{group}]" ,flush=True)
 
         async with Client("/config/my_account", api_id=APP_ID, api_hash=API_HASH) as app:
-
-            #try:
-            #    #print(f"[!] >>>>>>> GetAllChats []" ,flush=True)
-            #    AllChats = await app.invoke(GetAllChats(except_ids=[]))
-            #    #print(f"[!] >>>>>>> chat.title [{AllChats}]" ,flush=True)
-            #    #print(f"[!] >>>>>>> chat.title [{AllChats.chats[0]}]" ,flush=True)
-            #
-            #
-            #    for chat in AllChats.chats:
-            #        print(f"[!] >>>>>>> chat.title [{chat.title}]" ,flush=True)
-            #except Exception as e:
-            #    pass
-
 
             print(f"[!] >>>>>>> app.get_chat " ,flush=True)
             
