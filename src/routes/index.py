@@ -50,9 +50,14 @@ async def group(group=None):
     try:
         group = group.strip().lower()
 
+        if chats is None: chats = await controllers.telegram.getAllChats()
+
         print(f" [!] GET >>> index.route group [{group}]", flush=True)
 
-        data = await controllers.telegram.get_chat_history(group)
+        limit = request.args.get('limit', default = 100, type = int)
+        init = request.args.get('init', default = None, type = str)
+
+        data = await controllers.telegram.get_chat_history(group,limit=limit,init=init)
 
         configGroups = newDatabase.getConfigGroup(group)    
         if configGroups:
@@ -64,7 +69,7 @@ async def group(group=None):
 
 
     except Exception as e:
-        print(f" [!] Exception index.route group[{group}]", flush=True)
+        print(f" [!] Exception index.route group[{e}]", flush=True)
 
 
     return render_template('data.html',
@@ -240,7 +245,6 @@ def utility_processor():
         return f"{size:.{decimal_places}f} {unit}"
 
     return dict(human_readable_size=human_readable_size)
-
 
 @index.context_processor
 def utility_processor():
