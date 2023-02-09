@@ -11,6 +11,11 @@ from flask import (
 )
 
 import json
+import random
+import time
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+
 
 from controllers.database import Database
 import controllers.telegram
@@ -20,6 +25,7 @@ index = Blueprint("index", __name__)
 
 
 newDatabase = Database()
+executor = ThreadPoolExecutor(max_workers=1)
 
 @index.route("/favicon.ico")
 def favicon():
@@ -50,7 +56,8 @@ async def group(group=None):
     try:
         group = group.strip().lower()
 
-        if chats is None: chats = await controllers.telegram.getAllChats()
+        #if chats is None: chats = await controllers.telegram.getAllChats()
+        chats = await controllers.telegram.getAllChats()
 
         print(f" [!] GET >>> index.route group [{group}]", flush=True)
 
@@ -196,6 +203,17 @@ async def setRegex(group):
 
     return f"[{configGroups}]"
 
+# You would use weather_detail here
+async def get_random(_group,_message_id,regex_download,regex_rename,folder_download):
+
+    data = await controllers.download.downloadFile(_group,_message_id,regex_download,regex_rename,folder_download)
+
+    await asyncio.sleep(5.0)
+    return data
+    return random.randint(10, 50)
+
+def wrapper(coro):
+    return asyncio.run(coro)
 
 @index.route('/regex/downloadFile',methods=['POST'])
 async def downloadFile():
@@ -204,9 +222,36 @@ async def downloadFile():
         _group = request.form.get('group')
         _message_id = request.form.get('message_id')
 
+        configGroups = newDatabase.getConfigGroup(_group)    
+        regex_download  = configGroups[0]['regex_download'] if configGroups else ''
+        regex_rename    = configGroups[0]['regex_rename'] if configGroups else ''
+        folder_download    = configGroups[0]['folder_download'] if configGroups else '/download/completed'
+
+
+        arglist = ((_group,_message_id,regex_download,regex_rename,folder_download), )
+        coros = [get_random(_group,_message_id,regex_download,regex_rename,folder_download) for _group,_message_id,regex_download,regex_rename,folder_download in arglist]
+        
+        print("Start", time.ctime(), flush=True)
+        for r in executor.map(wrapper, coros):
+            print(f"{r}, {time.ctime()}", flush=True)        
+            return 'True'
+        
+        return 'False'
+
+        #print("Start", time.ctime(), flush=True)
+        #with ThreadPoolExecutor(max_workers=1) as executor:
+        #    arglist = ((_group,_message_id,regex_download,regex_rename,folder_download), )
+        #    coros = [get_random(_group,_message_id,regex_download,regex_rename,folder_download) for _group,_message_id,regex_download,regex_rename,folder_download in arglist]
+        #    for r in executor.map(wrapper, coros):
+        #        print(f"{r}, {time.ctime()}", flush=True)
+
+        _group = request.form.get('group')
+        _message_id = request.form.get('message_id')
+
         print(f"_group::{_group}",flush=True)
         print(f"_message_id::{_message_id}",flush=True)
 
+        return _message_id
         
         configGroups = newDatabase.getConfigGroup(_group)    
 
