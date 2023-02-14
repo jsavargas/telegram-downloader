@@ -17,7 +17,7 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
 
-from controllers.database import Database
+from controllers.database import Database, Object
 import controllers.telegram
 import controllers.download
 
