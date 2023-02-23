@@ -2,8 +2,12 @@ config/my_account.session
 config/database.db
 
 **/__pycache__
+**/*.dictionary
+
 *.bak
 *.log
 *.logs
+**/dbDownload.json
+**/dbDownload.json.lock
 
 docker-compose.dev.yml

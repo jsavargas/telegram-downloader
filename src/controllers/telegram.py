@@ -47,7 +47,7 @@ async def getAllChats():
             #print(f"[!] >>>>>>> chat.title [{AllChats.chats[0]}]" ,flush=True)
 
             for chat in AllChats.chats:
-                print(f"[!] >>>>>>> chat.title [{chat.title}]" ,flush=True)
+                #print(f"[!] >>>>>>> chat.title [{chat.title}]" ,flush=True)
                 temp = {}
                 temp['id'] = chat.id
                 temp['title'] = chat.title

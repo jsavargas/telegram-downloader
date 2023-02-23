@@ -7,7 +7,8 @@ from flask import (
     Response,
     flash,
     jsonify,
-    session
+    session,
+    send_file
 )
 
 import json
@@ -15,11 +16,15 @@ import random
 import time
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
+import pickle
+
+import os
 
 
 from controllers.database import Database, Object
 import controllers.telegram
 import controllers.download
+import controllers.jsonDB
 
 index = Blueprint("index", __name__)
 
@@ -29,17 +34,31 @@ executor = ThreadPoolExecutor(max_workers=1)
 
 @index.route("/favicon.ico")
 def favicon():
-    return ""
+    print(f" [!] favicon.ico", flush=True)
+
+    return redirect(url_for('static', filename='favicon.ico'), code=302)
+
+
 
 @index.route("/")
 async def home():
     global chats
 
+    print(f" [!] home", flush=True)
+
     history = newDatabase.getHistory()
-    chats = await controllers.telegram.getAllChats()
 
-
-    print(f" [!] getAllChats [{chats}]", flush=True)
+    if os.path.exists('chats.dictionary'):
+        with open('chats.dictionary', 'rb') as config_dictionary_file:
+            # Step 3
+            chats = pickle.load(config_dictionary_file)
+    else:
+        chats = await controllers.telegram.getAllChats()
+        # Step 3
+        with open('chats.dictionary', 'wb') as config_dictionary_file:
+            pickle.dump(chats, config_dictionary_file)
+       
+    #print(f" [!] getAllChats [{chats}]", flush=True)
 
 
     return render_template('index.html',
@@ -48,16 +67,30 @@ async def home():
     )
 
 
+@index.route("/getdb")
+async def getDB(group=None):
+
+    return controllers.jsonDB.getDownloaderDB()
+
+
 @index.route("/<group>")
 async def group(group=None):
     global chats
+    print(f" [!] home.ico 2", flush=True)
 
+    chats = []
     data = []
+
     try:
         group = group.strip().lower()
 
         #if chats is None: chats = await controllers.telegram.getAllChats()
-        chats = await controllers.telegram.getAllChats()
+        #chats = await controllers.telegram.getAllChats()
+        with open('chats.dictionary', 'rb') as config_dictionary_file:
+            # Step 3
+            chats = pickle.load(config_dictionary_file)
+
+
 
         print(f" [!] GET >>> index.route group [{group}]", flush=True)
 
@@ -96,6 +129,21 @@ async def edit(group=None):
     downloaded = []
 
     try:
+
+
+        if os.path.exists('chats.dictionary'):
+            with open('chats.dictionary', 'rb') as config_dictionary_file:
+                # Step 3
+                chats = pickle.load(config_dictionary_file)
+        else:
+            chats = await controllers.telegram.getAllChats()
+            # Step 3
+            with open('chats.dictionary', 'wb') as config_dictionary_file:
+                pickle.dump(chats, config_dictionary_file)
+
+
+
+
         data = await controllers.telegram.get_chat_history(group)
         print(f" [!] /edit/<group> >>> data ", flush=True)
 
@@ -204,13 +252,16 @@ async def setRegex(group):
     return f"[{configGroups}]"
 
 # You would use weather_detail here
-async def get_random(_group,_message_id,regex_download,regex_rename,folder_download):
+async def processDownload(_group,_message_id,regex_download,regex_rename,folder_download):
+    data = ""
+    #data = await controllers.download.downloadFile(_group,_message_id,regex_download,regex_rename,folder_download)
 
-    data = await controllers.download.downloadFile(_group,_message_id,regex_download,regex_rename,folder_download)
 
-    await asyncio.sleep(5.0)
+    for num in range(1, 10):
+        print(f" _message_id:: [{_message_id}] - {num}", flush=True )
+        time.sleep(.5)
+
     return data
-    return random.randint(10, 50)
 
 def wrapper(coro):
     return asyncio.run(coro)
@@ -227,21 +278,27 @@ async def downloadFile():
         regex_rename    = configGroups[0]['regex_rename'] if configGroups else ''
         folder_download    = configGroups[0]['folder_download'] if configGroups else '/download/completed'
 
-
+        if controllers.jsonDB.checkDownloader(_group, _message_id): return ''
+        controllers.jsonDB.addDownloader(_group, _message_id)
+        
         arglist = ((_group,_message_id,regex_download,regex_rename,folder_download), )
-        coros = [get_random(_group,_message_id,regex_download,regex_rename,folder_download) for _group,_message_id,regex_download,regex_rename,folder_download in arglist]
+        coros = [processDownload(_group,_message_id,regex_download,regex_rename,folder_download) for _group,_message_id,regex_download,regex_rename,folder_download in arglist]
         
         print("Start", time.ctime(), flush=True)
         for r in executor.map(wrapper, coros):
-            print(f"{r}, {time.ctime()}", flush=True)        
+            print(f"{r}, {time.ctime()}", flush=True)    
+
+            controllers.jsonDB.deletedDownloader(_group, _message_id)
+            
             return 'True'
         
         return 'False'
+    
 
         #print("Start", time.ctime(), flush=True)
         #with ThreadPoolExecutor(max_workers=1) as executor:
         #    arglist = ((_group,_message_id,regex_download,regex_rename,folder_download), )
-        #    coros = [get_random(_group,_message_id,regex_download,regex_rename,folder_download) for _group,_message_id,regex_download,regex_rename,folder_download in arglist]
+        #    coros = [processDownload(_group,_message_id,regex_download,regex_rename,folder_download) for _group,_message_id,regex_download,regex_rename,folder_download in arglist]
         #    for r in executor.map(wrapper, coros):
         #        print(f"{r}, {time.ctime()}", flush=True)
 
