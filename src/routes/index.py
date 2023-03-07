@@ -254,12 +254,14 @@ async def setRegex(group):
 # You would use weather_detail here
 async def processDownload(_group,_message_id,regex_download,regex_rename,folder_download):
     data = ""
-    #data = await controllers.download.downloadFile(_group,_message_id,regex_download,regex_rename,folder_download)
+    # jasv
+    #TODO
+    data = await controllers.download.downloadFile(_group,_message_id,regex_download,regex_rename,folder_download)
 
 
-    for num in range(1, 10):
-        print(f" _message_id:: [{_message_id}] - {num}", flush=True )
-        time.sleep(.5)
+    #for num in range(1, 10):
+    #    print(f" _message_id:: [{_message_id}] - {num}", flush=True )
+    #    time.sleep(.5)
 
     return data
 

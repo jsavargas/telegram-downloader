@@ -141,13 +141,14 @@ async def get_chat_history(group='me',limit=100, init=None):
 async def downloadFile(group,message_id):
 
     # /download
+    print(f"[!][!][!][!] >>>>>>> downloadFile message [{group}][{message_id}]" ,flush=True)
 
     try:
         async with Client("/config/my_account", api_id=APP_ID, api_hash=API_HASH) as app:
 
-            f = await app.get_messages(group,[int(message_id)])
+            f = await app.get_messages(ifDIgit(group),[int(message_id)])
             for message in f:
-                print(f"[!] >>>>>>> downloadFile message [{message}]" ,flush=True)
+                #print(f"[!] >>>>>>> downloadFile message [{message}]" ,flush=True)
 
                 if str(message.media) == "MessageMediaType.VIDEO":
                     if message.video.file_name:

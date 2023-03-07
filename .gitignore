@@ -11,3 +11,4 @@ config/database.db
 **/dbDownload.json.lock
 
 docker-compose.dev.yml
+config/my_account.session-journal
