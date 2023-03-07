@@ -11,6 +11,9 @@ from flask import (
     send_file
 )
 
+from controllers.telegram_api import telegram_api
+
+
 import json
 import random
 import time
@@ -39,6 +42,7 @@ def favicon():
     return redirect(url_for('static', filename='favicon.ico'), code=302)
 
 
+telegram = telegram_api(int(os.environ['APP_ID']),os.environ['API_HASH'])
 
 @index.route("/")
 async def home():
@@ -46,20 +50,12 @@ async def home():
 
     print(f" [!] home", flush=True)
 
+    chats = telegram.getChatDictionary()
+    if not chats:
+        chats = await telegram.getAllChats()
+        check = telegram.setChatDictionary(chats)
+
     history = newDatabase.getHistory()
-
-    if os.path.exists('chats.dictionary'):
-        with open('chats.dictionary', 'rb') as config_dictionary_file:
-            # Step 3
-            chats = pickle.load(config_dictionary_file)
-    else:
-        chats = await controllers.telegram.getAllChats()
-        # Step 3
-        with open('chats.dictionary', 'wb') as config_dictionary_file:
-            pickle.dump(chats, config_dictionary_file)
-       
-    #print(f" [!] getAllChats [{chats}]", flush=True)
-
 
     return render_template('index.html',
         countAll=len(history),
