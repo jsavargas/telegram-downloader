@@ -12,3 +12,4 @@ config/database.db
 
 docker-compose.dev.yml
 config/my_account.session-journal
+GetAllChats.txt
