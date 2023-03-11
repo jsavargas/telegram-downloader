@@ -103,7 +103,7 @@
             data: data,
             type: "POST",
         }).done(function (response) { //
-            alert(response['status'])
+            console.log(response['status'])
 
             if (response['status']) {
                 $("#i-" + message_id).css('color', 'green');
