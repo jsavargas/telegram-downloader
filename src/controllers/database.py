@@ -85,6 +85,7 @@ class Database:
                 "laleydebaltazar", "hastaencontrarte", "traicionada_mega", "laleydebaltazarcl"]
 
     def getConfigGroup(self, group=None):
+        group = group.strip().lower()
 
         conn = sqlite3.connect(self.DATABASE)
         conn.row_factory = sqlite3.Row
@@ -105,6 +106,33 @@ class Database:
             data[0]['folder_download'] = ""
             data[0]['ID'] = ""
 
+        return [row for row in data]
+
+    def getConfigGroup2(self, group=None):
+        group = group.strip().lower()
+
+        conn = sqlite3.connect(self.DATABASE)
+        conn.row_factory = sqlite3.Row
+
+        if group == None:
+            query = "SELECT * FROM groups ORDER BY `group`,`id` ASC "
+        else:
+            query = f"SELECT * FROM groups where `group` = '{group}' ORDER BY `group`,`id` ASC"
+
+        datas = conn.execute(query).fetchall()
+        conn.close()
+        data = []
+        if datas:
+            for row in datas:
+                data.append({
+                    "group": group,
+                    "regex_download": row["regex_download"],
+                    "regex_rename": row["regex_rename"],
+                    "folder_download": row["folder_download"]
+                })
+
+            
+        return data
         return [row for row in data]
 
     def saveConfigGroup(self, config):

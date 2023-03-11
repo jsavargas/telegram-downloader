@@ -350,11 +350,14 @@
             data: data,
             type: "POST",
         }).done(function (response) { //
-            console.log(response)
             
-            if (response) {
+            if (response['status']) {
                 $("#i-" + message_id).css('color', 'green');
             }
+            else {
+                $("#i-" + message_id).css('color', 'red');
+            }
+            
         }).fail(function (response) { //
             $("#i-" + message_id).css('color', 'red');            
         });

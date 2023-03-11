@@ -27,7 +27,7 @@ import os
 from controllers.database import Database, Object
 import controllers.telegram
 import controllers.download
-import controllers.jsonDB
+from controllers.jsonDB import  jsonDB
 
 index = Blueprint("index", __name__)
 
@@ -42,7 +42,7 @@ def favicon():
     return redirect(url_for('static', filename='favicon.ico'), code=302)
 
 
-telegram = telegram_api(int(os.environ['APP_ID']),os.environ['API_HASH'])
+telegram = telegram_api()
 
 @index.route("/")
 async def home():
@@ -65,35 +65,27 @@ async def home():
 
 @index.route("/getdb")
 async def getDB(group=None):
-
-    return controllers.jsonDB.getDownloaderDB()
+    json_db = jsonDB()
+    return json_db.getDownloaderDB()
 
 
 @index.route("/<group>")
 async def group(group=None):
     global chats
-    print(f" [!] home.ico 2", flush=True)
+    print(f" [!] /<group>", flush=True)
 
     chats = []
     data = []
 
     try:
-        group = group.strip().lower()
-
-        #if chats is None: chats = await controllers.telegram.getAllChats()
-        #chats = await controllers.telegram.getAllChats()
-        with open('chats.dictionary', 'rb') as config_dictionary_file:
-            # Step 3
-            chats = pickle.load(config_dictionary_file)
-
-
-
-        print(f" [!] GET >>> index.route group [{group}]", flush=True)
 
         limit = request.args.get('limit', default = 100, type = int)
         init = request.args.get('init', default = None, type = str)
 
-        data = await controllers.telegram.get_chat_history(group,limit=limit,init=init)
+        print(f" [!] GET >>> index.route group [{group}] limit:[{limit}]", flush=True)
+        
+        chats = await telegram.getAllChats()
+        data = await telegram.get_chat_history(group,limit=limit,init=init)
 
         configGroups = newDatabase.getConfigGroup(group)    
         if configGroups:
@@ -126,23 +118,15 @@ async def edit(group=None):
 
     try:
 
+        limit = request.args.get('limit', default = 100, type = int)
+        init = request.args.get('init', default = None, type = str)
 
-        if os.path.exists('chats.dictionary'):
-            with open('chats.dictionary', 'rb') as config_dictionary_file:
-                # Step 3
-                chats = pickle.load(config_dictionary_file)
-        else:
-            chats = await controllers.telegram.getAllChats()
-            # Step 3
-            with open('chats.dictionary', 'wb') as config_dictionary_file:
-                pickle.dump(chats, config_dictionary_file)
+        print(f" [!] GET >>> index.route group [{group}] limit:[{limit}]", flush=True)
 
+        chats = await telegram.getAllChats()
+        data = await telegram.get_chat_history(group,limit=limit,init=init)
 
-
-
-        data = await controllers.telegram.get_chat_history(group)
         print(f" [!] /edit/<group> >>> data ", flush=True)
-
         configGroups = newDatabase.getConfigGroup(group)    
         if configGroups:
             regex_download  = configGroups[0]['regex_download']
@@ -276,54 +260,17 @@ async def downloadFile():
         regex_rename    = configGroups[0]['regex_rename'] if configGroups else ''
         folder_download    = configGroups[0]['folder_download'] if configGroups else '/download/completed'
 
-        if controllers.jsonDB.checkDownloader(_group, _message_id): return ''
-        controllers.jsonDB.addDownloader(_group, _message_id)
-        
-        arglist = ((_group,_message_id,regex_download,regex_rename,folder_download), )
-        coros = [processDownload(_group,_message_id,regex_download,regex_rename,folder_download) for _group,_message_id,regex_download,regex_rename,folder_download in arglist]
-        
-        print("Start", time.ctime(), flush=True)
-        for r in executor.map(wrapper, coros):
-            print(f"{r}, {time.ctime()}", flush=True)    
 
-            controllers.jsonDB.deletedDownloader(_group, _message_id)
-            
-            return 'True'
-        
-        return 'False'
+        #telegram
+        #controllers.jsonDB.addDownloader(_group, _message_id)
+        #return False
+        downloaded = telegram.downloadFile(_group, _message_id, force=True)
+
+        print(f"downloadFile::::: [{downloaded}]",flush=True)
     
-
-        #print("Start", time.ctime(), flush=True)
-        #with ThreadPoolExecutor(max_workers=1) as executor:
-        #    arglist = ((_group,_message_id,regex_download,regex_rename,folder_download), )
-        #    coros = [processDownload(_group,_message_id,regex_download,regex_rename,folder_download) for _group,_message_id,regex_download,regex_rename,folder_download in arglist]
-        #    for r in executor.map(wrapper, coros):
-        #        print(f"{r}, {time.ctime()}", flush=True)
-
-        _group = request.form.get('group')
-        _message_id = request.form.get('message_id')
-
-        print(f"_group::{_group}",flush=True)
-        print(f"_message_id::{_message_id}",flush=True)
-
-        return _message_id
-        
-        configGroups = newDatabase.getConfigGroup(_group)    
-
-        regex_download  = configGroups[0]['regex_download'] if configGroups else ''
-        regex_rename    = configGroups[0]['regex_rename'] if configGroups else ''
-        folder_download    = configGroups[0]['folder_download'] if configGroups else '/download/completed'
-
-        print(f"regex_rename::{configGroups}",flush=True)
-        print(f"regex_download::{regex_download}",flush=True)
-        print(f"regex_rename::{regex_rename}",flush=True)
-        print(f"regex_rename::{configGroups}",flush=True)
-        print(f"regex_rename::{configGroups[0]['regex_rename']}",flush=True)
-
-        data = await controllers.download.downloadFile(_group,_message_id,regex_download,regex_rename,folder_download)
-
-
-        return 'True'
+        if downloaded: return {'status': True}
+        else: return {'status': False}
+    
     except Exception as e:
         print(f" >>>>>>> Exception [{e}]" ,flush=True)
         return 'False'
