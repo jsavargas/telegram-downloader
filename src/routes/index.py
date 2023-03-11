@@ -126,7 +126,8 @@ async def edit(group=None):
         chats = await telegram.getAllChats()
         data = await telegram.get_chat_history(group,limit=limit,init=init)
 
-        print(f" [!] /edit/<group> >>> data ", flush=True)
+        print(f" [!] /edit/<group> >>> chats [{len(chats)}]", flush=True)
+        print(f" [!] /edit/<group> >>> data [{len(data)}]", flush=True)
         configGroups = newDatabase.getConfigGroup(group)    
         if configGroups:
             regex_download  = configGroups[0]['regex_download']

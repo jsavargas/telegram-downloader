@@ -74,10 +74,14 @@ class telegram_api:
         basepath = account or self.account
         print(f"[!] >>>> getAllChats [{account}]" ,flush=True)
         try:
+            getAllChats = self.getChatDictionary(dictionary_file='getAllChats')
+            if getAllChats:
+                return getAllChats
+
             #my_account.session-journal
             while os.path.isfile(self.lockfile):
                 print("Otra instancia de Pyrogram ya está activa. Esperando...",flush=True)
-                time.sleep(1)
+                time.sleep(3)
             
             async with Client(os.path.join(self.config_dir,self.account), api_id=self.app_id, api_hash=self.api_hash) as app:
                 chats = []
@@ -88,6 +92,7 @@ class telegram_api:
                         "title": chat.title,
                         "username": chat.username if getattr(chat, 'username',None) else chat.id,
                     })
+                self.setChatDictionary(chats,dictionary_file='getAllChats')
                 return chats
         except Exception as e:
             print(f"[!] >>>>>>> except GetAllChats [{e}]" ,flush=True)
@@ -104,7 +109,7 @@ class telegram_api:
 
             while os.path.isfile(self.lockfile):
                 print("Otra instancia de Pyrogram ya está activa. Esperando...",flush=True)
-                time.sleep(1)
+                time.sleep(3)
 
             print(f"[!] 1 >>>>>>> jonas [{get_chat_history}] group:[{group}] limit:[{limit}]" ,flush=True)
             async with Client(os.path.join(self.config_dir,self.account), api_id=self.app_id, api_hash=self.api_hash) as app:
