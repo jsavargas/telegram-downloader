@@ -235,65 +235,66 @@ class telegram_api:
                         print(f"[!] >>>>>>> downloadFileTemp file_name [{message.video.file_name}]" ,flush=True)
                         if message.video.file_name:
                             file_name = message.video.file_name
-                            file_size = message.video.file_size
                         else:
                             file_name = None
                         if message.caption:
                             caption = message.caption
                         else:
                             caption = None
+                        file_size = message.video.file_size
                     if str(message.media) == "MessageMediaType.DOCUMENT":
                         print(f"[!] >>>>>>> downloadFileTemp file_name [{message.document.file_name}]" ,flush=True)
                         if message.document.file_name:
                             file_name = message.document.file_name
-                            file_size = message.document.file_size
                         else:
                             file_name = None
                         if message.caption:
                             caption = message.caption
                         else:
                             caption = None
+                        file_size = message.document.file_size
+
+                    print(f"[!] >>> 2 >>>> downloadFileTemp file_name [{file_name}]" ,flush=True)
+
+                    in_message = {'file_name':file_name,'caption':caption}
+                    new_rename = self.regexRename(group,in_message,config)
+                    
+                    folder_download = new_rename['folder_download'] or self.DOWNLOAD_COMPLETED
+                    print(f"[!] >>>>>>> downloadFileTemp new_rename [{new_rename}]" ,flush=True)
+                    print(f"[!] >>>>>>> downloadFileTemp folder_download [{folder_download}]" ,flush=True)
+                    print(f"[!] >>>>>>> downloadFileTemp file_name [{file_name}]" ,flush=True)
+                    print(f"[!] >>>>>>> downloadFileTemp caption [{caption}]" ,flush=True)
+
+                    temp_file_path = file_name or caption or f"{group}-{message.id}"
+                    print(f"[!] >>>>>>> downloadFileTemp temp_file_path [{temp_file_path}]" ,flush=True)
+                    final_path = os.path.join(folder_download,new_rename['rename'])
+                    
+                    text = f"download file id: {message.id}\n"
+                    text += f" => {file_name}\n"
+                    text += f" => {caption}\n"
+                    text += f" {temp_file_path} to: {final_path}, {self.sizeof_fmt(file_size)}"
+
+                    download_path = os.path.join(self.DOWNLOAD_INCOMPLETED,temp_file_path)
+                    print(f"[!] >>>>>>> downloadFileTemp rename [{text}]" ,flush=True)
+                    print(f"[!] >>>>>>> downloadFileTemp download_path [{download_path}]" ,flush=True)
+                    print(f"[!] >>>>>>> downloadFileTemp new_rename \n\n\n\n" ,flush=True)
 
 
-                        in_message = {'file_name':file_name,'caption':caption}
-                        new_rename = self.regexRename(group,in_message,config)
-                        
-                        folder_download = new_rename['folder_download'] or self.DOWNLOAD_COMPLETED
-                        print(f"[!] >>>>>>> downloadFileTemp new_rename [{new_rename}]" ,flush=True)
-                        print(f"[!] >>>>>>> downloadFileTemp folder_download [{folder_download}]" ,flush=True)
-                        print(f"[!] >>>>>>> downloadFileTemp file_name [{file_name}]" ,flush=True)
-                        print(f"[!] >>>>>>> downloadFileTemp caption [{caption}]" ,flush=True)
-
-                        temp_file_path = file_name or caption or f"{group}-{message.id}"
-                        print(f"[!] >>>>>>> downloadFileTemp temp_file_path [{temp_file_path}]" ,flush=True)
-                        final_path = os.path.join(folder_download,new_rename['rename'])
-                        
-                        text = f"download file id: {message.id}\n"
-                        text += f" => {file_name}\n"
-                        text += f" => {caption}\n"
-                        text += f" {temp_file_path} to: {final_path}, {self.sizeof_fmt(file_size)}"
-
-                        download_path = os.path.join(self.DOWNLOAD_INCOMPLETED,temp_file_path)
-                        print(f"[!] >>>>>>> downloadFileTemp rename [{text}]" ,flush=True)
-                        print(f"[!] >>>>>>> downloadFileTemp download_path [{download_path}]" ,flush=True)
-                        print(f"[!] >>>>>>> downloadFileTemp new_rename \n\n\n\n" ,flush=True)
-
-
-                        #TODO if regexDownload
-                        message_bot = None  
-                        if True or not os.path.exists(download_path):
-                            result = await app.download_media(message, file_name=download_path, progress=self.progress_task, progress_args=[message_bot,text,group,message_id])
-                            print(f"[!] >>>>>>> downloadFileTemp download_media [{result}]" ,flush=True)
-                            re_move = self.moveFile(result,final_path)
-                            if result and re_move:
-                                return {
-                                    'status'    :True,
-                                    'group'     :group,
-                                    'message_id':message_id,
-                                    'source_path':result,
-                                    'dest_path':final_path,
-                                    'config'    :config
-                                }
+                    #TODO if regexDownload
+                    message_bot = None  
+                    if True or not os.path.exists(download_path):
+                        result = await app.download_media(message, file_name=download_path, progress=self.progress_task, progress_args=[message_bot,text,group,message_id])
+                        print(f"[!] >>>>>>> downloadFileTemp download_media [{result}]" ,flush=True)
+                        re_move = self.moveFile(result,final_path)
+                        if result and re_move:
+                            return {
+                                'status'    :True,
+                                'group'     :group,
+                                'message_id':message_id,
+                                'source_path':result,
+                                'dest_path':final_path,
+                                'config'    :config
+                            }
             return {
                 'status'    :False,
                 'group'     :group,

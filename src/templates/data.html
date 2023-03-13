@@ -45,6 +45,7 @@
 
 
 <script>
+    var intervalos = {};
 
     function searchRerex() {
         
@@ -87,6 +88,42 @@
 
     }
 
+    function myFunction(nombre, parametro1, parametro2) {
+        console.log(nombre, parametro1, parametro2);
+        fetch('/getdb')
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(jsonData) {
+            // Trabajar con el objeto JSON
+            console.log(jsonData.length);
+            if (jsonData.length > 0){
+
+                jQuery.each(jsonData, function(i, val) {
+                    console.log('i: ' +i+' val: '+val.progress);
+                    if (val.progress != null){
+                        $("#i-" + val.message_id).removeClass().addClass('test');
+                        $("#i-" + val.message_id).text("\n"+val.progress);
+                    }
+                    //$("#" + i).append(document.createTextNode(" - " + val));
+                });
+            }
+        })
+        .catch(function(error) {
+            console.log('Error al cargar el archivo JSON', error);
+        });
+    }
+
+    function crearIntervalo(nombre, tiempo, parametro1, parametro2) {
+        intervalos[nombre] = setInterval(function() {
+            myFunction(nombre, parametro1, parametro2);
+        }, tiempo);
+    }
+
+    function detenerIntervalo(nombre) {
+        clearInterval(intervalos[nombre]);
+        delete intervalos[nombre];
+    }
 
     function downloadFile(group,message_id) {
 
@@ -102,8 +139,14 @@
             url: `/regex/downloadFile`,
             data: data,
             type: "POST",
-        }).done(function (response) { //
+            beforeSend: function() {
+                // Guardar la hora de inicio de la petición y comenzar a actualizar el label
+                crearIntervalo(message_id, 1000, "Hola", message_id);
+            },
+        }).done(function (response) { 
             console.log("response " + response['status'])
+            //clearInterval(updateInterval);
+            detenerIntervalo(message_id);
 
             if (response['status']=='continue') {
                 $("#i-" + message_id).css('color', 'rgb(149 131 39)');
@@ -114,11 +157,14 @@
             else {
                 $("#i-" + message_id).css('color', 'red');
             }
-
+            $("#i-" + message_id).text('');
+            $("#i-" + message_id).removeClass().addClass('fa-solid fa-download');
         }).fail(function (response) { //
+            $("#i-" + message_id).text('');
             $("#i-" + message_id).css('color', 'red');            
+            $("#i-" + message_id).removeClass().addClass('fa-solid fa-download');
         });
-
+        
 
     }
 
