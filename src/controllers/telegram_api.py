@@ -230,11 +230,23 @@ class telegram_api:
             async with Client(self.session_down, api_id=self.app_id, api_hash=self.api_hash) as app:
                 f = await app.get_messages(self.ifDIgit(group),[int(message_id)])
                 for message in f:
-                    print(f"[!] >>>>>>> downloadFileTemp file_name [{message.video.file_name}]" ,flush=True)
 
                     if str(message.media) == "MessageMediaType.VIDEO":
+                        print(f"[!] >>>>>>> downloadFileTemp file_name [{message.video.file_name}]" ,flush=True)
                         if message.video.file_name:
                             file_name = message.video.file_name
+                            file_size = message.video.file_size
+                        else:
+                            file_name = None
+                        if message.caption:
+                            caption = message.caption
+                        else:
+                            caption = None
+                    if str(message.media) == "MessageMediaType.DOCUMENT":
+                        print(f"[!] >>>>>>> downloadFileTemp file_name [{message.document.file_name}]" ,flush=True)
+                        if message.document.file_name:
+                            file_name = message.document.file_name
+                            file_size = message.document.file_size
                         else:
                             file_name = None
                         if message.caption:
@@ -242,9 +254,9 @@ class telegram_api:
                         else:
                             caption = None
 
+
                         in_message = {'file_name':file_name,'caption':caption}
                         new_rename = self.regexRename(group,in_message,config)
-
                         
                         folder_download = new_rename['folder_download'] or self.DOWNLOAD_COMPLETED
                         print(f"[!] >>>>>>> downloadFileTemp new_rename [{new_rename}]" ,flush=True)
@@ -259,7 +271,7 @@ class telegram_api:
                         text = f"download file id: {message.id}\n"
                         text += f" => {file_name}\n"
                         text += f" => {caption}\n"
-                        text += f" {temp_file_path} to: {final_path}, {self.sizeof_fmt(message.video.file_size)}"
+                        text += f" {temp_file_path} to: {final_path}, {self.sizeof_fmt(file_size)}"
 
                         download_path = os.path.join(self.DOWNLOAD_INCOMPLETED,temp_file_path)
                         print(f"[!] >>>>>>> downloadFileTemp rename [{text}]" ,flush=True)
