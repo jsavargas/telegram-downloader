@@ -194,7 +194,7 @@ class telegram_api:
         print(f"[!][!][!][!] >>>>>>> downloadFile [{group}][{message_id}] [{config}]" ,flush=True)
 
         if self.json_db.checkDownloader(group, message_id): 
-            return 'False'
+            return 'continue'
         
         q = {"group": group, "message_id": message_id, 'file_size': None, 'progress':None }
         self.json_db.addDownloader(q)

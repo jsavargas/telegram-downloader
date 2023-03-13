@@ -269,8 +269,12 @@ async def downloadFile():
 
         print(f"downloadFile::::: [{downloaded}]",flush=True)
     
-        if downloaded: return {'status': True}
-        else: return {'status': False}
+        if downloaded == 'continue': 
+            return {'status': 'continue'}
+        elif downloaded:
+            return {'status': True}
+        else: 
+            return {'status': False}
     
     except Exception as e:
         print(f" >>>>>>> Exception [{e}]" ,flush=True)
