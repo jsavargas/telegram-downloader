@@ -1,4 +1,6 @@
-config/my_account.session
+*.session
+*.session-journal
+
 config/database.db
 
 **/__pycache__
@@ -11,5 +13,4 @@ config/database.db
 **/dbDownload.json.lock
 
 docker-compose.dev.yml
-config/my_account.session-journal
 GetAllChats.txt

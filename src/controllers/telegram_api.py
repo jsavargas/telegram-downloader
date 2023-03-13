@@ -30,8 +30,10 @@ class telegram_api:
         self.progress = False
         self.config_dir = "/config"
         self.account = "my_account"
+        self.account_down = "account_down"
         self.dictionary_dir = os.path.join(self.config_dir,'dictionary')
-        self.session = os.path.join(self.config_dir,'my_account')
+        self.session = os.path.join(self.config_dir,self.account)
+        self.session_down = os.path.join(self.config_dir,self.account_down)
         self.download = "/download"
         self.incompleted = "incompleted"
         self.completed = "completed"
@@ -42,7 +44,8 @@ class telegram_api:
         self.PGID = os.environ.get("PGID") or None 
         self.executor = ThreadPoolExecutor(max_workers=1)
         self.json_db = jsonDB()
-
+        
+        shutil.copyfile(f'{self.session}.session', f'{self.session_down}.session')
 
     def ifDIgit(self, channel):
         channel = str(channel)
@@ -224,7 +227,7 @@ class telegram_api:
                 print("Otra instancia de Pyrogram ya está activa. Esperando...",flush=True)
                 time.sleep(3)
 
-            async with Client(self.session, api_id=self.app_id, api_hash=self.api_hash) as app:
+            async with Client(self.session_down, api_id=self.app_id, api_hash=self.api_hash) as app:
                 f = await app.get_messages(self.ifDIgit(group),[int(message_id)])
                 for message in f:
                     print(f"[!] >>>>>>> downloadFileTemp file_name [{message.video.file_name}]" ,flush=True)
