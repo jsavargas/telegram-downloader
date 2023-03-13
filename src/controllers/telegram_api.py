@@ -195,7 +195,9 @@ class telegram_api:
 
         if self.json_db.checkDownloader(group, message_id): 
             return 'False'
-        self.json_db.addDownloader(group, message_id)
+        
+        q = {"group": group, "message_id": message_id, 'file_size': None, 'progress':None }
+        self.json_db.addDownloader(q)
 
         arglist = ((group,message_id,config,force), )
         down = [self.downloadFileTemp(_group,_message_id,_config,force) for _group,_message_id,_config,force in arglist]
@@ -478,7 +480,16 @@ class telegram_api:
     # Keep track of the progress while downloading
     async def progress_task(self, current, total, *args):
         try:
-            print(f" progress {current}, {total}",  flush=True)
+
+            value = (current / total) * 100
+            format_float = "{:.2f}".format(value)
+            int_value = int(float(format_float) // 1)
+            if ((int_value != 100 ) and (int_value % 2 == 0)):
+                #print(f" progress {current}, {total}",  flush=True)
+                current = self.sizeof_fmt(current)
+                total = self.sizeof_fmt(total)
+                print(f" progress {current}, {total}",  flush=True)
+                self.json_db.updated_data(args[2], args[3], current, total)
         except Exception as e:
             print(f"[!] >>>>>>> except progress [{e}]" ,flush=True)
 
