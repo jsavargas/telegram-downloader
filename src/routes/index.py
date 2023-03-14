@@ -151,9 +151,7 @@ async def edit(group=None):
 
 @index.route('/regex/get/<group>',methods=['GET','POST'])
 async def getRegex(group):
-    global data
-
-
+    
     channels = []
     regex = {}
     rename = {}
@@ -179,7 +177,10 @@ async def getRegex(group):
         #groups = newDatabase.getGroups()
 
         if request.method == 'POST':
+            limit = request.args.get('limit', default = 100, type = int)
+            init = request.args.get('init', default = None, type = str)
 
+            data = await telegram.get_chat_history(group,limit=limit,init=init)
             _regex_download = request.form.get('regex_download').replace('/','')
             _regex_rename = request.form.get('regex_rename')
             _folder_download = request.form.get('folder_download').replace('/','')
@@ -301,15 +302,23 @@ def utility_processor():
 @index.context_processor
 def utility_processor():
     def regexDownload(group, file_name, caption=None,regex_download=None,regex_rename=None):
-        download = controllers.download.regexDownload(group, file_name, caption,regex_download,regex_rename)
-        return download
+        message = {'file_name': file_name, 'caption':caption}
+        config = [{'regex_download': regex_download, 'regex_rename':regex_rename, 'folder_download': None}]
+        rename = telegram.regexRename(group, message, config)
+        #rename = controllers.download.regexDownload(group, file_name, caption,regex_download,regex_rename)
+        return rename['regex_download']
     return dict(regexDownload=regexDownload)
 
 @index.context_processor
 def utility_processor():
     def regexRename(group, file_name, caption=None,regex_download=None,regex_rename=None):
-        rename = controllers.download.regexRename(group, file_name, caption,regex_download,regex_rename)
-        return rename
+        message = {'file_name': file_name, 'caption':caption}
+        config = [{'regex_download': regex_download, 'regex_rename':regex_rename, 'folder_download': None}]
+        #rename = telegram.regexRename(group, file_name, caption, regex_download, regex_rename)
+        rename = telegram.regexRename(group, message, config)
+        print(f" regexRename regexRename out:: [{rename['rename']}]", flush=True)
+
+        return rename['rename']
     return dict(regexRename=regexRename)
 
 @index.context_processor

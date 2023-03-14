@@ -28,18 +28,14 @@ class telegram_api:
         self.api_hash = API_HASH
         self.bot_token = API_TOKEN
         self.progress = False
-        self.config_dir = "/config"
-        self.account = "my_account"
-        self.account_down = "account_down"
-        self.dictionary_dir = os.path.join(self.config_dir,'dictionary')
-        self.session = os.path.join(self.config_dir,self.account)
-        self.session_down = os.path.join(self.config_dir,self.account_down)
-        self.download = "/download"
-        self.incompleted = "incompleted"
-        self.completed = "completed"
-        self.lockfile = f"{os.path.join(self.config_dir,self.account)}.session-journal"
-        self.DOWNLOAD_INCOMPLETED = os.getenv('DOWNLOAD_INCOMPLETED') or os.path.join(self.download,self.incompleted)
-        self.DOWNLOAD_COMPLETED = os.getenv('DOWNLOAD_COMPLETED') or os.path.join(self.download,self.completed)
+        self.config_dir = PATH_CONFIG
+        self.account = ACCOUNT_NAME
+        self.dictionary_dir = PATH_DICTIONARY
+        self.session = SESSION
+        self.session_down = SESSION_DOWN
+        self.lockfile = LOCKFILE
+        self.DOWNLOAD_INCOMPLETED = DOWNLOAD_INCOMPLETED
+        self.DOWNLOAD_COMPLETED = DOWNLOAD_COMPLETED
         self.PUID = os.environ.get("PUID") or None
         self.PGID = os.environ.get("PGID") or None 
         self.executor = ThreadPoolExecutor(max_workers=1)
@@ -214,8 +210,6 @@ class telegram_api:
         self.json_db.deletedDownloader(group, message_id)
         return 'False'
 
-    
-
     async def downloadFileTemp(self, group, message_id, config={}, force=False):
         # status, message_bot,group,download_path,file_name,caption
         try:
@@ -367,12 +361,6 @@ class telegram_api:
             }
             return False, message_bot, group, download_path, file_name, message.caption
 
-    
-
-
-
-
-
     #def regexRename(self, group, file_name,caption=None,regex_download='',regex_rename='',force=False):
     def regexRename(self, group, message, config):
         rename = ''
@@ -381,8 +369,10 @@ class telegram_api:
 
         try:
             for conf in config:
+                caption = message['caption'].replace("\n", "")
                 #print(f" regexRename:: [{group}], [{file_name}], [{caption}] [{regex_download}] [{regex_rename}]")
-                print(f" regexRename:: [{message}], [{conf}]")
+                #print(f" regexRename :::: [{message}], [{conf}]")
+                #print(f" regexRename rr :::: [{conf['regex_download']}], [{caption}]")
                 if re.match(conf['regex_download'], message['file_name'], flags=re.I):
                     regex_download = True
                     mrr = re.match('/(.*)/(.*)/', conf['regex_rename'], flags=re.I)
@@ -390,13 +380,14 @@ class telegram_api:
                         rename = re.sub(mrr.group(1), mrr.group(2), message['file_name'], flags=re.I)
                     else:
                         rename = message['file_name']
-                elif re.match(conf['regex_download'], message['caption'], flags=re.I):
+                elif re.match(conf['regex_download'], caption, flags=re.I):
+                    #print(f" regexRename caption :::: [{message}], [{conf}]")
                     regex_download = True
                     mrr = re.match('/(.*)/(.*)/', conf['regex_rename'])
                     if mrr:
-                        rename = re.sub(mrr.group(1), mrr.group(2), message['caption'].replace("\n", ""), flags=re.I)
+                        rename = re.sub(mrr.group(1), mrr.group(2), caption.replace("\n", ""), flags=re.I)
                     else:
-                        rename = message['caption']
+                        rename = caption
 
                 if not regex_download and message['file_name']:
                     mrr = re.match('/(.*)/(.*)/', conf['regex_rename'])
@@ -491,8 +482,6 @@ class telegram_api:
 
         print(f"Los permisos del archivo {file_path} y su carpeta contenedora se han cambiado a {puid}:{pgid} con permisos rw-rw---- (lectura/escritura para usuario y grupo).")
 
-
-
     # Keep track of the progress while downloading
     async def progress_task(self, current, total, *args):
         try:
@@ -508,6 +497,13 @@ class telegram_api:
                 self.json_db.updated_data(args[2], args[3], current, total)
         except Exception as e:
             print(f"[!] >>>>>>> except progress [{e}]" ,flush=True)
+
+
+
+
+
+
+
 
     def sizeof_fmt(self, num, suffix="B"):
         for unit in ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"]:

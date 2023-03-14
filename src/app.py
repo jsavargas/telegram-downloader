@@ -1,6 +1,8 @@
 import time
 import os
 
+from controllers.configs import *
+
 from flask import Flask
 from routes.index import index
 #from routes.detail import detail
@@ -16,6 +18,8 @@ app.register_blueprint(index)
 #app.register_blueprint(config)
 
 
+if os.path.isfile(LOCKFILE):
+    os.remove(LOCKFILE)
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
