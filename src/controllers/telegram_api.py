@@ -24,9 +24,9 @@ class telegram_api:
 
     def __init__(self):
         self._version = "1.10.0"
-        self.app_id = API_ID
+        self.app_id = APP_ID
         self.api_hash = API_HASH
-        self.bot_token = API_TOKEN
+        self.bot_token = BOT_TOKEN
         self.progress = False
         self.config_dir = PATH_CONFIG
         self.account = ACCOUNT_NAME
