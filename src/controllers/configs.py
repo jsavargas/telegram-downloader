@@ -2,9 +2,9 @@ import os
 
 # Bot information
 SESSION     = os.environ.get('SESSION', 'pdf2img')
-API_ID      = int(os.environ['APP_ID'])
+APP_ID      = int(os.environ['APP_ID'])
 API_HASH    = os.environ['API_HASH']
-API_TOKEN   = ""
+BOT_TOKEN   = os.environ['BOT_TOKEN']
 
 ACCOUNT_NAME = "my_account"
 DOWNLOAD_NAME = "account_down"
@@ -15,6 +15,8 @@ PATH_DOWNLOAD = os.environ.get('PATH_DOWNLOAD', '/download')
 PATH_INCOMPLETED = "incompleted"
 PATH_COMPLETED = "completed"
 
+PUID     = os.environ.get('PUID', None)
+PGID     = os.environ.get('PGID', None)
 
 
 DOWNLOAD_INCOMPLETED = os.getenv('DOWNLOAD_INCOMPLETED') or os.path.join(PATH_DOWNLOAD,PATH_INCOMPLETED)
