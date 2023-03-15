@@ -2,23 +2,19 @@ import os
 
 from pyrogram import Client
 
-import utils.config
+from controllers.configs import *
 
-print(f" >>>>>>> APP_ID [{os.environ['APP_ID']}]" ,flush=True)
-print(f" >>>>>>> API_HASH [{os.environ['API_HASH']}]" ,flush=True)
-print(f" >>>>>>> BOT_TOKEN [{os.environ['BOT_TOKEN']}]" ,flush=True)
+print(f" >>>>>>> APP_ID [{APP_ID}]" ,flush=True)
+print(f" >>>>>>> API_HASH [{API_HASH}]" ,flush=True)
+print(f" >>>>>>> BOT_TOKEN [{BOT_TOKEN}]" ,flush=True)
 
-
-APP_ID = int(os.environ['APP_ID'])
-API_HASH = os.environ['API_HASH']
-BOT_TOKEN = os.environ['BOT_TOKEN']
 
 
 
 if __name__ == "__main__":
 
     try:
-        with Client(f"{utils.config.CLIENT_NAME}", api_id=APP_ID, api_hash=API_HASH) as app:
+        with Client(f"{SESSION}", api_id=APP_ID, api_hash=API_HASH) as app:
             #await xbot.send_message(OWNER, OWNER)
 
             ssession = f'**String Session**:\n - STRING_SESSION={app.export_session_string()}'
