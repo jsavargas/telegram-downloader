@@ -46,6 +46,29 @@
 
 <script>
     var intervalos = {};
+    window.onload = (event) => {
+        console.log("page is fully loaded");
+
+        fetch('/getdb')
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(jsonData) {
+            // Trabajar con el objeto JSON
+            //console.log(jsonData.length);
+            if (jsonData.length > 0){
+                jQuery.each(jsonData, function(i, val) {
+                    $("#i-" + val.message_id).css('color', 'rgb(149 131 39)');
+                    crearIntervalo(val.message_id, 3000, "onload", val.message_id);
+                });
+            }
+        })
+        .catch(function(error) {
+            console.log('Error al cargar el archivo JSON', error);
+        });
+    };
+
+
 
     function searchRerex() {
         
@@ -62,11 +85,8 @@
 
             $('#data_telegram').empty();
             $("#data_telegram").html(response);
-
         });
-
     }
-
 
     function reload() {
         $(".fa-sync").addClass("fa-spin");
@@ -96,18 +116,32 @@
         })
         .then(function(jsonData) {
             // Trabajar con el objeto JSON
-            console.log(jsonData.length);
+            //console.log(jsonData.length);
             if (jsonData.length > 0){
-
                 jQuery.each(jsonData, function(i, val) {
-                    console.log('i: ' +i+' val: '+val.progress);
+                    //console.log('i: ' +val.message_id+' val: '+val.progress);
+                    //$("#i-" + val.message_id).css('color', 'rgb(149 131 39)');
                     if (val.progress != null){
-                        $("#i-" + val.message_id).removeClass().addClass('test');
-                        $("#i-" + val.message_id).text("\n"+val.progress);
+                        //$("#i-" + val.message_id).removeClass().addClass('test');
+                        //$("#i-" + val.message_id).text("\n"+val.progress);
+                        $("#i-" + val.message_id).css('color', 'rgb(149 131 39)');
+                        document.getElementById("i-" + val.message_id).title = val.progress;
                     }
                     //$("#" + i).append(document.createTextNode(" - " + val));
                 });
             }
+            if (parametro1 == 'onload'){
+                for (const [key, value] of Object.entries(intervalos)) {
+                    //console.log('key ['+key+']', 'value ['+value+'] jsonData ['+jsonData+']');
+                    const isKey1Value2 = jsonData.some(el => key === el.message_id)
+                    if (!isKey1Value2){
+                        detenerIntervalo(key)
+                        $("#i-" + key).css('color', 'green');
+                    }
+                    
+                }
+            }
+
         })
         .catch(function(error) {
             console.log('Error al cargar el archivo JSON', error);
