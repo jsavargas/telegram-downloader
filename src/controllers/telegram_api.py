@@ -458,10 +458,10 @@ class telegram_api:
 
         try:
             os.makedirs(parent_folder, exist_ok=True)
-            if not os.path.exists(dest_path):
-                shutil.move(source_path, dest_path.strip())
-                self.set_file_permissions(dest_path.strip())
-                return {'status': True, 'dest_path': dest_path}
+            #if not os.path.exists(dest_path):
+            shutil.move(source_path, dest_path.strip())
+            self.set_file_permissions(dest_path.strip())
+            return {'status': True, 'dest_path': dest_path}
             return {'status': False, 'dest_path': dest_path}
         except Exception as e:
             print(f" [!!!] Exception telegram moveFile_temp [{e}]", flush=True)    # the exception instance
