@@ -4,6 +4,7 @@
 {% block content %}
 
 
+<div id="message"></div>
 
 <div class="col-sm-12">
 
@@ -11,8 +12,8 @@
 
     <div class="form-group row p-1 align-items-center">
 
-        <div class="col-sm-5">
-            <label for="inputPassword4">Groups {{group}}</label>
+        <div class="col-sm-3">
+            <label for="inputPassword4">Groups</label>
             <select id="inputState" class="form-control" onchange="location = this.value;">
                 <option value="/detail/">Groups</option>
                 {% for chat in chats|sort(attribute='title') %}
@@ -21,17 +22,45 @@
             </select>
         </div>
 
-        <input id="group" name="group" type="hidden" value="{{group}}">
-
-        <div class="col-sm-1 p-1 align-self-end">
-            <i class="fa-solid fa-sync fa-2x" onclick="reload()"></i>
+        {% if type=='edit' %}
+        <!--
+            <div class="col-sm-1 p-1 align-self-end">
+                <i class="fa-solid fa-sync fa-2x" onclick="reload()"></i>
+            </div>
+        -->
+        <div class="col-sm-2">
+            <label for="inputPassword4">Regex download</label>
+            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/.*/" name="regex_download" value="{{configGroups[0].regex_download}}" onKeyUp="searchRerex()">
         </div>
 
+        <div class="col-sm-4">
+            <label for="inputPassword4">Regex rename</label>
+            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/(.*)/\1/" name="regex_rename" value="{{configGroups[0].regex_rename}}" onKeyUp="searchRerex()">
+        </div>
+
+        <div class="col-sm-2">
+            <label for="inputPassword4">Folder download</label>
+            <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="/downloads" name="folder_download" value="{{configGroups[0].folder_download}}">
+        </div>
+
+        <input id="group" name="group" type="hidden" value="{{configGroups[0].group}}">
+        <input id="ID" name="ID" type="hidden" value="{{configGroups[0].ID}}">
+        <!-- <input id="data" name="data" type="hidden" value="{{data}}"> -->
+
+        <div class="col-sm-1 py-1 align-self-end">
+            <i class="fa-solid fa-floppy-disk fa-2x" onclick="saveRerex()"></i>
+            <!-- <i class="ps-1 fa-solid fa-sync fa-2x" onclick="reload()"></i> -->
+        </div>
+
+        {% endif %}
     </div>
 </form>
 
 
 </div>
+
+
+
 
 <div id="data_telegram">
 
@@ -70,7 +99,7 @@
 
 
 
-    function searchRerex() {
+    function searchRerexx() {
         
         console.log(document.configdownload.group.value)
         console.log(document.configdownload)
@@ -82,7 +111,24 @@
             data: $(document.configdownload).serialize(),
             type: "POST",
         }).done(function (response) { //
+            alert(response)
+            $('#data_telegram').empty();
+            $("#data_telegram").html(response);
+        });
+    }
 
+    function searchRerex() {
+        
+        console.log('group ' + document.configdownload.group.value)
+        console.log('configdownload ' + document.configdownload)
+        console.log($(document.configdownload).serialize())  
+        console.log(decodeURIComponent($(document.configdownload).serialize()))  
+
+        $.ajax({
+            url: `/regex/get/` + document.configdownload.group.value,
+            data: $(document.configdownload).serialize(),
+            type: "POST",
+        }).done(function (response) { //
             $('#data_telegram').empty();
             $("#data_telegram").html(response);
         });
@@ -204,7 +250,22 @@
 
 
 
-
+    function saveRerex(message=true) {
+        console.log(document.configdownload.group.value)
+        console.log(document.configdownload)
+        console.log($(document.configdownload).serialize())  
+        console.log(decodeURIComponent($(document.configdownload).serialize()))  
+        $.ajax({
+            url: `/regex/set/` + document.configdownload.group.value,
+            data: $(document.configdownload).serialize(),
+            type: "POST",
+        }).done(function (response) { //
+            if (message){
+                $('#message').html(`<div class="alert alert-warning alert-dismissible fade show" role="alert">Save configurations! 
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>`);
+            }
+        });
+    }
 
 
 

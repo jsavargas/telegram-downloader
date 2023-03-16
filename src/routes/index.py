@@ -140,13 +140,14 @@ async def edit(group=None):
         print(f" >>>>>>> Exception /edit/<group> [{e}]" ,flush=True)
 
 
-    return render_template('config_edit.html',
+    return render_template('data.html',
         group=group, 
         chats=chats, 
         data=data,
         regex_download=regex_download,
         regex_rename=regex_rename,
-        configGroups=configGroups
+        configGroups=configGroups,
+        type='edit'
     )
 
 @index.route('/regex/get/<group>',methods=['GET','POST'])
@@ -184,7 +185,7 @@ async def getRegex(group):
             _regex_download = request.form.get('regex_download').replace('/','')
             _regex_rename = request.form.get('regex_rename')
             _folder_download = request.form.get('folder_download').replace('/','')
-            _group = request.form.get('group').replace('/','')
+            #_group = request.form.get('group').replace('/','')
 
             print(f" [!] POST >>> _regex_download [{_regex_download}]", flush=True)
             print(f" [!] POST >>> _regex_rename [{_regex_rename}]", flush=True)
@@ -194,7 +195,7 @@ async def getRegex(group):
         downloaded = []
 
     except Exception as e:
-        print(f" >>>>>>> Exception [{e}]" ,flush=True)
+        print(f" >>>>>>> Exception getRegex [{e}]" ,flush=True)
 
 
     return render_template(
@@ -316,7 +317,7 @@ def utility_processor():
         config = [{'regex_download': regex_download, 'regex_rename':regex_rename, 'folder_download': None}]
         #rename = telegram.regexRename(group, file_name, caption, regex_download, regex_rename)
         rename = telegram.regexRename(group, message, config)
-        print(f" regexRename regexRename out:: [{rename['rename']}]", flush=True)
+        #print(f" regexRename regexRename out:: [{rename['rename']}]", flush=True)
 
         return rename['rename']
     return dict(regexRename=regexRename)

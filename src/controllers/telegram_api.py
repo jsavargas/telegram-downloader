@@ -370,34 +370,39 @@ class telegram_api:
         try:
             for conf in config:
                 caption = message['caption'].replace("\n", "")
-                #print(f" regexRename:: [{group}], [{file_name}], [{caption}] [{regex_download}] [{regex_rename}]")
-                #print(f" regexRename :::: [{message}], [{conf}]")
-                #print(f" regexRename rr :::: [{conf['regex_download']}], [{caption}]")
                 if re.match(conf['regex_download'], message['file_name'], flags=re.I):
+                    #print(f" regexRename rr :::: [{conf['regex_download']}], [{caption}]")
                     regex_download = True
-                    mrr = re.match('/(.*)/(.*)/', conf['regex_rename'], flags=re.I)
-                    if mrr:
-                        rename = re.sub(mrr.group(1), mrr.group(2), message['file_name'], flags=re.I)
-                    else:
+                    if not conf['regex_rename']: 
                         rename = message['file_name']
+                    else:
+                        mrr = re.match('/(.*)/(.*)/', conf['regex_rename'], flags=re.I)
+                        if mrr:
+                            rename = re.sub(mrr.group(1), mrr.group(2), message['file_name'], flags=re.I)
+                        else:
+                            rename = message['file_name']
                 elif re.match(conf['regex_download'], caption, flags=re.I):
                     #print(f" regexRename caption :::: [{message}], [{conf}]")
                     regex_download = True
-                    mrr = re.match('/(.*)/(.*)/', conf['regex_rename'])
-                    if mrr:
-                        rename = re.sub(mrr.group(1), mrr.group(2), caption.replace("\n", ""), flags=re.I)
-                    else:
+                    if not conf['regex_rename']: 
                         rename = caption
+                    else:
+                        mrr = re.match('/(.*)/(.*)/', conf['regex_rename'])
+                        if mrr:
+                            rename = re.sub(mrr.group(1), mrr.group(2), caption.replace("\n", ""), flags=re.I)
+                        else:
+                            rename = caption
 
-                if not regex_download and message['file_name']:
+                if conf['regex_rename'] and not regex_download and message['file_name']:
                     mrr = re.match('/(.*)/(.*)/', conf['regex_rename'])
                     mr2 = re.match(mrr.group(1), message['file_name'], flags=re.I)
                     if mr2:
                         rename = re.sub(mrr.group(1), mrr.group(2), message['file_name'], flags=re.I)
-                if not rename and message['caption']:
+                if conf['regex_rename'] and not rename and message['caption']:
                     mrr = re.match('/(.*)/(.*)/', conf['regex_rename'])
                     mr2 = re.match(mrr.group(1), message['caption'], flags=re.I)
-                    if mr2: rename = re.sub(mrr.group(1), mrr.group(2), message['caption'].replace("\n", ""), flags=re.I)
+                    if mr2:
+                        rename = re.sub(mrr.group(1), mrr.group(2), message['caption'].replace("\n", ""), flags=re.I)
                 folder_download = conf['folder_download']
                 if rename :
                     return {
@@ -439,6 +444,10 @@ class telegram_api:
 
         except Exception as e:
             print(f"[!] >>>>>>> except regexRename [{e}]" ,flush=True)
+            return {
+                'regex_download'    :regex_download,
+                'rename'            :rename,
+                'folder_download'   :folder_download }
 
     def moveFile(self, source_path, dest_path):
         
