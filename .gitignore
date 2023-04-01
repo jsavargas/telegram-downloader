@@ -16,3 +16,4 @@ config/database.db
 docker-compose.dev.yml
 GetAllChats.txt
 TODO
+leeme.txt
