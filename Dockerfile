@@ -20,6 +20,8 @@ ENV FLASK_DEBUG=1
 COPY src /app
 #COPY entry.sh /entry.sh
 
+VOLUME /download /watch /config
+
 EXPOSE 5000
 
 #RUN echo '*       *       *       *       *       run-parts /entry.sh > /entry.log' >> /etc/crontabs/root

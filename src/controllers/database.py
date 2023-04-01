@@ -14,6 +14,10 @@ class Database:
     def __init__(self):
 
         self.DATABASE = '/config/database.db'
+        
+        if not os.path.exists(self.DATABASE):
+            print(f" create os.path.exists: [{self.DATABASE}]" ,flush=True)
+            os.system(f'touch {self.DATABASE} ";"')
 
         conn = sqlite3.connect(self.DATABASE)
         

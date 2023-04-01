@@ -41,7 +41,8 @@ class telegram_api:
         self.executor = ThreadPoolExecutor(max_workers=1)
         self.json_db = jsonDB()
         
-        shutil.copyfile(f'{self.session}.session', f'{self.session_down}.session')
+        if os.path.exists(f'{self.session}.session'):
+            shutil.copyfile(f'{self.session}.session', f'{self.session_down}.session')
 
     def ifDIgit(self, channel):
         channel = str(channel)
@@ -226,6 +227,9 @@ class telegram_api:
             while os.path.isfile(self.lockfile):
                 print("Otra instancia de Pyrogram ya está activa. Esperando...",flush=True)
                 time.sleep(3)
+
+            if os.path.exists(f'{self.session}.session'):
+                shutil.copyfile(f'{self.session}.session', f'{self.session_down}.session')
 
             async with Client(self.session_down, api_id=self.app_id, api_hash=self.api_hash) as app:
                 f = await app.get_messages(self.ifDIgit(group),[int(message_id)])
