@@ -25,7 +25,6 @@ import os
 
 
 from controllers.database import Database, Object
-import controllers.telegram
 import controllers.download
 from controllers.jsonDB import  jsonDB
 
@@ -56,9 +55,11 @@ async def home():
         check = telegram.setChatDictionary(chats)
 
     history = newDatabase.getHistory()
+    getHistoryGroup = newDatabase.getHistoryGroup()
 
     return render_template('index.html',
         countAll=len(history),
+        history=getHistoryGroup,
         chats=chats
     )
 

@@ -1,6 +1,7 @@
 import os
 import time
 import sqlite3
+import datetime
 
 import asyncio
 
@@ -15,9 +16,25 @@ class Database:
         self.DATABASE = '/config/database.db'
 
         conn = sqlite3.connect(self.DATABASE)
-
-        conn.execute("CREATE TABLE IF NOT EXISTS students ('name' TEXT, 'addr' TEXT, 'city' TEXT, 'pin' TEXT)")
-        conn.execute("CREATE TABLE IF NOT EXISTS downloader ('id' INTEGER, 'group' TEXT, 'message_id' TEXT, 'new_name' TEXT, 'file_name' TEXT, 'caption' TEXT, 'regex_download' TEXT, 'regex_rename' TEXT, 'folder_download' TEXT, 'download_final_path' TEXT, 'width' TEXT, 'file_size' INTEGER, 'status' BOOLEAN)")
+        
+        CREATE_TABLE = '''
+            CREATE TABLE IF NOT EXISTS downloader ('id' INTEGER, 
+                'group' TEXT, 
+                'message_id' TEXT, 
+                'new_name' TEXT,
+                'file_name' TEXT, 
+                'caption' TEXT, 
+                'regex_download' TEXT, 
+                'regex_rename' TEXT, 
+                'folder_download' TEXT, 
+                'download_final_path' TEXT, 
+                'width' TEXT, 
+                'file_size' INTEGER, 
+                'status' BOOLEAN,
+                'update_time' timestamp
+            ) '''
+        
+        conn.execute(CREATE_TABLE)
         conn.execute("CREATE TABLE IF NOT EXISTS groups ( ID INTEGER PRIMARY KEY AUTOINCREMENT, 'group' TEXT, 'regex_download' TEXT, 'regex_rename' TEXT, 'folder_download' TEXT, 'status' BOOLEAN )")
 
         createSecondaryIndex = "CREATE UNIQUE INDEX IF NOT EXISTS index_group_id ON downloader('group','id')"
@@ -33,6 +50,22 @@ class Database:
             query = "SELECT * FROM downloader ORDER BY `group`,`id` DESC "
         else:
             query = f"SELECT * FROM downloader where `group` = '{group}' ORDER BY `group`,`id` DESC"
+
+        #print(f" >>>>>>> getHistory [{query}]", flush=True)
+
+        data = conn.execute(query).fetchall()
+    
+        #flash('getHistory')
+
+        conn.close()
+
+        return data
+
+    def getHistoryGroup(self, group=None):
+        conn = sqlite3.connect(self.DATABASE)
+        conn.row_factory = sqlite3.Row
+
+        query = "select `group`, count(*) as count, new_name,MAX(update_time) as update_time from downloader group by `group` ORDER BY update_time desc "
 
         #print(f" >>>>>>> getHistory [{query}]", flush=True)
 
@@ -188,7 +221,7 @@ class Database:
 
         return cursor.rowcount
 
-    def saveData(self, group, message_id, new_name, file_name, caption, regex_download, regex_rename, folder_download, download_final_path, status, width='', file_size=''):
+    def saveData(self, group, message_id, new_name, download_final_path, status):
 
         try:
 
@@ -196,8 +229,14 @@ class Database:
             sqliteConnection = sqlite3.connect(self.DATABASE)
             cursor = sqliteConnection.cursor()
 
-            count = cursor.execute("INSERT INTO downloader ('group', 'message_id', 'new_name', 'file_name', 'caption', 'regex_download', 'regex_rename', 'folder_download', 'download_final_path', 'width', 'file_size', 'status') VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (
-                group, message_id, new_name, file_name, caption, regex_download, regex_rename, folder_download, download_final_path, width,file_size,status))
+            count = cursor.execute("""INSERT INTO downloader (
+                'group', 
+                'message_id', 
+                'new_name', 
+                'download_final_path', 
+                'status',
+                update_time) VALUES (?,?,?,?,?,?)""", (
+                group, message_id, new_name, download_final_path, status, datetime.datetime.now() ))
             #count = cursor.execute("INSERT INTO students (name , addr , city , pin  ) VALUES (?,?,?,?)",(str(data.group),data.regex,str(data.regex_name),str(data.id)) )
             #count = cursor.execute("INSERT INTO downloader ('group', 'regex', 'regex_name', 'id'  ) VALUES (?,?,?,?)",(str(data.group),data.regex,str(data.regex_name),str(data.id)) )
 

@@ -205,6 +205,13 @@ class telegram_api:
         for r in self.executor.map(self.wrapper, down):
             print(f"{r}, {time.ctime()}", flush=True)
             self.json_db.deletedDownloader(group, message_id)
+            database.saveData(
+                r['group'],
+                r['message_id'],
+                r['rename'],
+                r['dest_path'],
+                1 )
+
             return r['status']
         
         self.json_db.deletedDownloader(group, message_id)
@@ -282,12 +289,13 @@ class telegram_api:
                         re_move = self.moveFile(result,final_path)
                         if result and re_move:
                             return {
-                                'status'    :True,
-                                'group'     :group,
-                                'message_id':message_id,
-                                'source_path':result,
-                                'dest_path':final_path,
-                                'config'    :config
+                                'status'        : True,
+                                'group'         : group,
+                                'message_id'    : message_id,
+                                'rename'   : new_rename['rename'],
+                                'source_path'   : result,
+                                'dest_path'     : final_path,
+                                'config'        : config
                             }
             return {
                 'status'    :False,
