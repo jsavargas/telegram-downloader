@@ -178,7 +178,6 @@ class telegram_api:
         self.setChatDictionary(data,dictionary_file=group)
         return data
 
-
     def wrapper(self, coro):
         return asyncio.run(coro)
 
@@ -515,6 +514,18 @@ class telegram_api:
         except Exception as e:
             print(f"[!] >>>>>>> except progress [{e}]" ,flush=True)
 
+    def ifDownloaded(self, group, message_id):
+
+        try:
+            newDatabase = Database()
+
+            status = newDatabase.ifDownloaded(group, message_id)
+            #print(f" [*] successfully ifDownloaded: [{group}][{message_id}] [{status}]", flush=True)
+
+            return status
+        except Exception as e:
+            print(f"[!] >>>>>>> except ifDownloaded [{e}]" ,flush=True)
+            return False
 
 
 

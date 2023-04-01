@@ -25,7 +25,7 @@ import os
 
 
 from controllers.database import Database, Object
-import controllers.download
+#import controllers.download
 from controllers.jsonDB import  jsonDB
 
 index = Blueprint("index", __name__)
@@ -326,6 +326,6 @@ def utility_processor():
 @index.context_processor
 def utility_processor():
     def ifDownloaded(group, message_id):
-        reifDownloaded = controllers.download.ifDownloaded(group, message_id)
+        reifDownloaded = telegram.ifDownloaded(group, message_id)
         return reifDownloaded
     return dict(ifDownloaded=ifDownloaded)
