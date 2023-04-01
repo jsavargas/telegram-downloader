@@ -1,5 +1,7 @@
 import os
 
+VERSION = "1.1.5"
+
 # Bot information
 SESSION     = os.environ.get('SESSION', 'pdf2img')
 APP_ID      = int(os.environ['APP_ID'])

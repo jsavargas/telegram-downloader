@@ -8,6 +8,8 @@ from routes.index import index
 #from routes.detail import detail
 #from routes.config import config
 
+print(f"[!] VERSION {VERSION}", flush=True)
+
 app = Flask(__name__)
 
 
@@ -21,6 +23,8 @@ app.register_blueprint(index)
 if os.path.isfile(LOCKFILE):
     os.remove(LOCKFILE)
 
+
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=True, host='0.0.0.0', port=port)
+

@@ -1,8 +1,22 @@
 
-# telegram downloader (alfa) 
+# telegram downloader (beta) 
 
 
 **telegram downloader is a program to download files from channels that prevent the forwarding of messages to a bot, allowing the download of files using the personal account via the web UI and command line**
+
+## docker
+```
+docker run --rm -it \
+    -e APP_ID=xxxxxxxx \
+    -e API_HASH=xxxxxxxxxxxxxxxxxxxx \
+    -e BOT_TOKEN=xxxxxxxxxxxxx:xxxxxxxxxxxxxxxx \
+    -p6543:5000 \
+    -v /mnt/user/appdata/telegram-test:/config  \
+    jsavargas/telegram-downloader-ui:beta 
+
+    docker run --rm -it -e APP_ID=123456 -e API_HASH=12345678901234567890 -e BOT_TOKEN=1234567890:abcdefghijklmabcdefghijklm-p4 -p6543:5000 -v /mnt/user/appdata/telegram-test:/config  jsavargas/telegram-downloader-ui:beta
+
+```
 
 ## docker-compose
 ```
@@ -14,7 +28,6 @@ services:
     environment:
       - PUID=99
       - PGID=100
-      - OWNER=@YourNicknameTelegram  # Your Nickname Telegram
       - APP_ID=131 
       - API_HASH=3efad
       - BOT_TOKEN=3945:Pd09m-p9
