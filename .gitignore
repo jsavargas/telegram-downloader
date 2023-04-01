@@ -7,7 +7,7 @@ config/database.db
 **/*.dictionary
 
 *.bak
-*._tmp
+*_tmp
 *.log
 *.logs
 **/dbDownload.json
