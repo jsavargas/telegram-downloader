@@ -84,18 +84,25 @@ class telegram_api:
                 time.sleep(3)
             
             async with Client(os.path.join(self.config_dir,self.account), api_id=self.app_id, api_hash=self.api_hash) as app:
+
                 chats = []
-                AllChats = await app.invoke(GetAllChats(except_ids=[]))
-                for chat in AllChats.chats:
+                print(" 2 GetAllChats",flush=True)
+                #AllChats = await app.GetChannels(except_ids=[])
+                print(" 3 GetAllChats",flush=True)
+                #print(AllChats,flush=True)
+                async for chat in app.get_dialogs():
+                    if not chat.chat.title: continue
                     chats.append({
-                        "id": chat.id,
-                        "title": chat.title,
-                        "username": chat.username if getattr(chat, 'username',None) else chat.id,
+                        "id": chat.chat.id,
+                        "title": chat.chat.title,
+                        "username": chat.chat.username if getattr(chat.chat, 'username',None) else chat.chat.id,
                     })
+                print(chats,flush=True)
                 self.setChatDictionary(chats,dictionary_file='getAllChats')
                 return chats
         except Exception as e:
             print(f"[!] >>>>>>> except GetAllChats [{e}]" ,flush=True)
+            return []
 
     async def get_chat_history(self, group='me',limit=100, init=None):
         data = []
