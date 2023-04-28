@@ -152,7 +152,7 @@ class telegram_api:
                             data.append(dtemp)
                 else:
                     #list = intToArray(init,limit)
-                    messages = await app.get_messages(self.ifDIgit(group),range(50, 100))
+                    messages = await app.get_messages(self.ifDIgit(group),range(int(init), int(init)+100))
                     for message in messages:
                         if str(message.media) == "MessageMediaType.VIDEO":
                             dtemp = {
