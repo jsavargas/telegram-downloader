@@ -87,7 +87,9 @@
             //console.log(jsonData.length);
             if (jsonData.length > 0){
                 jQuery.each(jsonData, function(i, val) {
-                    $("#i-" + val.message_id).css('color', 'rgb(149 131 39)');
+                    //$("#i-" + val.message_id).css('color', 'rgb(149 131 39)');
+                    $('#progress-'+val.message_id).html('<progress value="0" min="0" max="100"></progress>');
+
                     crearIntervalo(val.message_id, 3000, "onload", val.message_id);
                 });
             }
@@ -162,7 +164,6 @@
         })
         .then(function(jsonData) {
             // Trabajar con el objeto JSON
-            //console.log(jsonData.length);
             if (jsonData.length > 0){
                 jQuery.each(jsonData, function(i, val) {
                     //console.log('i: ' +val.message_id+' val: '+val.progress);
@@ -170,8 +171,13 @@
                     if (val.progress != null){
                         //$("#i-" + val.message_id).removeClass().addClass('test');
                         //$("#i-" + val.message_id).text("\n"+val.progress);
-                        $("#i-" + val.message_id).css('color', 'rgb(149 131 39)');
-                        document.getElementById("i-" + val.message_id).title = val.progress;
+                        
+                        //$("#i-" + val.message_id).css('color', 'rgb(149 131 39)');
+                        //document.getElementById("i-" + val.message_id).title = val.progress;
+                        
+                        $('#progress-'+val.message_id).html('<progress value="'+val.perc+'" min="0" max="100"></progress>');
+                        console.log(val.progress);
+                        console.log(val.perc);
                     }
                     //$("#" + i).append(document.createTextNode(" - " + val));
                 });
@@ -181,8 +187,13 @@
                     //console.log('key ['+key+']', 'value ['+value+'] jsonData ['+jsonData+']');
                     const isKey1Value2 = jsonData.some(el => key === el.message_id)
                     if (!isKey1Value2){
+                        console.log("100%");
                         detenerIntervalo(key)
-                        $("#i-" + key).css('color', 'green');
+                        //$("#i-" + key).css('color', 'green');
+                        $('#progress-'+key).html('<progress value="100" min="0" max="100">100%</progress>');
+                        console.log(key);
+                        console.log("100%");
+
                     }
                     
                 }
@@ -232,7 +243,8 @@
                 $("#i-" + message_id).css('color', 'rgb(149 131 39)');
             }
             else if (response['status']) {
-                $("#i-" + message_id).css('color', 'green');
+                $('#progress-'+message_id).html('<progress value="100" min="0" max="100">100%</progress>');
+                //$("#i-" + message_id).css('color', 'green');
             }
             else {
                 $("#i-" + message_id).css('color', 'red');

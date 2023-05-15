@@ -40,7 +40,7 @@ class jsonDB:
     def addDownloader(self, data):
         try:
             if not self.checkDownloader(data['group'], data['message_id']):
-                q = {"group": data['group'], "message_id": data['message_id'], 'file_size': None, 'progress':None }
+                q = {"group": data['group'], "message_id": data['message_id'], 'file_size': None, 'progress':None, 't':None, 'c':None, 'perc':None}
                 self.todo_db.add(q)
         
         except Exception as e:
@@ -61,7 +61,7 @@ class jsonDB:
             print(f"[!] >>>>>>> except deletedDownloader [{e}]" ,flush=True)
             return False
 
-    def updated_data(self, group, message_id, current, total):
+    def updated_data(self, group, message_id, current, total, t , c):
 
         q = {"group": group, "message_id": message_id}
         dbDatas = self.todo_db.getByQuery(query=q)
@@ -77,5 +77,7 @@ class jsonDB:
         if not dbDatas: return False
 
         updated_data = {"name": "Book", "quantity": 100}
-        updated_data = {'progress':current, 'file_size':total}
+
+        perc = (int(c)*100)/int(t)
+        updated_data = {'progress':current, 'file_size':total, 't':t, 'c':c, 'perc':perc}
         self.todo_db.updateById(pk=dbDatas[0]['id'], new_data=updated_data)

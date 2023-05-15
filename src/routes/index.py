@@ -80,7 +80,7 @@ async def group(group=None):
 
     try:
 
-        limit = request.args.get('limit', default = 100, type = int)
+        limit = request.args.get('limit', default = 200, type = int)
         init = request.args.get('init', default = None, type = str)
 
         print(f" [!] GET >>> index.route group [{group}] limit:[{limit}]", flush=True)
@@ -119,7 +119,7 @@ async def edit(group=None):
 
     try:
 
-        limit = request.args.get('limit', default = 100, type = int)
+        limit = request.args.get('limit', default = 200, type = int)
         init = request.args.get('init', default = None, type = str)
 
         print(f" [!] GET >>> index.route group [{group}] limit:[{limit}]", flush=True)
@@ -179,7 +179,7 @@ async def getRegex(group):
         #groups = newDatabase.getGroups()
 
         if request.method == 'POST':
-            limit = request.args.get('limit', default = 100, type = int)
+            limit = request.args.get('limit', default = 150, type = int)
             init = request.args.get('init', default = None, type = str)
 
             data = await telegram.get_chat_history(group,limit=limit,init=init)

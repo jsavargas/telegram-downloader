@@ -104,7 +104,7 @@ class telegram_api:
             print(f"[!] >>>>>>> except GetAllChats [{e}]" ,flush=True)
             return []
 
-    async def get_chat_history(self, group='me',limit=100, init=None):
+    async def get_chat_history(self, group='me',limit=200, init=None):
         data = []
 
         try:
@@ -152,7 +152,7 @@ class telegram_api:
                             data.append(dtemp)
                 else:
                     #list = intToArray(init,limit)
-                    messages = await app.get_messages(self.ifDIgit(group),range(int(init), int(init)+100))
+                    messages = await app.get_messages(self.ifDIgit(group),range(int(init), int(init)+300))
                     for message in messages:
                         if str(message.media) == "MessageMediaType.VIDEO":
                             dtemp = {
@@ -516,12 +516,15 @@ class telegram_api:
             value = (current / total) * 100
             format_float = "{:.2f}".format(value)
             int_value = int(float(format_float) // 1)
-            if ((int_value != 100 ) and (int_value % 2 == 0)):
+            if ((int_value != 100 ) and (int_value % 5 == 0)):
                 #print(f" progress {current}, {total}",  flush=True)
+                t = total
+                c = current
+
                 current = self.sizeof_fmt(current)
                 total = self.sizeof_fmt(total)
                 print(f" progress {current}, {total}",  flush=True)
-                self.json_db.updated_data(args[2], args[3], current, total)
+                self.json_db.updated_data(args[2], args[3], current, total,t,c)
         except Exception as e:
             print(f"[!] >>>>>>> except progress [{e}]" ,flush=True)
 
