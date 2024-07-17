@@ -1,10 +1,15 @@
 import os
 import time
 import logging
-from dotenv import load_dotenv
+import uvloop
 from pyrogram import Client, filters
 from pyrogram.types import Message
-from utils import get_file_type, format_file_size  # Importar las funciones desde utils.py
+from utils import get_file_type, format_file_size, create_download_summary  # Importar las funciones desde utils.py
+from env import Env  # Importar la clase Config desde Env.py
+
+uvloop.install()
+
+BOT_VERSION = "5.0.0.r5"
 
 # Configurar el logger
 logging.basicConfig(
@@ -19,20 +24,14 @@ class NoParsingFilter(logging.Filter):
 
 logger.addFilter(NoParsingFilter())
 
-# Cargar variables de entorno desde el archivo .env si existe
-load_dotenv()
-
-# Leer variables de entorno o usar valores por defecto
-API_ID = int(os.getenv('API_ID', 'DEFAULT_API_ID'))
-API_HASH = os.getenv('API_HASH', 'DEFAULT_API_HASH')
-BOT_TOKEN = os.getenv('BOT_TOKEN', 'DEFAULT_BOT_TOKEN')
-AUTHORIZED_USER_ID = int(os.getenv('AUTHORIZED_USER_ID', '0'))
 
 # Crear cliente de Pyrogram
-app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN,workers=2,max_concurrent_transmissions=2)
+#app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN,workers=2,max_concurrent_transmissions=2)
+#app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+app = Client("my_bot", api_id=Env.API_ID, api_hash=Env.API_HASH, bot_token=Env.BOT_TOKEN, max_concurrent_transmissions=Env.MAX_CONCURRENT_TRANSMISSIONS)
 with app:
     print("my_bot: ")
-    app.send_message(AUTHORIZED_USER_ID, "¡El bot se ha iniciado correctamente!")
+    app.send_message(Env.AUTHORIZED_USER_ID, "¡El bot se ha iniciado correctamente!")
     logger.info(f"¡El bot se ha iniciado correctamente")
 
 # Crear el directorio de descarga si no existe
@@ -67,19 +66,21 @@ async def download_document(client: Client, message: Message):
         file_size = os.path.getsize(file_path)
         download_speed = file_size / elapsed_time / 1024  # KB/s
 
-        size_str = format_file_size
+        size_str = format_file_size(file_size)
 
-        # Crear el mensaje de resumen
-        summary = (
-            f"**Descarga completada**\n\n"
-            f"**Nombre del archivo:** {file_name}\n"
-            f"**Tamaño del archivo:** {size_str}\n"
-            f"**Hora de inicio:** {start_hour}\n"
-            f"**Hora de finalización:** {end_hour}\n"
-            f"**Tiempo de descarga:** {elapsed_time:.2f} segundos\n"
-            f"**Velocidad de descarga:** {download_speed:.2f} KB/s"
-        )
-    
+        # Crear el objeto con la información de la descarga
+        download_info = {
+            'file_name': file_name,
+            'size_str': size_str,
+            'start_hour': start_hour,
+            'end_hour': end_hour,
+            'elapsed_time': elapsed_time,
+            'download_speed': download_speed,
+            'from': ""
+        }
+
+        # Crear el mensaje de resumen utilizando la función de utils
+        summary = create_download_summary(download_info)
         logger.info(f"download_document file_path: [{file_path}]")
         logger.info(f"download_document file_name: [{file_name}]")
 
