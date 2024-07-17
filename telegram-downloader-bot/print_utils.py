@@ -22,7 +22,6 @@ class PartialPrinter:
 
     def print_variables(self):
         self.print_partial_value("API_ID", Env.API_ID)
-        self.print_partial_value("API_ID", Env.API_ID)
         self.print_partial_value("API_HASH", Env.API_HASH)
         self.print_partial_value("BOT_TOKEN", Env.BOT_TOKEN)
         self.print_partial_value("AUTHORIZED_USER_ID", Env.AUTHORIZED_USER_ID)

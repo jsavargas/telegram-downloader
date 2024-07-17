@@ -22,16 +22,21 @@ logger = logging.getLogger(__name__)
 removeFiles()
 
 printer = PartialPrinter()
-printer.print_variables()
 
-exit()
+#printer.print_variables()
+#exit()
 
-app = Client("telegramBot", api_id = int(api_id), api_hash = api_hash, bot_token = bot_token, workers=2, max_concurrent_transmissions=2)
+app = Client("telegramBot", api_id = int(Env.API_ID), api_hash = Env.API_HASH, bot_token = Env.BOT_TOKEN, workers=2, max_concurrent_transmissions=2)
 with app:
     now = datetime.now()
-    dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-    print("BOT.Torrent 4.0 : ", dt_string)
-    app.send_message(int(usuario_id), mensaje_inicio)
+    dt_string = now.strftime("%d-%m-%Y %H:%M:%S")
+    msg_txt = "Telegram Downloader Bot Started\n\n"
+    msg_txt += f"bot version: {BOT_VERSION}\n"
+    msg_txt += f"pyrogram version: {pyrogram_version}\n"
+    #msg_txt += f"yt-dlp version: 2024.05.27"
+    
+    print("Telegram Downloader Bot Started : ", dt_string)
+    app.send_message(int(usuario_id), msg_txt)
     printer.print_variable("BOT_VERSION", BOT_VERSION)
     printer.print_variable("PYROGRAM", pyrogram_version)
     printer.print_variables()
@@ -45,7 +50,7 @@ async def send_welcome(client, message):
     await message.delete()
 
 
-@app.on_message(filters.document)
+@app.on_message(filters.document | filters.photo)
 async def download_document(client, message):
     print("get_file_name: ", get_file_name(message))
 
