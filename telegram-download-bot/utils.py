@@ -2,7 +2,7 @@
 
 from pyrogram.types import Message
 
-def get_file_type(message: Message) -> str:
+def get_file_name(message: Message) -> str:
     if message.document:
         return message.document.file_name
     elif message.photo:

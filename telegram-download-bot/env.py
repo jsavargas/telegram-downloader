@@ -10,3 +10,5 @@ class Env:
     BOT_TOKEN = os.getenv('BOT_TOKEN', 'DEFAULT_BOT_TOKEN')
     AUTHORIZED_USER_ID = int(os.getenv('AUTHORIZED_USER_ID', '0'))
     MAX_CONCURRENT_TRANSMISSIONS = int(os.getenv('MAX_CONCURRENT_TRANSMISSIONS', '4'))
+
+    DOWNLOAD_DIR = "/download"
