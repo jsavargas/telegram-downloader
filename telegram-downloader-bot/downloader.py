@@ -1,11 +1,13 @@
 import os
 import time
+import shutil
 from pyrogram.types import Message
 
 from env import Env
 from utils import Utils 
 
 utils = Utils()
+env = Env()
 
 async def download_file(message: Message) -> str:
     file_name = get_file_name(message)
@@ -18,7 +20,17 @@ async def download_file(message: Message) -> str:
     while attempt < max_retries:
         try:
 
-            file_path = await message.download(file_name=os.path.join(Env.DOWNLOAD_DIR, file_name), block=True)
+
+            temp_download_path = utils.getDownloadFolderTemp(file_name)
+            #print(f"temp_download_path: {temp_download_path}")
+            download_folder, file_name_download = utils.getDownloadFolder(file_name)
+            #print(f"download_folder: {temp_download_path} file_name_download: {file_name_download}")
+
+            file_path = await message.download(file_name=file_name_download, block=True)
+            #print(f"file_path: {temp_file_path}")
+            #file_path = shutil.move(temp_file_path, file_name_download)
+            #print(f"shutil: {file_path}")
+
             end_time = time.time()
             end_hour = time.strftime("%H:%M:%S", time.localtime(end_time))
 
@@ -30,6 +42,7 @@ async def download_file(message: Message) -> str:
             
             download_info = {
                 'file_name': file_name,
+                'download_folder': download_folder,
                 'size_str': size_str,
                 'start_hour': start_hour,
                 'end_hour': end_hour,
@@ -50,17 +63,14 @@ async def download_file(message: Message) -> str:
 
                 return summary
 
-        except RPCError as e:
-            if "AUTH_BYTES_INVALID" in str(e):
-                attempt += 1
-                if attempt == max_retries:
-                    return f"Error al descargar **{file_name}** ({file_type}): {str(e)}. Máximo número de intentos alcanzado."
-            else:
-                return f"Error al descargar **{file_name}** ({file_type}): {str(e)}"
+        except Exception as e:
+            attempt += 1
+            if attempt == max_retries:
+                return f"Error al descargar **{file_name}**: {str(e)}. Máximo número de intentos alcanzado."
 
         time.sleep(2)  # Esperar 2 segundos antes de reintentar
 
-    return f"Error al descargar **{file_name}** ({file_type})."
+    return f"Error al descargar **{file_name}**."
 
 def get_file_name(message: Message) -> str:
     if message.document:

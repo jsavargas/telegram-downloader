@@ -14,13 +14,14 @@ from downloader import download_file, get_file_name  # Importar la función down
 from utils import Utils 
 from print_utils import PartialPrinter
 
-BOT_VERSION = "5.0.0.5"
+BOT_VERSION = "5.0.0.6"
 
 uvloop.install()
 logger = logging.getLogger(__name__)
 
 printer = PartialPrinter()
 utils = Utils()
+env = Env()
 
 
 
@@ -28,19 +29,19 @@ utils.removeFiles()
 #printer.print_variables()
 #exit()
 msg_txt = ""
-app = Client("telegramBot", api_id = int(Env.API_ID), api_hash = Env.API_HASH, bot_token = Env.BOT_TOKEN, workers=Env.MAX_CONCURRENT_TRANSMISSIONS, max_concurrent_transmissions=Env.MAX_CONCURRENT_TRANSMISSIONS)
+app = Client("telegramBot", api_id = int(env.API_ID), api_hash = env.API_HASH, bot_token = env.BOT_TOKEN, workers=env.MAX_CONCURRENT_TRANSMISSIONS, max_concurrent_transmissions=env.MAX_CONCURRENT_TRANSMISSIONS)
 with app:
     now = datetime.now()
-    dt_string = now.strftime("%d-%m-%Y %H:%M:%S")
+    dt_string = now.strftime("%Y/%m/%d %H:%M:%S")
     msg_txt = "Telegram Downloader Bot Started\n\n"
     msg_txt += f"bot version: {BOT_VERSION}\n"
     msg_txt += f"pyrogram version: {pyrogram_version}\n"
     #msg_txt += f"yt-dlp version: 2024.05.27"
     
     print("Telegram Downloader Bot Started : ", dt_string)
-    app.send_message(int(Env.AUTHORIZED_USER_ID), msg_txt)
+    app.send_message(int(env.AUTHORIZED_USER_ID), msg_txt)
     printer.print_variable("BOT_VERSION", BOT_VERSION)
-    printer.print_variable("PYROGRAM", pyrogram_version)
+    printer.print_variable("PYROGRAM_VERSION", pyrogram_version)
     printer.print_variables()
 
 ###
@@ -60,7 +61,7 @@ async def download_document(client, message):
     summary = await download_file(message)
     await start_msg.edit_text(summary)
 
-    if Env.IS_DELETE: await message.delete()
+    if env.IS_DELETE: await message.delete()
 
 
 
