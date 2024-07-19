@@ -1,8 +1,11 @@
 import os
 import time
 from pyrogram.types import Message
-from utils import create_download_summary, format_file_size
+
 from env import Env
+from utils import Utils 
+
+utils = Utils()
 
 async def download_file(message: Message) -> str:
     file_name = get_file_name(message)
@@ -15,7 +18,6 @@ async def download_file(message: Message) -> str:
     while attempt < max_retries:
         try:
 
-            # Descarga del archivo
             file_path = await message.download(file_name=os.path.join(Env.DOWNLOAD_DIR, file_name), block=True)
             end_time = time.time()
             end_hour = time.strftime("%H:%M:%S", time.localtime(end_time))
@@ -24,7 +26,7 @@ async def download_file(message: Message) -> str:
             file_size = os.path.getsize(file_path)
             download_speed = file_size / elapsed_time / 1024  # KB/s
 
-            size_str = format_file_size(file_size)
+            size_str = utils.format_file_size(file_size)
             
             download_info = {
                 'file_name': file_name,
@@ -34,7 +36,7 @@ async def download_file(message: Message) -> str:
                 'elapsed_time': elapsed_time,
                 'download_speed': download_speed,
                 'origin_group': message.chat.id if message.chat else None,
-                'attempt': attempt
+                'retries': attempt
             }
             
             print(f"get_file_name: {file_name}, {file_size}")
@@ -42,7 +44,9 @@ async def download_file(message: Message) -> str:
             if file_size <= 0:
                 attempt += 1
             else:
-                summary = create_download_summary(download_info)
+                summary = utils.create_download_summary(download_info)
+                
+                utils.change_permissions_owner(file_path)
 
                 return summary
 
