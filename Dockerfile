@@ -10,10 +10,8 @@ COPY requirements.txt .
 # Instalar las dependencias
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY pyrogram/ .
+COPY telegram-downloader-bot/ .
 
-# Copiar el archivo .env si existe
-COPY .env .
 
 # Ejecutar el bot
 CMD ["python", "telegramBot.py"]
