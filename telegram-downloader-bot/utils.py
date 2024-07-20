@@ -1,5 +1,6 @@
 # utils.py
 import os
+import time
 from env import Env
 
 class Utils:
@@ -146,3 +147,36 @@ class Utils:
         except Exception as e:
             print(f"create_folders Exception: {folder_name}: {e}")
 
+    def startTime(self):
+        start_time = time.time()
+        start_hour = time.strftime("%H:%M:%S", time.localtime(start_time))
+
+        return start_time, start_hour
+
+    def endTime(self):
+        end_time = time.time()
+        end_hour = time.strftime("%H:%M:%S", time.localtime(end_time))
+
+        return end_time, end_hour
+
+    def elapsedTime(self, start_time, end_time):
+        elapsed_time = end_time - start_time
+        
+        return elapsed_time
+        
+    def getSize(self, file_path):
+        size_str = ""
+        try:
+            file_size = os.path.getsize(file_path)
+
+            if file_size < 1024:
+                size_str = f"{file_size} bytes"
+            elif file_size < 1024 * 1024:
+                size_str = f"{file_size / 1024:.2f} KB"
+            else:
+                size_str = f"{file_size / (1024 * 1024):.2f} MB"
+
+        except Exception as e:
+            print(f"getSize Exception: {file_path}: {e}")
+            file_size = 0
+        return file_size, size_str
