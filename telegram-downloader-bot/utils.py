@@ -1,6 +1,7 @@
 # utils.py
 import os
 import time
+import shutil
 from env import Env
 
 class Utils:
@@ -120,7 +121,7 @@ class Utils:
 
     def create_folders(self, folder_name):
         try:
-            print(f"create_folders path: {folder_name}")
+            print(f"create_folders folder_name: {folder_name}")
             # Verificar si la folder_name es un archivo
             if os.path.isfile(folder_name):
                 print(f"create_folders isfile: {folder_name}")
@@ -136,12 +137,11 @@ class Utils:
                 dirname = os.path.dirname(folder_name)
                 base_directory = os.path.basename(folder_name)
                 if "." not in base_directory:
+                    print(f"create_folders else: {folder_name}")
                     os.makedirs(folder_name, exist_ok=True) 
                 else:
+                    print(f"create_folders else: {dirname}")
                     os.makedirs(dirname, exist_ok=True) 
-                print(f"create_folders else: [{folder_name}] [{base_directory}] [{dirname}] " )
-
-
         except FileExistsError as e:
             print(f"The folder {folder_name} already exists: {e}")
         except Exception as e:
@@ -180,3 +180,38 @@ class Utils:
             print(f"getSize Exception: {file_path}: {e}")
             file_size = 0
         return file_size, size_str
+
+    def moveFile(self, group_id, file_name_download):
+
+        ## TODO
+        ## leer el archivo config.ini por si ya existe la regla para este group_id
+        ## 
+
+        try:
+            if os.path.exists(file_name_download): 
+                _group_id = str(group_id).replace('-','')
+                create_folders = os.path.join(self.env.DOWNLOAD_PATH, _group_id)
+                self.create_folders(create_folders)
+                move = shutil.move(file_name_download, create_folders)
+                return move
+
+        except Exception as e:
+            print(f"moveFile Exception: [{group_id}] [{file_name_download}]: {e}")
+            return None
+    
+    def createGroupFolder(self, group_id):
+
+        try:
+            _group_id = str(group_id).replace('-','')
+            create_folders = os.path.join(self.env.DOWNLOAD_PATH, _group_id)
+            self.create_folders(create_folders)
+
+            ## TODO
+            ## crear el registro en config.ini
+            ## 
+
+            return create_folders
+
+        except Exception as e:
+            print(f"moveFile Exception: [{group_id}] [{file_name_download}]: {e}")
+            return None

@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+    telegram-downloader-bot:
+        image: jsavargas/telegram-downloader-bot:develop
+        container_name: telegram-downloader-bot
+        restart: unless-stopped
+        environment:
+            - API_ID=${API_ID}
+            - API_HASH=${API_HASH}
+            - BOT_TOKEN=${BOT_TOKEN}
+            - AUTHORIZED_USER_ID=${AUTHORIZED_USER_ID}
+            - TZ=America/Santiago
+        volumes:
+            - ./config:/config
+            - ./download:/download
+            - /mnt/user/media/torrent/qbittorrent/watch:/watch
+        tty: true
