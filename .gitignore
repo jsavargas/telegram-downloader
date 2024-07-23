@@ -1,5 +1,10 @@
 download/*
 __pycache__/
-.env
+.env*
 *.session
+*copy*
 *.session-journal
+docker_*
+compose.dev
+messages.txt
+TODO.txt
