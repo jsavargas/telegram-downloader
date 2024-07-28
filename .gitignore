@@ -1,6 +1,7 @@
 download/*
 __pycache__/
 .env*
+*.json
 *.session
 *copy*
 *.session-journal
@@ -8,3 +9,7 @@ docker_*
 compose.dev
 messages.txt
 TODO.txt
+tmp/*
+download/*
+config.ini
+docker-compose.dev.yml

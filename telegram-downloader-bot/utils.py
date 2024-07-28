@@ -14,6 +14,8 @@ class Utils:
         self.PGID = self.env.PGID
         self.change_permissions()
 
+
+    @staticmethod
     def format_file_size(self, file_size: int) -> str:
         if file_size < 1024:
             return f"{file_size} bytes"
@@ -21,6 +23,24 @@ class Utils:
             return f"{file_size / 1024:.2f} KB"
         else:
             return f"{file_size / (1024 * 1024):.2f} MB"
+
+
+    @staticmethod
+    def format_duration(seconds):
+        """Format duration to human-readable format."""
+        duration = timedelta(seconds=seconds)
+        days = duration.days
+        hours, remainder = divmod(duration.seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+
+        if days > 0:
+            return f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+        elif hours > 0:
+            return f"{hours} hours, {minutes} minutes, {seconds} seconds"
+        elif minutes > 0:
+            return f"{minutes} minutes, {seconds} seconds"
+        else:
+            return f"{seconds} seconds"
 
     def create_download_summary(self, download_info):
         """
@@ -89,8 +109,8 @@ class Utils:
 
     def getDownloadFolder(self, file_name):
 
-        download_folder = self.env.DOWNLOAD_PATH
-        final_path = os.path.join(self.env.DOWNLOAD_PATH, file_name)
+        download_folder = self.env.DOWNLOAD_COMPLETED_PATH
+        final_path = os.path.join(self.env.DOWNLOAD_COMPLETED_PATH, file_name)
 
         try:
             if file_name.endswith(".torrent"):
@@ -181,7 +201,24 @@ class Utils:
             file_size = 0
         return file_size, size_str
 
-    def moveFile(self, group_id, file_name_download):
+    def moveFile(self, old_filename, new_filename):
+
+        ## TODO
+        ## leer el archivo config.ini por si ya existe la regla para este group_id
+        ## 
+
+        try:
+            if os.path.exists(old_filename): 
+                self.create_folders(os.path.dirname(new_filename))
+                move = shutil.move(old_filename, new_filename)
+                return move
+            else:
+                return None
+        except Exception as e:
+            print(f"moveFile Exception: [{old_filename}] [{new_filename}]: {e}")
+            return None
+    
+    def moveFileFolder(self, group_id, file_name_download):
 
         ## TODO
         ## leer el archivo config.ini por si ya existe la regla para este group_id
@@ -202,16 +239,21 @@ class Utils:
     def createGroupFolder(self, group_id):
 
         try:
-            _group_id = str(group_id).replace('-','')
-            create_folders = os.path.join(self.env.DOWNLOAD_PATH, _group_id)
-            self.create_folders(create_folders)
+            if group_id.startswith("/"):
+                print(f"createGroupFolder startswith: [{group_id}]")
+                self.create_folders(group_id)
+                return group_id
+            else:
+                _group_id = str(group_id).replace('-','')
+                create_folders = os.path.join(self.env.DOWNLOAD_PATH, _group_id)
+                self.create_folders(create_folders)
+                return create_folders
 
             ## TODO
             ## crear el registro en config.ini
             ## 
 
-            return create_folders
 
         except Exception as e:
-            print(f"moveFile Exception: [{group_id}] [{file_name_download}]: {e}")
+            print(f"moveFile Exception: [{group_id}]: {e}")
             return None

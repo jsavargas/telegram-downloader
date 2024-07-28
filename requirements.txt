@@ -2,4 +2,5 @@ pyrogram
 tgcrypto
 python-dotenv
 uvloop
-
+yt-dlp
+aiohttp

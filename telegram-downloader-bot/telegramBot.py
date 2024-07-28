@@ -2,32 +2,49 @@
 print("\033c")
 
 import os
+import re
 import time
 from datetime import datetime
-import asyncio
 import logging
 import uvloop
+import asyncio
 from pyrogram import Client, filters, __version__ as pyrogram_version
-from pyrogram.types import Message
+from pyrogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors import FloodWait
+
 from env import Env
 from utils import Utils 
 from print_utils import PartialPrinter
-from config_manager import ConfigurationManager
+from file_data_handler import FileDataHandler
+from config_handler import ConfigHandler
+from command_handler import CommandHandler
+from url_downloader import URLDownloader  # Import the class
 
-BOT_VERSION = "5.0.0.7"
+BOT_VERSION = "5.0.0.10"
 
 uvloop.install()
-logger = logging.getLogger(__name__)
 
-printer = PartialPrinter()
-utils = Utils()
+
 env = Env()
+utils = Utils()
+printer = PartialPrinter()
+downloadFilesDB = FileDataHandler()
+config_handler = ConfigHandler()
+command_handler = CommandHandler()
+url_downloader = URLDownloader()
 
 utils.removeFiles()
 
 msg_txt = ""
-app = Client("telegramBot", api_id = int(env.API_ID), api_hash = env.API_HASH, bot_token = env.BOT_TOKEN, workers=env.MAX_CONCURRENT_TRANSMISSIONS, max_concurrent_transmissions=env.MAX_CONCURRENT_TRANSMISSIONS)
+#app = Client("telegramBot", api_id = int(env.API_ID), api_hash = env.API_HASH, bot_token = env.BOT_TOKEN, workers=env.MAX_CONCURRENT_TRANSMISSIONS, max_concurrent_transmissions=env.MAX_CONCURRENT_TRANSMISSIONS)
+app = Client("telegramBot", api_id = int(env.API_ID), api_hash = env.API_HASH, bot_token = env.BOT_TOKEN)
+
+# Semaphore to limit the number of simultaneous downloads
+semaphore = asyncio.Semaphore(3)
+
+# Regex to detect URLs in a message
+URL_REGEX = re.compile(r'https?://\S+')
+
 
 while True:
     try:
@@ -76,132 +93,134 @@ def getFileName(message: Message) -> str:
         return "Archivo"
 
 @app.on_message(filters.document | filters.photo | filters.video | filters.audio | filters.animation)
-async def download_document(client: Client, message: Message):
+async def handle_files(client: Client, message: Message):
     attempt = 0
     file_path = ""
-    try:
-        print("\ndownload_document")
-        print("download_document: ", message)
-        user_id = message.from_user.id if message.from_user else None
-        
-        print(f"download_document user_id: [{user_id}] => [{env.AUTHORIZED_USER_ID}]")
+    async with semaphore:
 
-        if str(user_id) in env.AUTHORIZED_USER_ID:
+        try:
+            print("\ndownload_document")
+            print("download_document: ", message)
+            user_id = message.from_user.id if message.from_user else None
+            origin_group = message.forward_from.id if message.forward_from else message.forward_from_chat.id if message.forward_from_chat else None
 
-            file_name = getFileName(message)
-            start_msg = await message.reply_text(f"Downloading file: {file_name}", reply_to_message_id=message.id)
+            print(f"download_document user_id: [{user_id}] => [{env.AUTHORIZED_USER_ID}]")
 
-            download_folder, file_name_download = utils.getDownloadFolder(file_name)
-            start_time, start_hour = utils.startTime()
+            if str(user_id) in env.AUTHORIZED_USER_ID:
 
-            while attempt < env.MAX_RETRIES:
-            
-                try:
-                    file_path = await message.download(file_name=file_name_download, block=True)
-                    print(f"File downloaded to: {file_path}")
-                    break
-                except Exception as e:
-                    attempt += 1
-                    print(f"Attempt {attempt} failed: {e}")
-                    if attempt == env.MAX_RETRIES:
-                        print("Maximum retries reached. Download failed.")
-                        # Optionally, you can handle the failure case here, like logging or notifying.
+                file_name = getFileName(message)
+                ext = file_name.split('.')[-1]
+                download_path = config_handler.get_group_path(origin_group) or config_handler.get_download_path(ext)
+
+                start_msg = await message.reply_text(f"Downloading file: {file_name}", reply_to_message_id=message.id)
+
+                file_name_download = os.path.join(download_path, file_name)
+                #download_folder, file_name_download = utils.getDownloadFolder(file_name)
+
+                start_time, start_hour = utils.startTime()
+
+                while attempt < env.MAX_RETRIES:
+                
+                    try:
+                        file_path = await message.download(file_name=file_name_download, block=True)
+                        downloadFilesDB.add_download_files(
+                            message.from_user.id,
+                            origin_group,
+                            message.id, 
+                            file_path
+                        )
+
+                        print(f"File downloaded to: {file_path}")
+                        break
+                    except Exception as e:
+                        attempt += 1
+                        print(f"Attempt {attempt} failed: {e}")
+                        if attempt == env.MAX_RETRIES:
+                            print("Maximum retries reached. Download failed.")
+                            # Optionally, you can handle the failure case here, like logging or notifying.
 
 
 
-            end_time, end_hour = utils.endTime()
-            elapsed_time = utils.elapsedTime(start_time, end_time)
-            file_size, size_str = utils.getSize(file_path)
-            download_speed = file_size / elapsed_time / 1024  # KB/s
+                end_time, end_hour = utils.endTime()
+                elapsed_time = utils.elapsedTime(start_time, end_time)
+                file_size, size_str = utils.getSize(file_path)
+                download_speed = file_size / elapsed_time / 1024  # KB/s
 
-            download_info = {
-                'file_name': file_name,
-                'download_folder': download_folder,
-                'size_str': size_str,
-                'start_hour': start_hour,
-                'end_hour': end_hour,
-                'elapsed_time': elapsed_time,
-                'download_speed': download_speed,
-                'origin_group': message.forward_from.id if message.forward_from else message.forward_from_chat.id if message.forward_from_chat else None ,
-                'retries': attempt
-            }
+                download_info = {
+                    'file_name': file_name,
+                    'download_folder': download_path,
+                    'size_str': size_str,
+                    'start_hour': start_hour,
+                    'end_hour': end_hour,
+                    'elapsed_time': elapsed_time,
+                    'download_speed': download_speed,
+                    'origin_group': message.forward_from.id if message.forward_from else message.forward_from_chat.id if message.forward_from_chat else None ,
+                    'retries': attempt
+                }
 
-            ## file_name_download = getFolderDownload()
-            ## startTime()
-            ## file_path = await message.download(file_name=file_name_download, block=True)
-            ## endTime()
-            ## downloadInfo() # summary
-            ## changePermissionsFile() 
+                ## file_name_download = getFolderDownload()
+                ## startTime()
+                ## file_path = await message.download(file_name=file_name_download, block=True)
+                ## endTime()
+                ## downloadInfo() # summary
+                ## changePermissionsFile() 
 
-            #summary = await download_file(message)
+                #summary = await download_file(message)
 
-            ## TODO
-            ## guardar archivo descargado en json de descargas, para poder 
-            ##  renombrar
-            ##  mover
-            ##  etc
-            ## 
+                ## TODO
+                ## guardar archivo descargado en json de descargas, para poder 
+                ##  renombrar
+                ##  mover
+                ##  etc
+                ## 
 
-            
-            summary = utils.create_download_summary(download_info)
-            await start_msg.edit_text(summary)
-        else:
-            await message.reply_text("No tienes permiso para descargar este archivo.")
+                summary = utils.create_download_summary(download_info)
+                await start_msg.edit_text(summary)
+            else:
+                await message.reply_text("No tienes permiso para descargar este archivo.")
 
-    except Exception as e:
-        print(f"download_document Exception: {message}: {e}")
+        except Exception as e:
+            print(f"download_document Exception: {message}: {e}")
 
-    if env.IS_DELETE: await message.delete()
+        if env.IS_DELETE: await message.delete()
+
+
+async def progress_callback(current, total):
+    """Callback function to report download progress."""
+    # Optionally, you can implement more detailed progress reporting here
+    #print(f"Downloaded {current}/{total} bytes.")
+    pass
+
 
 @app.on_message(filters.media)
 async def download(client: Client, message: Message):
-      print("No soportado : ", message.media)
-      print("No soportado : ", message)
+    print("No soportado : ", message)
 
-# Arranque
-@app.on_message(filters.command("start"))
-async def send_welcome(client: Client, message: Message):
-    print(f"send_welcome start: {Message}", flush=True)
-    await message.reply_text(msg_txt)
 
-@app.on_message(filters.command(["help", "move", "folder"]))
-async def my_handler(client, message):
-    try:
+# Register command handler
+@app.on_message(filters.command(["help", "move", "folder", "addgroup"]))
+async def handle_commands(client: Client, message: Message):
+    print("handle_commands : ", message)
+    await command_handler.handle_commands(client, message)
 
-        print(message)
-        message_str = str(message)
-        with open("messages.txt", "a") as file:
-            file.write(f"{message_str} \n\n\n")
-        
 
-        if message.text == "/move" and message.reply_to_message_id:
-            print(f"/move reply_to_message_id: {message.reply_to_message_id}")
-            if message.reply_to_message:
-                file_name = getFileName(message.reply_to_message)
-                download_folder, file_name_download = utils.getDownloadFolder(file_name)
+@app.on_message(filters.text)
+async def handle_text_messages(client, message: Message):
+    print("handle_text_messages : ", message)
+    async with semaphore:
+        urls = URL_REGEX.findall(message.text)
+        if urls:
+            for url in urls:
+                await url_downloader.download_from_url(client, message, url)  # Use the class method
 
-                # 'origin_group': message.forward_from.id if message.forward_from else message.forward_from_chat.id if message.forward_from_chat else None ,
 
-                group_id = message.reply_to_message.forward_from.id if message.reply_to_message.forward_from else message.reply_to_message.forward_from_chat.id if message.reply_to_message.forward_from_chat else None
-                print(f"/move file_name: {file_name} => {group_id}")
-                print(f"/move download_folder: {download_folder} => {file_name_download}")
-                move = utils.moveFile(group_id, file_name_download)
-                print(f"/move move: {file_name_download} => {move}")
-                await message.reply_text(f"move: {file_name_download} to {move}")
-
-        if message.text == "/folder" and message.reply_to_message_id:
-            group_id = message.reply_to_message.forward_from.id if message.reply_to_message.forward_from else message.reply_to_message.forward_from_chat.id if message.reply_to_message.forward_from_chat else None
-            createGroupFolder = utils.createGroupFolder(group_id)
-            if createGroupFolder:
-                await message.reply_text(f"create folder: {createGroupFolder}")
-
-    except Exception as e:
-        logging.error(f"Error al manejar el mensaje: {e}")
-
+@app.on_callback_query(filters.regex(r'^subject_.*'))
+async def handle_callback_query(client, callback_query: CallbackQuery):
+    await url_downloader.handle_callback_query(client, callback_query)
 
 
 if __name__ == "__main__":
 
-    print("__main__ : ")
+    print("Telegram Downloader Bot Started")
     app.run()
-    print("__main__ : ")
+    print("Telegram Downloader Bot Finish")
