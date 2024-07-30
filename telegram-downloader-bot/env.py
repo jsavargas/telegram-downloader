@@ -7,10 +7,12 @@ load_dotenv()
 class Env:
     def __init__(self):
 
-        self.API_ID = int(os.getenv('API_ID', 'DEFAULT_API_ID'))
-        self.API_HASH = os.getenv('API_HASH', 'DEFAULT_API_HASH')
-        self.BOT_TOKEN = os.getenv('BOT_TOKEN', 'DEFAULT_BOT_TOKEN')
-        self.AUTHORIZED_USER_ID = os.getenv('AUTHORIZED_USER_ID', '0').replace(" ", "").split(",")
+        self.API_ID = os.getenv('TG_API_ID') or os.getenv('API_ID')
+        self.API_HASH = os.getenv('TG_API_HASH') or os.getenv('API_HASH')
+        self.BOT_TOKEN = os.getenv('TG_BOT_TOKEN') or os.getenv('BOT_TOKEN')      
+        # Handling both AUTHORIZED_USER_ID and TG_AUTHORIZED_USER_ID
+        AUTHORIZED_USER_IDS = os.getenv('TG_AUTHORIZED_USER_ID') or os.getenv('AUTHORIZED_USER_ID', 'me')
+        self.AUTHORIZED_USER_ID = AUTHORIZED_USER_IDS.replace(" ", "").split(",")
         self.PUID = int(os.getenv('PUID', '1001'))
         self.PGID = int(os.getenv('PGID', '1001'))
         self.MAX_CONCURRENT_TRANSMISSIONS = int(os.getenv('MAX_CONCURRENT_TRANSMISSIONS', '2'))
@@ -26,7 +28,8 @@ class Env:
         self.DOWNLOAD_PATH_TORRENTS = os.environ.get("DOWNLOAD_PATH_TORRENTS", "/watch")  # fmt: skip
 
         self.DOWNLOAD_FILES_DB = os.environ.get("DOWNLOAD_FILES_DB", os.path.join(self.CONFIG_PATH, "download_files_db.json"))  # fmt: skip
-
+        self.PENDING_FILES_DB = os.environ.get("PENDING_FILES_DB", os.path.join(self.CONFIG_PATH, "pending_messages.json"))  # fmt: skip
+        
         self.WELCOME="WELCOME"
 
 

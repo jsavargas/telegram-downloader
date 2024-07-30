@@ -10,8 +10,8 @@ class FileDataHandler:
         self.env = Env()
         self.data_path = self.env.DOWNLOAD_FILES_DB
         self.downloads = self.load_from_json()
-        self.limit = 1000
-        self.max_items = 1000
+        self.limit = 5000
+        self.max_items = 5000
 
     def save_to_json(self):
         with open(self.data_path, "w") as file:
@@ -22,7 +22,7 @@ class FileDataHandler:
             if os.path.exists(self.data_path):
                 with open(self.data_path, "r") as data_path:
                     data = json.load(data_path)
-                    return data[-1000:]
+                    return data[-5000:]
 
         except FileNotFoundError:
             return []
@@ -31,21 +31,24 @@ class FileDataHandler:
             return []
 
     def add_download_files(self, user_id, origin_group, message_id, original_filename):
-        download_info = {
-            "user_id": user_id,
-            "origin_group": origin_group,
-            "message_id": message_id,
-            "original_filename": original_filename,
-            "new_filename": None,
-            "download_date": str(datetime.now()),
-            "update_date": None,  # Will be updated when necessary
-        }
+        try:
+            download_info = {
+                "user_id": user_id,
+                "origin_group": origin_group,
+                "message_id": message_id,
+                "original_filename": original_filename,
+                "new_filename": None,
+                "download_date": str(datetime.now()),
+                "update_date": None,  # Will be updated when necessary
+            }
 
-        # Add download information
-        self.downloads.append(download_info)
+            # Add download information
+            self.downloads.append(download_info)
 
-        # Save to the JSON file
-        self.save_to_json()
+            # Save to the JSON file
+            self.save_to_json()
+        except Exception as e:
+            print(f"add_download_files Exception: {user_id}, {e}")
 
     def update_download_files(self, message_id, new_filename):
         print(
