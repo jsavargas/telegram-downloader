@@ -30,16 +30,18 @@ class FileDataHandler:
             print(f"load_from_json Exception: {e}")
             return []
 
-    def add_download_files(self, user_id, origin_group, message_id, original_filename):
+    def add_download_files(self, user_id, file_path, message):
         try:
             download_info = {
                 "user_id": user_id,
-                "origin_group": origin_group,
-                "message_id": message_id,
-                "original_filename": original_filename,
+                "origin_group": message.forward_from.id if message.forward_from else message.forward_from_chat.id if message.forward_from_chat else None,
+                "media_group_id": message.media_group_id if message.media_group_id else None,
+                "message_id": message.id,
+                "original_filename": file_path,
                 "new_filename": None,
                 "download_date": str(datetime.now()),
                 "update_date": None,  # Will be updated when necessary
+                "media": str(message.media),  # Will be updated when necessary
             }
 
             # Add download information

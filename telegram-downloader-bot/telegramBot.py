@@ -24,7 +24,7 @@ from command_handler import CommandHandler
 from url_downloader import URLDownloader  # Import the class
 from pending_handler import PendingMessagesHandler
 
-BOT_VERSION = "5.0.0-r30"
+BOT_VERSION = "5.0.0-r31"
 
 uvloop.install()
 
@@ -74,7 +74,7 @@ while True:
             break  # Salir del bucle si el mensaje se envía exitosamente
     except FloodWait as e:
         print(f"FloodWait: Esperando {e.value} segundos antes de reintentar iniciar...\n {e}")
-        remaining_time = e.value
+        remaining_time = e.value + 60
         while remaining_time > 0:
             print(f"Remaining time: {remaining_time} seconds", flush=True)
             time.sleep(60)
@@ -134,7 +134,10 @@ async def handle_files(client: Client, message: Message):
 
             print("\ndownload_document")
             #print("download_document: ", message)
-            
+            #message_str = str(message)
+            #with open(os.path.join(env.CONFIG_PATH, "messages.txt"), "a") as file:
+            #    file.write(f"{message_str} \n\n\n")
+
             start_msg = await message.reply_text(f"Pendiente de descarga: ", reply_to_message_id=message.id)
             
             user_id = message.from_user.id if message.from_user else None
@@ -157,7 +160,13 @@ async def handle_files(client: Client, message: Message):
                 #while attempt < env.MAX_RETRIES:
                 while attempt < 100:
                     try:
+                        if os.path.exists(file_name_download) and os.path.getsize(file_name_download) != _FileSize:
+                            directory, filename = os.path.split(file_name_download)
+                            name, ext = os.path.splitext(filename)
+                            file_name = f"{name}_2{ext}"
+                            file_name_download = os.path.join(directory, file_name)
 
+                        
                         print(f"[!!] File download start : [{attempt}]  {file_name_download}")
                         file_path = await message.download(file_name=file_name_download)
 
@@ -166,12 +175,7 @@ async def handle_files(client: Client, message: Message):
                             print(f"[!!] File download finish: [{attempt}] {file_path},  [{_FileSize}] == [{os.path.getsize(file_path)}] => [{message.id}]")
 
                             pendingMessagesHandler.remove_pending_message(message.id, message)
-                            downloadFilesDB.add_download_files(
-                                message.from_user.id,
-                                origin_group,
-                                message.id, 
-                                file_path
-                            )
+                            downloadFilesDB.add_download_files(message.id, file_path, message)
 
                             break
 
@@ -250,11 +254,6 @@ async def progress_callback(current, total):
     # Optionally, you can implement more detailed progress reporting here
     #print(f"Downloaded {current}/{total} bytes.")
     pass
-
-
-@app.on_message(filters.private)
-async def hello(client, message):
-    await message.reply("Hello from Pyrogram!")
 
 
 @app.on_message(filters.media)

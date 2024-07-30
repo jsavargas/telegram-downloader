@@ -1,28 +1,42 @@
+import os
 import aiohttp
+import asyncio
 import yt_dlp
 from pyrogram import Client, filters
 from pyrogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
+
 from utils import Utils
-import os
-import asyncio
+from config_handler import ConfigHandler
 
 class URLDownloader:
     def __init__(self):
         self.default_download_type = os.getenv("DEFAULT_DOWNLOAD_TYPE", "video")
         self.pending_callbacks = {}  # To store pending callback queries
+        self.config_handler = ConfigHandler()
 
     async def download_from_url(self, client: Client, message: Message, url: str):
-        if 'youtube.com' in url or 'youtu.be' in url:
-            await self.send_download_options(client, message, url)
-        else:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url) as response:
-                    if response.status == 200:
-                        file_name = url.split("/")[-1]
-                        file_path = os.path.join("/download", file_name)
-                        with open(file_path, 'wb') as f:
-                            f.write(await response.read())
-                        await message.reply_text(f"File {file_name} downloaded to {file_path}")
+        
+        try:
+            origin_group = message.forward_from.id if message.forward_from else message.forward_from_chat.id if message.forward_from_chat else None
+
+            if 'youtube.com' in url or 'youtu.be' in url:
+                await self.send_download_options(client, message, url)
+            else:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url) as response:
+                        if response.status == 200:
+                            file_name = url.split("/")[-1]
+                            ext = file_name.split('.')[-1]
+                            download_path = self.config_handler.get_group_path(origin_group) or self.config_handler.get_download_path(ext)
+
+                            file_path = os.path.join(download_path, file_name)
+                            with open(file_path, 'wb') as f:
+                                f.write(await response.read())
+                            await message.reply_text(f"File {file_name} downloaded to: \n{file_path}")
+        except Exception as e:
+            print(f"Exception Exception: {e} ")
+            await message.reply_text(f"Exception in download_from_url: {url}")
+
 
     async def send_download_options(self, client: Client, message: Message, url: str):
         buttons = [

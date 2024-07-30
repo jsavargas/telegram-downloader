@@ -49,6 +49,7 @@ class ConfigHandler:
                 config.write(config_file)
 
     def get_download_path(self, ext):
+        if ext == 'torrent': return self.env.DOWNLOAD_PATH_TORRENTS
         config = configparser.ConfigParser()
         config.read(self.config_path)
         DEFAULT_PATH = config['DEFAULT']['default_path'] if config['DEFAULT'] else self.env.DOWNLOAD_COMPLETED_PATH
