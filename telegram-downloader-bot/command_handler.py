@@ -2,6 +2,7 @@ import os
 
 from pyrogram import Client, filters, __version__ as pyrogram_version
 from pyrogram.types import Message
+from pyrogram import enums
 
 from file_data_handler import FileDataHandler
 from config_handler import ConfigHandler
@@ -9,7 +10,7 @@ from utils import Utils
 from env import Env
 
 class CommandHandler:
-    def __init__(self, bot_version):
+    def __init__(self, config):
         self.config_handler = ConfigHandler()
         self.env = Env()
         self.file_data_handler = FileDataHandler()
@@ -18,6 +19,7 @@ class CommandHandler:
             "help": self.handle_help,
             "version": self.handle_version,
             "pyrogram": self.handle_pyrogram_version,
+            "ytdlp": self.handle_ytdlp_version,
             "id": self.handle_id,
             "rename": self.rename_file,
             "addpath": self.add_path,
@@ -27,11 +29,14 @@ class CommandHandler:
             "delrenamegroup": self.del_rename_group,
         }
         self.command_keys = list(self.command_dict.keys())
-        self.bot_version = bot_version
+        self.bot_version = config.BOT_VERSION
+        self.yt_dlp_version = config.YT_DLP_VERSION
+        self.pyrogram_version = pyrogram_version
 
 
     async def process_command(self, client: Client, message: Message):
         try:
+
             command = message.command[0]
 
             user_id = message.from_user.id if message.from_user else None
@@ -63,12 +68,15 @@ class CommandHandler:
             "/addpath <extension> <path> - Add a download path for a specific file extension.\n"
             "/addgroup <path> - Add a download path for a specific group. Use by replying to a message in the group.\n"
             "/addkeyword <keyword1> <keyword2> ... <path> - Add download paths for messages containing specific keywords or phrases.\n"
-            "/addrgroup <group_id> - Adds a group ID to the rename group list\n"
+            "/delkeyword <keyword1> <keyword2> ... <path> - Remove download paths for messages containing specific keywords or phrases.\n"
+            "/addrenamegroup <group_id> - Adds a group ID to the rename group list\n"
+            "/delrenamegroup <group_id> - Remove a group ID to the rename group list\n"
             "/pyrogram - Displays the Telethon version\n"
+            "/ytdlp - Displays the ytdlp version\n"
             "/version - Displays the bot version"
 
         )
-        await message.reply_text(help_text)
+        await message.reply_text(help_text, parse_mode=enums.ParseMode.DISABLED)
 
     async def handle_id(self, client: Client, message: Message):
         user_id = message.from_user.id if message.from_user else None
@@ -78,7 +86,10 @@ class CommandHandler:
         await message.reply_text(f"version: {str(self.bot_version)}")
 
     async def handle_pyrogram_version(self, client: Client, message: Message):
-        await message.reply_text(f"pyrogram version: {pyrogram_version}")
+        await message.reply_text(f"pyrogram version: {self.pyrogram_version}")
+
+    async def handle_ytdlp_version(self, client: Client, message: Message):
+        await message.reply_text(f"ytdlp version: {self.yt_dlp_version}")
 
 
 
@@ -130,21 +141,36 @@ class CommandHandler:
     
     async def add_keyword(self, client: Client, message: Message):
         if len(message.command) < 3:
-            await message.reply_text("Usage: /addkeyword <keyword1> <keyword2> ... <path>")
+            await message.reply_text("Usage: /addkeyword <keyword> <path>", parse_mode=enums.ParseMode.DISABLED)
             return
 
         path = message.command[-1]
         keywords = message.command[1:-1]
 
-        self.config_handler.add_keyword_path(keyword.lower(), path)
-        await message.reply_text(f"Path for keyword '{keyword}' added: {path}.")
+        print(f"add_keyword keywords: {' '.join(keywords)}, path: {path}")
+
+        self.config_handler.add_keyword_path(' '.join(keywords).lower(), path)
+        await message.reply_text(f"Path for keyword '{' '.join(keywords)}' added: {path}.")
+
+    async def del_keyword_path(self, client: Client, message: Message):
+        if len(message.command) < 2:
+            await message.reply_text("Usage: /delkeyword <keyword>", parse_mode=enums.ParseMode.DISABLED)
+            return
+
+        path = message.command[-1]
+        keywords = message.command[1:-1]
+
+        print(f"add_keyword keywords: {' '.join(keywords)}, path: {path}")
+
+        self.config_handler.del_keyword_path(' '.join(keywords).lower(), path)
+        await message.reply_text(f"Path for keyword '{' '.join(keywords)}' added: {path}.")
 
     async def add_rename_group(self, client: Client, message: Message):        
         try:
             group_id = message.reply_to_message.forward_from_chat.id if message.reply_to_message and message.reply_to_message.forward_from_chat else None
             print(f"add_rename_group group_id: {group_id}")
             if not group_id and len(message.command) < 2:
-                await message.reply_text("Usage: /addrenamegroup <group_id>")
+                await message.reply_text("Usage: /addrenamegroup <group_id>", parse_mode=enums.ParseMode.DISABLED)
                 return
 
             if not group_id and not len(message.command) < 2:
@@ -159,12 +185,12 @@ class CommandHandler:
         try:
             group_id = message.reply_to_message.forward_from_chat.id if message.reply_to_message and message.reply_to_message.forward_from_chat else None
             if not group_id and len(message.command) < 2:
-                await message.reply_text("Usage: /delrenamegroup <group_id>")
+                await message.reply_text("Usage: /delrenamegroup <group_id>", parse_mode=enums.ParseMode.DISABLED)
                 return
             if not group_id and not len(message.command) < 2:
                 group_id = message.command[1]
                 
-            self.config_handler.remove_rename_group(str(group_id))
+            self.config_handler.del_rename_group(str(group_id))
             await message.reply_text(f"Group ID {group_id} removed to rename group list.")
         except Exception as e:
             print(f"del_rename_group Exception: {e}")

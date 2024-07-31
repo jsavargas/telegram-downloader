@@ -24,17 +24,22 @@ from command_handler import CommandHandler
 from url_downloader import URLDownloader  # Import the class
 from pending_handler import PendingMessagesHandler
 
-BOT_VERSION = "5.0.0-r39"
-
 uvloop.install()
 
+class Config:
+    def __init__(self):
+        self.BOT_VERSION = "5.0.0-r40"
+        self.PYROGRAM_VERSION = pyrogram_version
+        self.YT_DLP_VERSION = yt_dlp.version.__version__
+
+config = Config()
 
 env = Env()
 utils = Utils()
 printer = PartialPrinter()
 downloadFilesDB = FileDataHandler()
 config_handler = ConfigHandler()
-command_handler = CommandHandler(BOT_VERSION)
+command_handler = CommandHandler(config)
 url_downloader = URLDownloader()
 pendingMessagesHandler = PendingMessagesHandler()
 
@@ -55,14 +60,14 @@ while True:
             now = datetime.now()
             dt_string = now.strftime("%Y/%m/%d %H:%M:%S")
             msg_txt = "Telegram Downloader Bot Started\n\n"
-            msg_txt += f"bot version: {BOT_VERSION}\n"
+            msg_txt += f"bot version: {config.BOT_VERSION}\n"
             msg_txt += f"pyrogram version: {pyrogram_version}\n"
             msg_txt += f"yt_dlp version: {yt_dlp.version.__version__}\n"
             #msg_txt += f"yt-dlp version: 2024.05.27"
             
             print("Telegram Downloader Bot Started : ", dt_string)
             app.send_message(int(env.AUTHORIZED_USER_ID[0]), msg_txt)
-            printer.print_variable("BOT_VERSION", BOT_VERSION)
+            printer.print_variable("BOT_VERSION", config.BOT_VERSION)
             printer.print_variable("PYROGRAM_VERSION", pyrogram_version)
             printer.print_variable("YTDLP_VERSION", yt_dlp.version.__version__)
             printer.print_variables()

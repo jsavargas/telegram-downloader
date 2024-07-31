@@ -16,21 +16,21 @@ class ConfigHandler:
         self.config.read(self.config_file)
     
     
-    def _create_default_config(self):
+    def _create_default_config(self, config):
         if not os.path.exists(self.config_file):
-            print("_create_default_config")
-            self.config['DEFAULT'] = {'default_path': os.getenv('DEFAULT_PATH', self.env.DOWNLOAD_COMPLETED_PATH)}
-            self.config['EXTENSIONS'] = self.default_extensions
-            self.config['GROUP_PATHS'] = self.default_group_paths
-            self.config['RENAME_GROUP'] = self.default_rename_group
-            self.config['KEYWORDS'] = self.default_keywords
+            config['DEFAULT'] = {'default_path': os.getenv('DEFAULT_PATH', self.env.DOWNLOAD_COMPLETED_PATH)}
+            config['EXTENSIONS'] = self.default_extensions
+            config['GROUP_PATHS'] = self.default_group_paths
+            config['RENAME_GROUP'] = self.default_rename_group
+            config['KEYWORDS'] = self.default_keywords
             with open(self.config_file, 'w') as configfile:
-                self.config.write(configfile)
+                config.write(configfile)
+            return config
 
     def _initialize_config(self):
         config = configparser.ConfigParser()
         if not config.read(self.config_file):
-            self._create_default_config()
+            config = self._create_default_config(config)
 
         if not config.has_section("EXTENSIONS"):
             config.add_section("EXTENSIONS")
@@ -114,16 +114,26 @@ class ConfigHandler:
             self.config.write(configfile)
 
     def add_keyword_path(self, keyword, path):
+        self.config.read(self.config_file)
         self.config['KEYWORDS'][keyword] = path
         with open(self.config_file, 'w') as configfile:
             self.config.write(configfile)
 
+    def del_keyword_path(self, keyword, path):
+        self.config.read(self.config_file)
+        if group_id in self.config['KEYWORDS']:
+            del self.config['KEYWORDS'][keyword]
+        with open(self.config_file, 'w') as configfile:
+            self.config.write(configfile)
+
     def add_rename_group(self, group_id):
+        self.config.read(self.config_file)
         self.config['RENAME_GROUP'][group_id] = 'yes'
         with open(self.config_file, 'w') as configfile:
             self.config.write(configfile)
 
-    def remove_rename_group(self, group_id):
+    def del_rename_group(self, group_id):
+        self.config.read(self.config_file)
         if group_id in self.config['RENAME_GROUP']:
             del self.config['RENAME_GROUP'][group_id]
             with open(self.config_file, 'w') as configfile:

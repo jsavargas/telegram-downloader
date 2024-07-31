@@ -14,5 +14,5 @@ services:
         volumes:
             - ./config:/config
             - ./download:/download
-            - /mnt/user/media/torrent/qbittorrent/watch:/watch
+            - /path/torrent/watch:/watch
         tty: true
