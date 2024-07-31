@@ -13,6 +13,7 @@ class URLDownloader:
         self.default_download_type = os.getenv("DEFAULT_DOWNLOAD_TYPE", "video")
         self.pending_callbacks = {}  # To store pending callback queries
         self.config_handler = ConfigHandler()
+        self.youtubeLinks = {}
 
     async def download_from_url(self, client: Client, message: Message, url: str):
         
@@ -40,10 +41,13 @@ class URLDownloader:
 
     async def send_download_options(self, client: Client, message: Message, url: str):
         buttons = [
-            [InlineKeyboardButton("Download Video", callback_data=f"subject_video_{url}")],
-            [InlineKeyboardButton("Download Audio", callback_data=f"subject_audio_{url}")],
-            [InlineKeyboardButton("Download Both", callback_data=f"subject_both_{url}")]
+            [InlineKeyboardButton("Download Video", callback_data=f"ytdown_video_{message.id}")],
+            [InlineKeyboardButton("Download Audio", callback_data=f"ytdown_audio_{message.id}")],
+            [InlineKeyboardButton("Download Both", callback_data=f"ytdown_both_{message.id}")]
         ]
+
+        self.youtubeLinks[message.id] = url
+
         reply_markup = InlineKeyboardMarkup(buttons)
         prompt_message = await message.reply_text("Choose download type:", reply_markup=reply_markup)
         
@@ -106,8 +110,13 @@ class URLDownloader:
 
     async def handle_callback_query(self, client: Client, callback_query: CallbackQuery):
         data = callback_query.data
-        _, download_type, url = data.split('_', 2)
+        _, download_type, message_id = data.split('_', 2)
+        
+        url = self.youtubeLinks[int(message_id)]
+        removed_value = self.youtubeLinks.pop(int(message_id))
 
+        print(f"callback_query url: [{url}]")
+        print(f"callback_query removed_value: [{removed_value}]")
         print(f"callback_query.message.id: [{callback_query.message.id}]")
         print(f"callback_query.message.id pending_callbacks: [{self.pending_callbacks}]")
 

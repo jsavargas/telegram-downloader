@@ -82,43 +82,42 @@ while True:
 
 def getFileName(message: Message) -> str:
     if message.document:
-        print("message.document: ", message.document)
+        logger.info(f"message.document: {message.document}")
         return message.document.file_name
     elif message.photo:
-        print("message.photo: ", message.photo)
+        logger.info(f"message.photo: {message.photo}")
         return f"{message.photo.file_unique_id}.jpg"
     elif message.video:
-        print("message.video: ", message.video)
+        logger.info(f"message.video: {message.video}")
         return message.video.file_name if message.video.file_name else f"{message.video.file_unique_id}.{message.video.mime_type.split('/')[-1]}"
     elif message.animation:
-        print("message.animation: ", message.animation)
+        logger.info(f"message.animation: {message.animation}")
         return message.animation.file_name if message.animation.file_name else f"{message.animation.file_unique_id}.{message.animation.mime_type.split('/')[-1]}"
     elif message.audio:
-        print("message.audio: ", message.audio)
+        logger.info(f"message.audio: {message.audio}")
         return message.audio.file_name if message.audio.file_name else f"{message.audio.title}.{message.audio.mime_type[-3:]}"
-        return message.audio.title
     else:
-        print("message: ", message)
+        logger.info(f"message: {message}")
         return "Archivo"
 
 def getFileSize(message: Message) -> str:
     if message.document:
-        print("message.document: ", message.document)
+        logger.info(f"message.document: {message.document}")
         return message.document.file_size
     elif message.photo:
-        print("message.photo: ", message.photo)
+        logger.info(f"message.photo: {message.photo}")
         return message.photo.file_size
     elif message.video:
-        print("message.video: ", message.video)
+        logger.info(f"message.video: {message.video}")
         return message.video.file_size #if message.video.file_size else f"{message.video.file_unique_id}.{message.video.mime_type.split('/')[-1]}"
     elif message.animation:
-        print("message.animation: ", message.animation)
+        logger.info(f"message.animation: {message.animation}")
         return message.animation.file_size #if message.animation.file_size else f"{message.animation.file_unique_id}.{message.animation.mime_type.split('/')[-1]}"
     elif message.audio:
-        print("message.audio: ", message.audio)
+        logger.info(f"message.audio: {message.audio}")
         return message.audio.file_size #if message.audio.file_name else f"{message.audio.title}.{message.audio.mime_type[-3:]}"
     else:
-        print("message: ", message)
+        logger.info(f"message: {message}")
         return 0
 
 def message2file(message: Message) -> str:
@@ -271,8 +270,6 @@ async def download(client: Client, message: Message):
     logger.info(f"No soportado : {message}")
 
 
-# Register command handler
-#@app.on_message(filters.command(["help", "rename", "addpath", "addgroup", "addkeyword", "addrenamegroup", "delrenamegroup"]))
 @app.on_message(filters.command(command_handler.command_keys))
 async def handle_commands(client: Client, message: Message):
     logger.info(f"handle_commands : {message}")
@@ -292,7 +289,7 @@ async def handle_text_messages(client, message: Message):
                 await url_downloader.download_from_url(client, message, url)  # Use the class method
 
 
-@app.on_callback_query(filters.regex(r'^subject_.*'))
+@app.on_callback_query(filters.regex(r'^ytdown_.*'))
 async def handle_callback_query(client, callback_query: CallbackQuery):
     await url_downloader.handle_callback_query(client, callback_query)
 
