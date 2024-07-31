@@ -20,6 +20,7 @@ class Env:
 
         self.IS_DELETE = os.getenv('IS_DELETE', False)
         self.IS_DELETE = bool(self.IS_DELETE) if isinstance(self.IS_DELETE, str) and self.IS_DELETE.lower() in ["true", "1"] else self.IS_DELETE
+        self.MESSAGE_FILE = os.getenv('MESSAGE_FILE', 'False').lower() in ('true', '1')
 
         self.CONFIG_PATH = os.environ.get("CONFIG_PATH", "/config")
         self.DOWNLOAD_PATH = os.environ.get("DOWNLOAD_PATH", "/download")

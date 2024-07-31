@@ -33,6 +33,5 @@ class PartialPrinter:
         self.print_partial_value("BOT_TOKEN", self.env.BOT_TOKEN)
         self.print_partial_value("AUTHORIZED_USER_ID", self.env.AUTHORIZED_USER_ID)
         self.print_variable("DOWNLOAD_DIR", self.env.DOWNLOAD_PATH)
-        #self.print_variable("DOWNLOAD_COMPLETED_PATH", self.env.DOWNLOAD_COMPLETED_PATH)
-        #self.print_variable("DOWNLOAD_INCOMPLETED_PATH", self.env.DOWNLOAD_INCOMPLETED_PATH)
+        self.print_variable("DOWNLOAD_COMPLETED_PATH", self.env.DOWNLOAD_COMPLETED_PATH)
         self.print_variable("DOWNLOAD_PATH_TORRENTS", self.env.DOWNLOAD_PATH_TORRENTS)
