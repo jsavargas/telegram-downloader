@@ -119,9 +119,9 @@ class ConfigHandler:
         with open(self.config_file, 'w') as configfile:
             self.config.write(configfile)
 
-    def del_keyword_path(self, keyword, path):
+    def del_keyword_path(self, keyword):
         self.config.read(self.config_file)
-        if group_id in self.config['KEYWORDS']:
+        if keyword in self.config['KEYWORDS']:
             del self.config['KEYWORDS'][keyword]
         with open(self.config_file, 'w') as configfile:
             self.config.write(configfile)

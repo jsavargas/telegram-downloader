@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv
 
-# Cargar variables de entorno desde el archivo .env si existe
 load_dotenv()
 
 class Env:

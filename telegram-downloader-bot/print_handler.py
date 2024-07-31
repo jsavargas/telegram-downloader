@@ -1,5 +1,6 @@
 # variable_printer.py
 from env import Env
+from logger_config import logger  # Importar el logger configurado
 
 class PartialPrinter:
     def __init__(self, constants=[]):
@@ -7,25 +8,41 @@ class PartialPrinter:
 
     def print_variable(self, variable_name, variable_value):
         """Prints the variable name and its value in the desired format."""
-        print(f"{variable_name:<30}: {variable_value}")
+        logger.info(f"{variable_name:<30}: {variable_value}")
 
     def print_partial_value(self, variable_name, variable_value):
         try:
             """Prints the variable name and half of its value, padded with asterisks."""
-            if isinstance(variable_value, str):
+            if isinstance(variable_value, list):
+                masked_list = []
+                for item in variable_value:
+                    if isinstance(item, str):
+                        half_len = len(item) // 2
+                        masked_value = item[:half_len] + "*" * (len(item) - half_len)
+                    elif isinstance(item, (int, float)):
+                        str_item = str(item)
+                        half_len = len(str_item) // 2
+                        masked_value = str_item[:half_len] + "*" * (len(str_item) - half_len)
+                    else:
+                        masked_value = item  # Mantener el valor original si no es str, int, o float
+                    masked_list.append(masked_value)
+                masked_value_str = str(masked_list)
+                logger.info(f"{variable_name:<30}: {masked_value_str}")
+
+            elif isinstance(variable_value, str):
                 half_len = len(variable_value) // 2
                 masked_value = variable_value[:half_len] + "*" * (len(variable_value) - half_len)
-                print(f"{variable_name:<30}: {masked_value}")
+                logger.info(f"{variable_name:<30}: {masked_value}")
             elif isinstance(variable_value, (int, float)):
                 masked_value = str(variable_value)[:int(len(str(variable_value)) / 2)] + "*" * (
                     len(str(variable_value)) - int(len(str(variable_value)) / 2)
                 )
-                print(f"{variable_name:<30}: {masked_value}")
+                logger.info(f"{variable_name:<30}: {masked_value}")
             else:
-                print(f"{variable_name:<30}: {variable_value}")
+                logger.info(f"{variable_name:<30}: {variable_value}")
                 #raise TypeError(f"Unsupported type for variable_value: {type(variable_value)}")
         except Exception as e:
-            print(f"print_variable Exception: {variable_value}: {e}")
+            logger.error(f"print_variable Exception: {variable_value}: {e}")
 
     def print_variables(self):
         self.print_partial_value("API_ID", self.env.API_ID)

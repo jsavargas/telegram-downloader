@@ -24,7 +24,8 @@ class CommandHandler:
             "rename": self.rename_file,
             "addpath": self.add_path,
             "addgroup": self.add_group,
-            "addkeyword": self.add_keyword,
+            "addkeyword": self.add_keyword_path,
+            "delkeyword": self.del_keyword_path,
             "addrenamegroup": self.add_rename_group,
             "delrenamegroup": self.del_rename_group,
         }
@@ -139,7 +140,7 @@ class CommandHandler:
         else:
             await message.reply_text("Please reply to a document message with the path.")
     
-    async def add_keyword(self, client: Client, message: Message):
+    async def add_keyword_path(self, client: Client, message: Message):
         if len(message.command) < 3:
             await message.reply_text("Usage: /addkeyword <keyword> <path>", parse_mode=enums.ParseMode.DISABLED)
             return
@@ -157,13 +158,12 @@ class CommandHandler:
             await message.reply_text("Usage: /delkeyword <keyword>", parse_mode=enums.ParseMode.DISABLED)
             return
 
-        path = message.command[-1]
-        keywords = message.command[1:-1]
+        keywords = message.command[1:]
 
-        print(f"add_keyword keywords: {' '.join(keywords)}, path: {path}")
+        print(f"delkeyword keywords: {' '.join(keywords)}")
 
-        self.config_handler.del_keyword_path(' '.join(keywords).lower(), path)
-        await message.reply_text(f"Path for keyword '{' '.join(keywords)}' added: {path}.")
+        self.config_handler.del_keyword_path(' '.join(keywords).lower())
+        await message.reply_text(f"Path for keyword '{' '.join(keywords)}' remove")
 
     async def add_rename_group(self, client: Client, message: Message):        
         try:
