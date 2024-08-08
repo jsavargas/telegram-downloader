@@ -52,3 +52,5 @@ class PartialPrinter:
         self.print_variable("DOWNLOAD_DIR", self.env.DOWNLOAD_PATH)
         self.print_variable("DOWNLOAD_COMPLETED_PATH", self.env.DOWNLOAD_COMPLETED_PATH)
         self.print_variable("DOWNLOAD_PATH_TORRENTS", self.env.DOWNLOAD_PATH_TORRENTS)
+        self.print_variable("PROGRESS_DOWNLOAD", self.env.PROGRESS_DOWNLOAD)
+        self.print_variable("PROGRESS_STATUS_SHOW", self.env.PROGRESS_STATUS_SHOW)

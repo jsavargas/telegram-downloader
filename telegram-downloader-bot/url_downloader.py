@@ -1,4 +1,5 @@
 import os
+import time
 import aiohttp
 import asyncio
 import yt_dlp
@@ -28,14 +29,14 @@ class URLDownloader:
                         if response.status == 200:
                             file_name = url.split("/")[-1]
                             ext = file_name.split('.')[-1]
-                            download_path = self.config_handler.get_group_path(origin_group) or self.config_handler.get_download_path(ext)
+                            download_path = self.config_handler.get_download_path(origin_group, file_name, message)
 
                             file_path = os.path.join(download_path, file_name)
                             with open(file_path, 'wb') as f:
                                 f.write(await response.read())
                             await message.reply_text(f"File {file_name} downloaded to: \n{file_path}")
         except Exception as e:
-            print(f"Exception Exception: {e} ")
+            print(f"Exception download_from_url: {e} ")
             await message.reply_text(f"Exception in download_from_url: {url}")
 
 
@@ -74,6 +75,11 @@ class URLDownloader:
         download_type = self.default_download_type
         await self.download_youtube_content(client, message, url, download_type)
 
+    def progress_hook(self, info):
+        if info["status"] == "downloading":
+            percent = info["_percent_str"]
+            print(f"Descargando: {percent}")
+        print(f"progress_hook Descargando title: {info['title']}")
 
     async def download_youtube_content(self, client: Client, message: Message, url: str, download_type: str):
         
@@ -83,6 +89,7 @@ class URLDownloader:
             ydl_opts = {
                 'format': 'best',
                 'outtmpl': '/download/%(title)s.%(ext)s',
+                "progress_hooks": [self.progress_hook],
             }
             
             if download_type == "audio":
@@ -99,10 +106,34 @@ class URLDownloader:
             if download_type == "both":
                 ydl_opts['format'] = 'bestvideo+bestaudio/best'
                 ydl_opts['merge_output_format'] = 'mkv'
+            
+            start_time = time.time()
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+
+                playlist_info = ydl.extract_info(url, download=False)
+                
+                # Verificar si es una lista de reproducción
+                if 'entries' in playlist_info:
+                    num_videos = len(playlist_info['entries'])
+                    print(f"Número de videos en la lista de reproducción: {num_videos}")
+
+
                 ydl.download([url])
-            
+
+            end_time = time.time()
+            duration = end_time - start_time
+
+            # Datos para mostrar
+            download_speed = 0  # La velocidad promedio requiere cálculo adicional
+            print(f"\nDetalles de la descarga:")
+            print(f"Cantidad de videos descargados: {num_videos}")
+            print(f"Ruta de descarga: {os.path.abspath('downloads')}")
+            print(f"Hora de inicio: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}")
+            print(f"Hora de finalización: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_time))}")
+            print(f"Duración total: {duration:.2f} segundos")
+
+
             await message.edit(f"{download_type.capitalize()} downloaded for URL: {url}")
         except Exception as e:
             print(f"download_youtube_content Exception: {message}: {e}")

@@ -10,28 +10,32 @@ import uvloop
 import asyncio
 import yt_dlp
 
-from pyrogram import Client, filters, __version__ as pyrogram_version
+from pyrogram import Client, errors, idle, filters, __version__ as pyrogram_version
 from pyrogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
-from pyrogram.errors import FloodWait, RPCError
+from pyrogram.errors import FloodWait, RPCError, AuthBytesInvalid
 
 
 from env import Env
 from utils import Utils 
 from print_handler import PartialPrinter
-from file_data_handler import FileDataHandler
+from data_handler import FileDataHandler
 from config_handler import ConfigHandler
 from command_handler import CommandHandler
 from url_downloader import URLDownloader
 from pending_handler import PendingMessagesHandler
-from logger_config import logger
+from info_handler import InfoMessages
+from logger_config import logger, get_last_error_log
 
 uvloop.install()
 
+logger.info(f"Starting Telegram Downloader Bot Started : {datetime.now():%Y/%m/%d %H:%M:%S}")
+
 class Config:
     def __init__(self):
-        self.BOT_VERSION = "5.0.0-r40"
+        self.BOT_VERSION = "5.0.0-r47"
         self.PYROGRAM_VERSION = pyrogram_version
         self.YT_DLP_VERSION = yt_dlp.version.__version__
+
 
 config = Config()
 
@@ -43,12 +47,14 @@ config_handler = ConfigHandler()
 command_handler = CommandHandler(config)
 url_downloader = URLDownloader()
 pendingMessagesHandler = PendingMessagesHandler()
+info_handler = InfoMessages()
 
 utils.removeFiles()
 
 msg_txt = ""
 #app = Client("telegramBot", api_id = int(env.API_ID), api_hash = env.API_HASH, bot_token = env.BOT_TOKEN, workers=env.MAX_CONCURRENT_TRANSMISSIONS, max_concurrent_transmissions=env.MAX_CONCURRENT_TRANSMISSIONS)
-app = Client("telegramBot", api_id = int(env.API_ID), api_hash = env.API_HASH, bot_token = env.BOT_TOKEN)
+#app = Client("telegramBot", api_id = int(env.API_ID), api_hash = env.API_HASH, bot_token = env.BOT_TOKEN)
+app = Client("telegramBot", api_id = int(env.API_ID), api_hash = env.API_HASH, bot_token = env.BOT_TOKEN, workers=3, max_concurrent_transmissions=8)
 
 
 # Semaphore to limit the number of simultaneous downloads
@@ -80,45 +86,6 @@ while True:
             remaining_time -= 60
 
 
-def getFileName(message: Message) -> str:
-    if message.document:
-        logger.info(f"message.document: {message.document}")
-        return message.document.file_name
-    elif message.photo:
-        logger.info(f"message.photo: {message.photo}")
-        return f"{message.photo.file_unique_id}.jpg"
-    elif message.video:
-        logger.info(f"message.video: {message.video}")
-        return message.video.file_name if message.video.file_name else f"{message.video.file_unique_id}.{message.video.mime_type.split('/')[-1]}"
-    elif message.animation:
-        logger.info(f"message.animation: {message.animation}")
-        return message.animation.file_name if message.animation.file_name else f"{message.animation.file_unique_id}.{message.animation.mime_type.split('/')[-1]}"
-    elif message.audio:
-        logger.info(f"message.audio: {message.audio}")
-        return message.audio.file_name if message.audio.file_name else f"{message.audio.title}.{message.audio.mime_type[-3:]}"
-    else:
-        logger.info(f"message: {message}")
-        return "Archivo"
-
-def getFileSize(message: Message) -> str:
-    if message.document:
-        logger.info(f"message.document: {message.document}")
-        return message.document.file_size
-    elif message.photo:
-        logger.info(f"message.photo: {message.photo}")
-        return message.photo.file_size
-    elif message.video:
-        logger.info(f"message.video: {message.video}")
-        return message.video.file_size #if message.video.file_size else f"{message.video.file_unique_id}.{message.video.mime_type.split('/')[-1]}"
-    elif message.animation:
-        logger.info(f"message.animation: {message.animation}")
-        return message.animation.file_size #if message.animation.file_size else f"{message.animation.file_unique_id}.{message.animation.mime_type.split('/')[-1]}"
-    elif message.audio:
-        logger.info(f"message.audio: {message.audio}")
-        return message.audio.file_size #if message.audio.file_name else f"{message.audio.title}.{message.audio.mime_type[-3:]}"
-    else:
-        logger.info(f"message: {message}")
-        return 0
 
 def message2file(message: Message) -> str:
     if not env.MESSAGE_FILE:
@@ -135,67 +102,99 @@ async def handle_files(client: Client, message: Message):
         attempt = 0
         file_path = ""
 
-        async with semaphore:
+        if True:
 
-                logger.info("\ndownload_document")
+                logger.info("download_document")
                 #print("download_document: ", message)
                 message2file(message)
 
-                start_msg = await message.reply_text(f"Pendiente de descarga: ", reply_to_message_id=message.id)
                 
-                user_id = message.from_user.id if message.from_user else None
-                origin_group = message.forward_from.id if message.forward_from else message.forward_from_chat.id if message.forward_from_chat else None
+                user_id = info_handler.get_userId(message) #message.from_user.id if message.from_user else None
+                origin_group = info_handler.get_originGroup(message) #message.forward_from.id if message.forward_from else message.forward_from_chat.id if message.forward_from_chat else None
 
                 logger.info(f"download_document user_id: [{user_id}] => [{env.AUTHORIZED_USER_ID}]")
 
-                if str(user_id) in env.AUTHORIZED_USER_ID:
-                    file_name = getFileName(message)
-                    _FileSize = getFileSize(message)
+                if user_id and str(user_id) in env.AUTHORIZED_USER_ID:
+                    start_msg = await message.reply_text(f"Pendiente de descarga: ", reply_to_message_id=message.id)
+                    
+                    file_name = info_handler.getFileName(message)
+                    _FileSize = info_handler.getFileSize(message)
 
-                    download_path = config_handler.get_download_path(origin_group, file_name, message)
-                    file_name = config_handler.get_file_rename(origin_group, file_name, message)
+                    download_path = config_handler.get_download_path(message, origin_group, file_name)
+                    file_name = config_handler.get_file_rename(message, origin_group, file_name)
+
+                    
+                    
+                    file_name = utils.replace_chars_with_underscore(file_name, config_handler.get_chars_to_replace())
+
+                    start_time, start_hour = utils.startTime()
 
                     summary = f"**Downloading file:**"
                     summary += f"\n\n**File Name:** {file_name}"
                     if download_path: summary += f"\n**Download Folder:** {download_path}"
+                    if start_hour: summary += f"\n**Start Time:** {start_hour}"
+                    if _FileSize: summary += f"\n**File Size:** {utils.format_size(_FileSize)}"
                     if origin_group: summary += f"\n**Origin Group:** {origin_group}"
+
+
 
                     await start_msg.edit_text(summary)
 
                     file_name_download = os.path.join(download_path, file_name)
 
-                    start_time, start_hour = utils.startTime()
 
                     #while attempt < env.MAX_RETRIES:
                     while attempt < 100:
                         try:
-                            if os.path.exists(file_name_download) and os.path.getsize(file_name_download) != _FileSize:
+                            if os.path.exists(file_name_download) and os.path.getsize(file_name_download) != 0 and os.path.getsize(file_name_download) != _FileSize:
                                 directory, filename = os.path.split(file_name_download)
                                 name, ext = os.path.splitext(filename)
                                 file_name = f"{name}_2{ext}"
                                 file_name_download = os.path.join(directory, file_name)
 
                             logger.info(f"[!!] File download start : [{attempt}]  {file_name_download}")
-                            file_path = await message.download(file_name=file_name_download)
-
+                            if env.PROGRESS_DOWNLOAD:
+                                #file_path = await message.download(file_name=file_name_download)
+                                file_path = await message.download(file_name=file_name_download, progress=progress_callback(start_msg, summary))
+                            else:
+                                file_path = await message.download(file_name=file_name_download)
+                            
                             if _FileSize == os.path.getsize(file_path):
                                 logger.info(f"[!!] File download finish: [{attempt}] {file_path},  [{_FileSize}] == [{os.path.getsize(file_path)}] => [{message.id}]")
                                 pendingMessagesHandler.remove_pending_message(message.id, message)
-                                downloadFilesDB.add_download_files(message.id, file_path, message)
+                                downloadFilesDB.add_download_files(file_path, message)
                                 break
 
-                            logger.info(f"[!!] File download FloodWait: [{attempt}] {file_path}  _FileSize [{_FileSize}] getsize: [{os.path.getsize(file_path)}]")
+                            last_error_log = get_last_error_log()
                             
-                            if os.path.exists(file_path) and os.path.getsize(file_path) == 0:
-                                logger.info(f"File download failed: {file_path}, {os.path.getsize(file_path)}")
+                            if '400 AUTH_BYTES_INVALID' in last_error_log:
+                                logger.warning(f"[!!] WARNING [400 AUTH_BYTES_INVALID]: [{attempt}] {file_path}  _FileSize [{_FileSize}] getsize: [{os.path.getsize(file_path)}]")
+                                time.sleep(1)
+
+                            elif os.path.exists(file_path) and os.path.getsize(file_path) == 0:
+                                logger.warning(f"[!!] File download FloodWait: [{attempt}] {file_path}  _FileSize [{_FileSize}] getsize: [{os.path.getsize(file_path)}]")
+                                logger.warning(f"File download failed: {file_path}, {os.path.getsize(file_path)}")
                                 attempt += 1
                                 await start_msg.edit_text(f"Downloading file: {file_name} \nwait 60 seconds\nretry: {attempt}")
                                 time.sleep(60)
+                            else:
+                                logger.warning(f"[!!] File download FloodWait: [{attempt}] {file_path}  _FileSize [{_FileSize}] getsize: [{os.path.getsize(file_path)}]")
+                                time.sleep(30)
 
 
                         except FloodWait as e:
                             logger.warning(f"FloodWait Exception: {e} ")
                             await message.reply_text(f"Downloading file FloodWait: {e}", reply_to_message_id=message.id)
+                            time.sleep(60)
+
+                        except RPCError as e:
+                            logger.warning(f"FloodWait RPCError: {e} ")
+                            await message.reply_text(f"Downloading file RPCError: {e}", reply_to_message_id=message.id)
+                            time.sleep(60)
+
+                        except errors.exceptions.bad_request_400.AuthBytesInvalid as e:
+                            logger.warning(f"FloodWait AuthBytesInvalid: {e} ")
+                            await message.reply_text(f"Downloading file AuthBytesInvalid: {e}", reply_to_message_id=message.id)
                             time.sleep(60)
 
                         except Exception as e:
@@ -227,7 +226,8 @@ async def handle_files(client: Client, message: Message):
                         'elapsed_time': elapsed_time,
                         'download_speed': download_speed,
                         'origin_group': message.forward_from.id if message.forward_from else message.forward_from_chat.id if message.forward_from_chat else None ,
-                        'retries': attempt
+                        'retries': attempt,
+                        'message': message
                     }
 
                     ## file_name_download = getFolderDownload()
@@ -248,21 +248,44 @@ async def handle_files(client: Client, message: Message):
 
                     summary = utils.create_download_summary(download_info)
                     await start_msg.edit_text(summary)
-                else:
-                    await message.reply_text("No tienes permiso para descargar este archivo.")
+                #else:
+                #await message.reply_text("No tienes permiso para descargar este archivo.")
 
                 if env.IS_DELETE: await message.delete()
 
     except Exception as e:
-        logger.error(f"Exception Exception: {e} ")
-        await message.reply_text(f"Downloading file Exception: {e}", reply_to_message_id=message.id)
+        logger.error(f"handle_files Exception: {e} ")
+        await message.reply_text(f"handle_files file Exception: {e}", reply_to_message_id=message.id)
 
 
-async def progress_callback(current, total):
+def progress_callback(message, summary):
     """Callback function to report download progress."""
-    # Optionally, you can implement more detailed progress reporting here
-    #print(f"Downloaded {current}/{total} bytes.")
-    pass
+    async def callback(current, total):
+
+        if not env.PROGRESS_DOWNLOAD:
+            return
+        
+        nonlocal last_percentage
+
+        percent = int(current / total * 100)
+        rounded_percent = (percent // 10) * 10
+
+        try:
+
+            if rounded_percent % int(env.PROGRESS_STATUS_SHOW) == 0:
+                if last_percentage == rounded_percent:
+                    return 
+                       
+                logger.info(f"progress_callback percent: message: [{message.id}] {percent} ==> [{rounded_percent}] ")     
+                
+                last_percentage = rounded_percent
+
+                await message.edit(f"{summary}\n**Progress:** {rounded_percent} %")
+        except Exception as e:
+            logger.info(f"progress_callback Exception  => : {e} ")
+            pass
+    last_percentage = -1
+    return callback
 
 
 @app.on_message(filters.media)
@@ -297,5 +320,10 @@ async def handle_callback_query(client, callback_query: CallbackQuery):
 if __name__ == "__main__":
 
     logger.info("Telegram Downloader Bot Started")
-    app.run()
+    #app.run()
+
+    app.start()
+    idle()
+    app.stop()
+
     logger.info("Telegram Downloader Bot Finish")

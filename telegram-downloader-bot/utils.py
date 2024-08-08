@@ -1,5 +1,6 @@
 # utils.py
 import os
+import re
 import time
 import shutil
 from env import Env
@@ -70,6 +71,7 @@ class Utils:
         download_speed = download_info['download_speed']
         origin_group = download_info.get('origin_group', None)
         retries = download_info.get('retries', None)
+        media_group_id = download_info['message'].media_group_id if download_info['message'].media_group_id else None
 
         summary = (
             f"**Download completed**\n\n"
@@ -86,6 +88,8 @@ class Utils:
             summary += f"\n**Origin Group:** {origin_group}"
         if retries:
             summary += f"\n**Retries:** {retries}"
+        #if media_group_id:
+        #    summary += f"\n**media group id:** {media_group_id}"
 
         return summary
 
@@ -257,3 +261,100 @@ class Utils:
         except Exception as e:
             print(f"moveFile Exception: [{group_id}]: {e}")
             return None
+
+    def format_size(self, size_in_bytes):
+        """Convert size in bytes to a human-readable format."""
+        if size_in_bytes < 1024:
+            return f"{size_in_bytes} bytes"
+        elif size_in_bytes < 1024**2:
+            return f"{size_in_bytes / 1024:.2f} KB"
+        elif size_in_bytes < 1024**3:
+            return f"{size_in_bytes / 1024**2:.2f} MB"
+        else:
+            return f"{size_in_bytes / 1024**3:.2f} GB"
+
+    def format_duration(self, duration_in_seconds):
+        """Convert duration in seconds to a human-readable format including hours, minutes, and seconds."""
+        if duration_in_seconds < 60:
+            return f"{duration_in_seconds:.2f} seconds"
+        elif duration_in_seconds < 3600:
+            minutes = int(duration_in_seconds // 60)
+            seconds = int(duration_in_seconds % 60)
+            return f"{minutes} minute(s) and {seconds} second(s)"
+        else:
+            hours = int(duration_in_seconds // 3600)
+            minutes = int((duration_in_seconds % 3600) // 60)
+            seconds = int(duration_in_seconds % 60)
+            return f"{hours} hour(s), {minutes} minute(s), and {seconds} second(s)"
+
+    def replace_chars_with_underscore(self, s: str, chars_to_replace: str) -> str:
+        pattern = '[' + re.escape(chars_to_replace) + ']'
+        return re.sub(pattern, '_', s)
+
+
+    def combine_paths(self, path1, path2):
+        # Eliminar posibles barras diagonales finales de path2
+        #path2 = path2.rstrip('/')
+        pattern = r'^.*\.[A-Za-z]{2,4}$'
+
+        # Extraer el nombre del archivo y la extensión de path1
+        base_name = os.path.basename(path1)
+        ext = os.path.splitext(base_name)[1]
+        file_name = os.path.splitext(base_name)[0]
+
+        if path2.startswith('/'):
+            if not re.match(pattern, path2):
+                print("!!!!! ACA")
+                return os.path.join(base_name, path2,  file_name + ext)
+
+            # Si path2 empieza con '/', considera path2 como la ruta completa
+            if ext:  # Si path2 termina en extensión
+                return path2
+            else:  # Si path2 es solo una ruta
+                return os.path.join(path2, file_name + ext)
+        else:
+            if path2.endswith('/'):
+                return os.path.join(os.path.dirname(path1), path2, base_name)
+
+            elif not re.match(pattern, path2):
+                print("!!!!! ACA 2 ")
+                return os.path.join(os.path.dirname(path1), path2+ext)
+
+
+
+            # Si path2 no empieza con '/', es una ruta relativa o nombre de archivo
+            if '.' in path2:
+                # path2 es un nombre de archivo con extensión
+                return os.path.join(os.path.dirname(path1), path2)
+            else:
+                # path2 es una ruta relativa sin extensión
+                return os.path.join(os.path.dirname(path1), path2, base_name)
+
+
+
+
+if __name__ == '__main__':
+
+    utils = Utils()
+
+    old_filename = '/download/mobi/El golem - Gustav Meyrink.mobi'
+    
+    
+    new_filename = '/lololo/lilili/lala'
+    new_filename = 'lala/tototo.txt'
+    new_filename = 'lala/tototo'
+    new_filename = '/lololo/lilili/lala'
+    new_filename = '/lololo/lilili/lala.txt'
+    new_filename = 'lololo/lilili/lala'
+    new_filename = 'lololo/lilili/lala.txt'
+    new_filename = '/lala.txt'
+    new_filename = 'lala'
+    new_filename = 'lala.txt'
+    new_filename = '/lala'
+    new_filename = 'Directorio/NuevoNombreDeArchivo.ext'
+    new_filename = '/lala/'
+    
+
+
+    newfilename = utils.combine_paths(old_filename, new_filename)
+    print(f"newfilename:: {newfilename}")
