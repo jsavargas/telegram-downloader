@@ -4,14 +4,16 @@ Telegram bot developed using the Pyrogram library that allows the download of fo
 
 
 
-
+## Telegram Downloader bot
 
 [GITHUB](https://github.com/jsavargas/telethon_downloader)
 
 [DOCKERHUB](https://hub.docker.com/r/jsavargas/telegram-downloader-bot)
 
+## Telethon Downloader
 
 [telethon_downloader Github](https://github.com/jsavargas/telethon_downloader)
+
 [telethon_downloader Dockerhub](https://hub.docker.com/r/jsavargas/telethon_downloader)
 
 
