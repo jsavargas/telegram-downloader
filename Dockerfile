@@ -9,8 +9,7 @@ COPY requirements.txt .
 
 # Instalar las dependencias
 RUN apt-get update && \
-    apt-get install -qy \
-    ffmpeg && \
+    #apt-get install -qy ffmpeg && \
     pip install --no-cache-dir -r requirements.txt
 
 COPY telegram-downloader-bot/ .
