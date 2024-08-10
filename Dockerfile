@@ -11,7 +11,7 @@ COPY requirements.txt .
 # Instalar las dependencias
 RUN apt-get update && \
     pip install --upgrade pip setuptools && \
-    apt-get install -qy python3-dev libffi-dev build-essential && \
+    apt-get install -qy python3-dev libffi-dev build-essential ffmpeg && \
     #apt-get install -qy ffmpeg && \
     pip install --no-cache-dir -r requirements.txt
 
