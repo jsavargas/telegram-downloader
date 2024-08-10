@@ -55,7 +55,9 @@ Here is a list of new features included in this Telegram bot built with Pyrogram
 
 Enjoy an automated and organized downloading experience with telethon_downloader!
 
-![](https://raw.githubusercontent.com/jsavargas/telethon_downloader/master/images/e8de6c34276cd714552a94f378e77948.gif)
+![](https://raw.githubusercontent.com/jsavargas/telegram-downloader-bot/main/images/telegram-downloader.gif)
+
+
 
 ![](https://raw.githubusercontent.com/jsavargas/telethon_downloader/master/images/download-youtube.png)
 
