@@ -78,6 +78,11 @@ Enjoy an automated and organized downloading experience with telethon_downloader
  **TZ** [OPTIONAL]: <Sets the system timezone, adjusting it based on the geographical location of the server or user.
 >Example: America/Santiago
 
+ **MAX_CONCURRENT_TASKS** [OPTIONAL] **:** <maximum number of parallel downloads allowed (default: 3, maximum 4)> 
+>NOTE: Allows you to define the maximum number of simultaneous downloads
+
+
+
 ## Volumes:
 
 - **/config:** Path where configuration files are stored, along with files *pending download* and *recent downloads*.
@@ -105,12 +110,27 @@ services:
       - BOT_TOKEN=${BOT_TOKEN}
       - AUTHORIZED_USER_ID=${AUTHORIZED_USER_ID}
       - TZ=America/Santiago
+      - MAX_CONCURRENT_TASKS=${MAX_CONCURRENT_TASKS} or TG_MAX_PARALLEL=${TG_MAX_PARALLEL}
+      - PUID=${PUID}
+      - PGID=${PGID}
     volumes:
       - /path/config:/config
       - /path/download:/download
       - /path/torrent/watch:/watch
-    tty: true
-
-
 
 ```
+
+
+# Changelog
+
+## Backlog (Upcoming Features)
+- **Feature:** Re-downloading of files (in development).
+- **Feature:** Adding a feature to download videos and audio from YouTube.
+- **Feature:** Adding a command to manage downloads by file extensions.
+- **Feature:** Adding permission management to environment variables.
+- **Feature:** Adding a feature to decompress ZIP, RAR, and TAR files.
+- **Feature:** Added environment variable for YouTube video and audio download path.
+
+
+## [Version 5.0.0] - 2024-08-17
+- **Update:** Updated change_permissions files

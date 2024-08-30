@@ -2,6 +2,7 @@ import os
 import configparser
 from env import Env
 from info_handler import InfoMessages
+from logger_config import logger
 
 
 class ConfigHandler:
@@ -66,11 +67,14 @@ class ConfigHandler:
         return self.config['SETTINGS'].get('chars_to_replace', '')
 
     def get_new_download_path(self, message, origin_group='', file_name=''):
-        origin_group = self.info_handler.get_originGroup(message)
+        origin_group = self.info_handler.get_originGroup_test(message)
         file_name = self.info_handler.getFileName(message)
         file_size = self.info_handler.getFileSize(message)
 
-        #print(f"get_download_path origin_group: {origin_group}, file_name: {file_name}")
+        logger.info(f"[!] get_new_download_path origin_group   : {origin_group}")
+        logger.info(f"[!] get_new_download_path file_name   : {file_name}")
+        logger.info(f"[!] get_new_download_path file_size   : {file_size}")
+
         self.config.read(self.config_file)
         extension = file_name.split('.')[-1]
         caption = message.caption if message.caption else None
@@ -96,8 +100,9 @@ class ConfigHandler:
         }
 
     def get_download_path(self, message, origin_group='', file_name=''):
-        origin_group = self.info_handler.get_originGroup(message)
-        file_name = self.info_handler.getFileName(message)
+        origin_group = self.info_handler.get_originGroup_test(message)
+        if not file_name:
+            file_name = self.info_handler.getFileName(message)
 
         #print(f"get_download_path origin_group: {origin_group}, file_name: {file_name}")
         self.config.read(self.config_file)
@@ -112,6 +117,10 @@ class ConfigHandler:
         )
 
     def get_file_rename(self, message, group_id='', file_name=''):
+        logger.info(f"[!] get_file_rename message   : {message}")
+        logger.info(f"[!] get_file_rename group_id   : {group_id}")
+        logger.info(f"[!] get_file_rename file_name   : {file_name}")
+
         self.config.read(self.config_file)
         if not self.config['RENAME_GROUP'].get(str(group_id), None):
             return file_name
@@ -121,6 +130,7 @@ class ConfigHandler:
 
         ext = file_name.split('.')[-1]
         caption = message.caption
+        logger.info(f"[!] get_file_rename caption   : {caption}")
         return f"{caption}.{ext}"
 
     def get_file_rename_regex(self, message, group_id='', file_name=''):

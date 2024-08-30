@@ -4,6 +4,7 @@ import re
 import time
 import shutil
 from env import Env
+from logger_config import logger
 
 class Utils:
     def __init__(self):
@@ -11,8 +12,8 @@ class Utils:
         self.env = Env()
         self.permissions_folder = 0o777
         self.permissions_file = 0o755
-        self.PUID = self.env.PUID 
-        self.PGID = self.env.PGID
+        self.PUID = self.env.PUID or 0
+        self.PGID = self.env.PGID or 0
         self.change_permissions()
 
 
@@ -71,6 +72,7 @@ class Utils:
         download_speed = download_info['download_speed']
         origin_group = download_info.get('origin_group', None)
         retries = download_info.get('retries', None)
+        num_videos = download_info.get('num_videos', None)
         media_group_id = download_info['message'].media_group_id if download_info['message'].media_group_id else None
 
         summary = (
@@ -86,6 +88,8 @@ class Utils:
 
         if origin_group:
             summary += f"\n**Origin Group:** {origin_group}"
+        if num_videos:
+            summary += f"\n**items:** {num_videos}"
         if retries:
             summary += f"\n**Retries:** {retries}"
         #if media_group_id:
@@ -97,8 +101,31 @@ class Utils:
         if os.path.exists("telegramBot.session"): 
             os.remove("telegramBot.session")
 
-    def change_permissions(self):
+    def change_permissions(self, path=None):
         os.chown(self.env.DOWNLOAD_PATH, self.PUID, self.PGID)
+
+        if not path:
+            return
+
+        try:
+            # Check if it's a file
+            if os.path.isfile(path):
+                os.chmod(path, 0o677)
+                logger.info(f"Permissions 677 assigned to the file: {path}")
+            # Check if it's a directory
+            elif os.path.isdir(path):
+                os.chmod(path, 0o777)
+                logger.info(f"Permissions 777 assigned to the directory: {path}")
+
+            if self.PUID and self.PGID:
+                os.chown(path, int(self.PUID), int(self.PGID))
+                logger.info(f"Owner changed to PUID:{self.PUID} and PGID:{self.PGID} for: {path}")
+            else:
+                logger.info("PUID or PGID are not defined. Owner not changed.")
+        except Exception as e:
+            logger.info(f"Error changing permissions or owner on {path}: {e}")
+
+
 
     def change_permissions_owner(self, file_name):
         """Changes the permissions and owner of the specified file."""
@@ -107,9 +134,9 @@ class Utils:
             elif os.path.isdir(file_name): os.chmod(file_name, self.permissions_folder)
             else: os.chmod(file_name, self.permissions_file)
             os.chown(file_name, self.PUID, self.PGID)
-            print(f"Successfully changed permissions and owner of {file_name}")
+            logger.info(f"Successfully changed permissions and owner of {file_name}")
         except Exception as e:
-            print(f"Failed to change permissions and owner: {e}")
+            logger.info(f"Failed to change permissions and owner: {e}")
 
     def getDownloadFolder(self, file_name):
 
@@ -126,12 +153,12 @@ class Utils:
             # Construct the final path
             final_path = os.path.join(download_folder, file_name)
 
-            print(f"getDownloadFolder: download_folder: {download_folder}, final_path: {final_path}")  # Enhanced logging
+            logger.info(f"getDownloadFolder: download_folder: {download_folder}, final_path: {final_path}")  # Enhanced logging
 
             return download_folder, final_path
 
         except Exception as e:
-            print(f"getDownloadFolder Failed: {e}")
+            logger.info(f"getDownloadFolder Failed: {e}")
             return download_folder, final_path
 
     def getDownloadFolderTemp(self, file_name):
@@ -140,36 +167,80 @@ class Utils:
             self.create_folders(final_path)
             return final_path
         except Exception as e:
-            print(f"getDownloadFolderTemp Failed: {e}")
+            logger.info(f"getDownloadFolderTemp Failed: {e}")
             return final_path
 
     def create_folders(self, folder_name):
         try:
-            print(f"create_folders folder_name: {folder_name}")
+            logger.info(f"create_folders folder_name: {folder_name}")
             # Verificar si la folder_name es un archivo
             if os.path.isfile(folder_name):
-                print(f"create_folders isfile: {folder_name}")
+                logger.info(f"create_folders isfile: {folder_name}")
                 base_directory = os.path.dirname(folder_name)
                 os.makedirs(base_directory, exist_ok=True) 
                 self.change_permissions_owner(base_directory)
             elif os.path.isdir(folder_name):
-                print(f"create_folders isdir: {folder_name}")
+                logger.info(f"create_folders isdir: {folder_name}")
                 os.makedirs(folder_name, exist_ok=True) 
                 self.change_permissions_owner(folder_name)
             else:
-                print(f"create_folders else: {folder_name}")
+                logger.info(f"create_folders else: {folder_name}")
                 dirname = os.path.dirname(folder_name)
                 base_directory = os.path.basename(folder_name)
                 if "." not in base_directory:
-                    print(f"create_folders else: {folder_name}")
+                    logger.info(f"create_folders else: {folder_name}")
                     os.makedirs(folder_name, exist_ok=True) 
                 else:
-                    print(f"create_folders else: {dirname}")
+                    logger.info(f"create_folders else: {dirname}")
                     os.makedirs(dirname, exist_ok=True) 
         except FileExistsError as e:
-            print(f"The folder {folder_name} already exists: {e}")
+            logger.info(f"The folder {folder_name} already exists: {e}")
         except Exception as e:
-            print(f"create_folders Exception: {folder_name}: {e}")
+            logger.info(f"create_folders Exception: {folder_name}: {e}")
+
+    def shutil_move(self, src_file, dest_file, permissions=0o755):
+
+        self.create_directories_and_set_permissions(dest_file)
+
+        # Move the file to the new location
+        shutil.move(src_file, dest_file)
+        logger.info(f"File moved to: {dest_file}")
+
+        # Get owner and group ID from environment variables
+        owner_id = self.PUID
+        group_id = self.PGID
+
+        # Change file permissions
+        os.chmod(dest_file, permissions)
+        logger.info(f"Permissions changed to: {oct(permissions)}")
+
+        # Change file ownership
+        os.chown(dest_file, owner_id, group_id)
+        logger.info(f"Ownership changed to: {owner_id}:{group_id}")
+
+        return True
+
+    def create_directories_and_set_permissions(self, file_path, permissions=0o755):
+        # Extraer la ruta del directorio desde la ruta del archivo
+        directory = os.path.dirname(file_path)
+
+        # Inicializar el camino acumulativo desde la raíz si comienza con '/'
+        accumulated_path = os.path.sep if directory.startswith(os.path.sep) else ""
+
+        # Recorrer cada subcarpeta en la ruta
+        for subdir in directory.split(os.sep):
+            if subdir:  # Ignorar partes vacías (como el primer separador)
+                accumulated_path = os.path.join(accumulated_path, subdir)
+                if not os.path.exists(accumulated_path):
+                    # Crear la subcarpeta si no existe
+                    os.makedirs(accumulated_path)
+                    logger.info(f"create_directories: {accumulated_path}")
+                    # Cambiar permisos
+                    os.chmod(accumulated_path, permissions)
+                    # Cambiar propietario
+                    os.chown(accumulated_path, self.PUID, self.PGID)
+
+        
 
     def startTime(self):
         start_time = time.time()
@@ -201,7 +272,7 @@ class Utils:
                 size_str = f"{file_size / (1024 * 1024):.2f} MB"
 
         except Exception as e:
-            print(f"getSize Exception: {file_path}: {e}")
+            logger.info(f"getSize Exception: {file_path}: {e}")
             file_size = 0
         return file_size, size_str
 
@@ -219,7 +290,7 @@ class Utils:
             else:
                 return None
         except Exception as e:
-            print(f"moveFile Exception: [{old_filename}] [{new_filename}]: {e}")
+            logger.info(f"moveFile Exception: [{old_filename}] [{new_filename}]: {e}")
             return None
     
     def moveFileFolder(self, group_id, file_name_download):
@@ -237,14 +308,14 @@ class Utils:
                 return move
 
         except Exception as e:
-            print(f"moveFile Exception: [{group_id}] [{file_name_download}]: {e}")
+            logger.info(f"moveFile Exception: [{group_id}] [{file_name_download}]: {e}")
             return None
     
     def createGroupFolder(self, group_id):
 
         try:
             if group_id.startswith("/"):
-                print(f"createGroupFolder startswith: [{group_id}]")
+                logger.info(f"createGroupFolder startswith: [{group_id}]")
                 self.create_folders(group_id)
                 return group_id
             else:
@@ -259,7 +330,7 @@ class Utils:
 
 
         except Exception as e:
-            print(f"moveFile Exception: [{group_id}]: {e}")
+            logger.info(f"moveFile Exception: [{group_id}]: {e}")
             return None
 
     def format_size(self, size_in_bytes):
@@ -304,7 +375,7 @@ class Utils:
 
         if path2.startswith('/'):
             if not re.match(pattern, path2):
-                print("!!!!! ACA")
+                logger.info("!!!!! ACA")
                 return os.path.join(base_name, path2,  file_name + ext)
 
             # Si path2 empieza con '/', considera path2 como la ruta completa
@@ -317,7 +388,7 @@ class Utils:
                 return os.path.join(os.path.dirname(path1), path2, base_name)
 
             elif not re.match(pattern, path2):
-                print("!!!!! ACA 2 ")
+                logger.info("!!!!! ACA 2 ")
                 return os.path.join(os.path.dirname(path1), path2+ext)
 
 
@@ -357,4 +428,4 @@ if __name__ == '__main__':
 
 
     newfilename = utils.combine_paths(old_filename, new_filename)
-    print(f"newfilename:: {newfilename}")
+    logger.info(f"newfilename:: {newfilename}")

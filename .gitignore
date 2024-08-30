@@ -5,10 +5,9 @@ __pycache__/
 *.session
 *copy*
 *.session-journal
+*.txt
 docker_*
 compose.dev
-messages.txt
-TODO.txt
 tmp/*
 config.ini
 docker-compose.dev.yml
@@ -17,3 +16,4 @@ download
 series
 telegram-downloader-bot/bottorrent.py
 docker-compose.telethon.yml
+update_readme.sh

@@ -32,7 +32,7 @@ logger.info(f"Starting Telegram Downloader Bot Started : {datetime.now():%Y/%m/%
 
 class Config:
     def __init__(self):
-        self.BOT_VERSION = "5.0.0-r47"
+        self.BOT_VERSION = "5.0.0-r50"
         self.PYROGRAM_VERSION = pyrogram_version
         self.YT_DLP_VERSION = yt_dlp.version.__version__
 
@@ -54,11 +54,12 @@ utils.removeFiles()
 msg_txt = ""
 #app = Client("telegramBot", api_id = int(env.API_ID), api_hash = env.API_HASH, bot_token = env.BOT_TOKEN, workers=env.MAX_CONCURRENT_TRANSMISSIONS, max_concurrent_transmissions=env.MAX_CONCURRENT_TRANSMISSIONS)
 #app = Client("telegramBot", api_id = int(env.API_ID), api_hash = env.API_HASH, bot_token = env.BOT_TOKEN)
-app = Client("telegramBot", api_id = int(env.API_ID), api_hash = env.API_HASH, bot_token = env.BOT_TOKEN, workers=3, max_concurrent_transmissions=8)
+#app = Client("telegramBot", api_id = int(env.API_ID), api_hash = env.API_HASH, bot_token = env.BOT_TOKEN, workers=8, max_concurrent_transmissions=8)
+app = Client("telegramBot", api_id=int(env.API_ID), api_hash=env.API_HASH, bot_token=env.BOT_TOKEN, workers=env.WORKERS, max_concurrent_transmissions=env.MAX_CONCURRENT_TRANSMISSIONS)
 
 
 # Semaphore to limit the number of simultaneous downloads
-semaphore = asyncio.Semaphore(3)
+semaphore = asyncio.Semaphore(int(env.MAX_CONCURRENT_TASKS))
 
 
 while True:
@@ -102,7 +103,7 @@ async def handle_files(client: Client, message: Message):
         attempt = 0
         file_path = ""
 
-        if True:
+        async with semaphore:
 
                 logger.info("download_document")
                 #print("download_document: ", message)
@@ -152,7 +153,7 @@ async def handle_files(client: Client, message: Message):
                                 file_name = f"{name}_2{ext}"
                                 file_name_download = os.path.join(directory, file_name)
 
-                            logger.info(f"[!!] File download start : [{attempt}]  {file_name_download}")
+                            logger.info(f"[****] File download start : [{attempt}]  {file_name_download}")
                             if env.PROGRESS_DOWNLOAD:
                                 #file_path = await message.download(file_name=file_name_download)
                                 file_path = await message.download(file_name=file_name_download, progress=progress_callback(start_msg, summary))
@@ -167,14 +168,23 @@ async def handle_files(client: Client, message: Message):
 
                             last_error_log = get_last_error_log()
                             
-                            if '400 AUTH_BYTES_INVALID' in last_error_log:
-                                logger.warning(f"[!!] WARNING [400 AUTH_BYTES_INVALID]: [{attempt}] {file_path}  _FileSize [{_FileSize}] getsize: [{os.path.getsize(file_path)}]")
+                            if 'ERROR' in last_error_log:
+                                logger.warning(f"[!!] LAST ERROR WARNING [ERROR]: {file_path}  last_error_log [{last_error_log}]")
                                 time.sleep(1)
 
+                            if '400 AUTH_BYTES_INVALID' in last_error_log:
+                                logger.warning(f"[!!] LAST ERROR WARNING [400 AUTH_BYTES_INVALID]: [{file_path}  last_error_log [{last_error_log}]")
+                                time.sleep(1)
+
+                            elif '-503 Timeout' in last_error_log:
+                                logger.warning(f"[!!] LAST ERROR WARNING [-503 Timeout]: [{file_path}  last_error_log [{last_error_log}]")
+                                await start_msg.edit_text(f"Downloading file: {file_name} \n-503 Timeout. Please try this file again later")
+                                return
+                                break
+                            
                             elif os.path.exists(file_path) and os.path.getsize(file_path) == 0:
-                                logger.warning(f"[!!] File download FloodWait: [{attempt}] {file_path}  _FileSize [{_FileSize}] getsize: [{os.path.getsize(file_path)}]")
-                                logger.warning(f"File download failed: {file_path}, {os.path.getsize(file_path)}")
                                 attempt += 1
+                                logger.warning(f"[!!] File download failed: {file_path}, getsize: {os.path.getsize(file_path)} attempt: {attempt}")
                                 await start_msg.edit_text(f"Downloading file: {file_name} \nwait 60 seconds\nretry: {attempt}")
                                 time.sleep(60)
                             else:
@@ -199,7 +209,7 @@ async def handle_files(client: Client, message: Message):
 
                         except Exception as e:
                             logger.error(f"Exception Exception: {e} ")
-                            await message.reply_text(f"Downloading file Exception: {e}", reply_to_message_id=message.id)
+                            #await message.reply_text(f"Downloading file Exception: {e}", reply_to_message_id=message.id)
                             attempt += 1
                             logger.error(f"Attempt {attempt} failed: {e}")
                             time.sleep(60)
@@ -212,6 +222,10 @@ async def handle_files(client: Client, message: Message):
                         await start_msg.edit_text(f"Downloading failed: {file_name}\nretry: {attempt}")
                         return False
                     
+
+                    utils.change_permissions(download_path)
+                    utils.change_permissions(file_path)
+
                     end_time, end_hour = utils.endTime()
                     elapsed_time = utils.elapsedTime(start_time, end_time)
                     file_size, size_str = utils.getSize(file_path)

@@ -108,15 +108,28 @@ class InfoMessages:
 
     def get_originGroup_test(self, message: Message):
         try:
-            if message.reply_to_message:
+            logger.info(f"get_originGroup_test message [{message}]")
+
+            if message.forward_from_chat:
+                logger.info(f"get_originGroup_test message.forward_from_chat []")
+                return message.forward_from_chat.id
+
+            elif message.reply_to_message:
+                logger.info(f"get_originGroup_test message.reply_to_message []")
                 reply_to_message = message.reply_to_message
+
 
                 return reply_to_message.forward_from.id if reply_to_message.forward_from else reply_to_message.forward_from_chat.id if reply_to_message.forward_from_chat else None
 
-            return message.forward_from.id if message.forward_from else message.forward_from_chat.id if message.forward_from_chat else None
+            elif message.forward_from:
+                logger.info(f"get_originGroup_test message.forward_from []")
+                return message.forward_from.id if message.forward_from else message.forward_from_chat.id if message.forward_from_chat else None
+            
+            else:
+                return message.from_user.id
 
         except Exception as e:
-            logger.error(f"get_originGroup Exception: {e} ")
-            raise Exception(f"get_originGroup Exception: {e} ")
+            logger.error(f"get_originGroup_test Exception: {e} ")
+            raise Exception(f"get_originGroup_test Exception: {e} ")
 
 

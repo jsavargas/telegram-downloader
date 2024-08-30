@@ -14,8 +14,13 @@ class Env:
         self.AUTHORIZED_USER_ID = AUTHORIZED_USER_IDS.replace(" ", "").split(",")
         self.PUID = int(os.getenv('PUID', '1001'))
         self.PGID = int(os.getenv('PGID', '1001'))
-        self.MAX_CONCURRENT_TRANSMISSIONS = int(os.getenv('MAX_CONCURRENT_TRANSMISSIONS', '2'))
-        self.MAX_RETRIES = int(os.getenv('MAX_RETRIES', '3'))
+        #self.MAX_CONCURRENT_TASKS = int(os.getenv('MAX_CONCURRENT_TASKS', '3'))
+
+        self.MAX_CONCURRENT_TASKS = os.getenv('TG_MAX_PARALLEL') or int(os.getenv('MAX_CONCURRENT_TASKS', '3'))
+
+        self.WORKERS = int(os.getenv('WORKERS', '4'))
+        self.MAX_CONCURRENT_TRANSMISSIONS = int(os.getenv('MAX_CONCURRENT_TRANSMISSIONS', '4'))
+        self.MAX_RETRIES = int(os.getenv('MAX_RETRIES', '4'))
         self.PROGRESS_STATUS_SHOW = int(os.getenv('PROGRESS_STATUS_SHOW', '10'))
 
         self.IS_DELETE = os.getenv('IS_DELETE', False)
