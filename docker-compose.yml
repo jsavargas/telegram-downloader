@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-    telegram-downloader-bot:
-        image: jsavargas/telegram-downloader-bot:develop
-        container_name: telegram-downloader-bot
+    telegram-downloader:
+        image: jsavargas/telegram-downloader:develop
+        container_name: telegram-downloader
         restart: unless-stopped
         environment:
             - API_ID=${API_ID}

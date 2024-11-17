@@ -54,3 +54,6 @@ class PartialPrinter:
         self.print_variable("DOWNLOAD_PATH_TORRENTS", self.env.DOWNLOAD_PATH_TORRENTS)
         self.print_variable("PROGRESS_DOWNLOAD", self.env.PROGRESS_DOWNLOAD)
         self.print_variable("PROGRESS_STATUS_SHOW", self.env.PROGRESS_STATUS_SHOW)
+        self.print_variable("MAX_CONCURRENT_TASKS", self.env.MAX_CONCURRENT_TASKS)
+        self.print_variable("WORKERS", self.env.WORKERS)
+        self.print_variable("MAX_CONCURRENT_TRANSMISSIONS", self.env.MAX_CONCURRENT_TRANSMISSIONS)

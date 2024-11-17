@@ -97,7 +97,7 @@ class CommandHandler:
 
 
             /move <new_folder> - Mueve el archivo del mensaje respondido.
-                - Uso: Responde a un mensaje que contenga un archivo con /move seguido del nuevo nombre que deseas para la carpeta.
+                - Uso: Responde a un mensaje que contenga un archivo con /move seguido del nuevo nombre que deseas para la carpeta. Si no agregas una ruta, se movera a la carpeta segun las para el archivo o grupo en el archivo config.ini
                 - Ejemplo: Si recibes un documento y quieres moverlo a "MiDocumento", responde al mensaje con /move MiDocumento.
                     - /move 
                     - /move /NuevoDirectorio
@@ -132,10 +132,6 @@ class CommandHandler:
 
             Los comandos pueden usarse tanto en chats privados como en chats grupales.
             Asegúrate de que el bot tenga los permisos necesarios para acceder a mensajes y archivos en los chats grupales.
-        
-        
-        
-        
         
         
         
@@ -213,30 +209,35 @@ class CommandHandler:
                 logger.info(f"rename_file dataMessage: {dataMessage}")
                 if dataMessage:
                     downloadFile = self.config_handler.get_new_download_path(message.reply_to_message)
+                    logger.info(f"[!] rename_file downloadFile   : {downloadFile}")
+                    logger.info(f"[!] rename_file origin_group   : {downloadFile['origin_group']}")
+                    logger.info(f"[!] rename_file download_path  : {downloadFile['download_path']}")
+                    logger.info(f"[!] rename_file file_name      : {downloadFile['file_name']}")
+                    logger.info(f"[!] rename_file filename       : {downloadFile['filename']}")
+                    logger.info(f"[!] rename_file fullfilename   : {downloadFile['fullfilename']}")
+                    logger.info(f"[!] rename_file file_size      : {downloadFile['file_size']}")
+                    logger.info(f"[!] rename_file file_info      : {file_info}")
 
                     if file_info == downloadFile['fullfilename']:
                         await message.reply_text(f"File renamed to {file_info}.")
                         return
+                    
+                    if file_info != downloadFile['fullfilename']:                  
                         
-                    logger.info(f"rename_file downloadFile: {downloadFile}")
-                    logger.info(f"rename_file reply_to_message_id: {message.reply_to_message_id}")
-                    logger.info(f"rename_file origin_group   : {downloadFile['origin_group']}")
-                    logger.info(f"rename_file download_path  : {downloadFile['download_path']}")
-                    logger.info(f"rename_file file_name      : {downloadFile['file_name']}")
-                    logger.info(f"rename_file filename       : {downloadFile['filename']}")
-                    logger.info(f"rename_file fullfilename   : {downloadFile['fullfilename']}")
-                    logger.info(f"rename_file file_size      : {downloadFile['file_size']}")
 
-                    if file_info != downloadFile['fullfilename']:
-                        new_name = os.rename(file_info, downloadFile['fullfilename'])
+                        reply = await message.reply_text(f"moving to {downloadFile['fullfilename']}.")
+
+                        new_name = self.utils.shutil_move(file_info, downloadFile['fullfilename'])
+
                         update_download_files = self.data_handler.update_download_files(message.reply_to_message_id, downloadFile['fullfilename'])
                     
                         logger.info(f"rename_file update_download_files      ::: {update_download_files}")
                     
-                        if update_download_files: await message.reply_text(f"File renamed to {downloadFile['fullfilename']}.")
+                        if update_download_files: await reply.edit_text(f"File renamed to {downloadFile['fullfilename']}.")
+                        else: await reply.edit_text(f"error moving file {downloadFile['fullfilename']}.")
                         
         except Exception as e:
-            print(f"rename_file => Exception: {e}")
+            logger.error(f"rename_file => Exception: {e}")
             await message.reply_text(f"File renamed Exception: {e}.")
      
 
@@ -259,13 +260,14 @@ class CommandHandler:
                 return
 
             if message.reply_to_message and group_id:
-                logger.info(f"add_rename_group group_id : {group_id}")
+                logger.info(f"add_group_path group_id : {group_id}")
 
                 if len(message.command) > 1 :
-                    path = message.command[1] 
+                    path = ' '.join(message.command[1:])
                     new_path = path if path.startswith('/') else os.path.join(self.env.DOWNLOAD_PATH, path)
                     self.config_handler.add_group_path(group_id, new_path)
                     await message.reply_text(f"Path for group {group_id} added: {new_path}.")
+                    logger.info(f" [!] add_group_path group_id : {group_id} added: {new_path}")
                 else:
                     new_path = os.path.join(self.env.DOWNLOAD_PATH, str(group_id).replace('-',''))
                     self.config_handler.add_group_path(group_id, new_path)
