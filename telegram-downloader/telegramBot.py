@@ -17,6 +17,7 @@ from pyrogram.errors import FloodWait, RPCError, AuthBytesInvalid
 
 from env import Env
 from utils import Utils 
+from logger_config import logger, get_last_error_log
 from print_handler import PartialPrinter
 from data_handler import FileDataHandler
 from config_handler import ConfigHandler
@@ -24,7 +25,6 @@ from command_handler import CommandHandler
 from url_downloader import URLDownloader
 from pending_handler import PendingMessagesHandler
 from info_handler import InfoMessages
-from logger_config import logger, get_last_error_log
 
 uvloop.install()
 
@@ -32,7 +32,7 @@ logger.info(f"Starting Telegram Downloader Bot Started : {datetime.now():%Y/%m/%
 
 class Config:
     def __init__(self):
-        self.BOT_VERSION = "5.0.0-r50"
+        self.BOT_VERSION = "1.0.0-r10"
         self.PYROGRAM_VERSION = pyrogram_version
         self.YT_DLP_VERSION = yt_dlp.version.__version__
 
@@ -52,9 +52,6 @@ info_handler = InfoMessages()
 utils.removeFiles()
 
 msg_txt = ""
-#app = Client("telegramBot", api_id = int(env.API_ID), api_hash = env.API_HASH, bot_token = env.BOT_TOKEN, workers=env.MAX_CONCURRENT_TRANSMISSIONS, max_concurrent_transmissions=env.MAX_CONCURRENT_TRANSMISSIONS)
-#app = Client("telegramBot", api_id = int(env.API_ID), api_hash = env.API_HASH, bot_token = env.BOT_TOKEN)
-#app = Client("telegramBot", api_id = int(env.API_ID), api_hash = env.API_HASH, bot_token = env.BOT_TOKEN, workers=8, max_concurrent_transmissions=8)
 app = Client("telegramBot", api_id=int(env.API_ID), api_hash=env.API_HASH, bot_token=env.BOT_TOKEN, workers=env.WORKERS, max_concurrent_transmissions=env.MAX_CONCURRENT_TRANSMISSIONS)
 
 
@@ -69,7 +66,6 @@ while True:
             msg_txt += f"bot version: {config.BOT_VERSION}\n"
             msg_txt += f"pyrogram version: {pyrogram_version}\n"
             msg_txt += f"yt_dlp version: {yt_dlp.version.__version__}\n"
-            #msg_txt += f"yt-dlp version: 2024.05.27"
             
             logger.info(f"Telegram Downloader Bot Started : {datetime.now():%Y/%m/%d %H:%M:%S}")
             app.send_message(int(env.AUTHORIZED_USER_ID[0]), msg_txt)
@@ -77,7 +73,7 @@ while True:
             print_handler.print_variable("PYROGRAM_VERSION", pyrogram_version)
             print_handler.print_variable("YTDLP_VERSION", yt_dlp.version.__version__)
             print_handler.print_variables()
-            break  # Salir del bucle si el mensaje se envía exitosamente
+            break 
     except FloodWait as e:
         logger.info(f"FloodWait: Esperando {e.value} segundos antes de reintentar iniciar...\n {e}")
         remaining_time = e.value + 10

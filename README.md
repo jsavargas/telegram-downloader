@@ -132,5 +132,5 @@ services:
 - **Feature:** Added environment variable for YouTube video and audio download path.
 
 
-## [Version 5.0.0] - 2024-08-17
+## [Version 1.0.0] - 2024-08-17
 - **Update:** Updated change_permissions files

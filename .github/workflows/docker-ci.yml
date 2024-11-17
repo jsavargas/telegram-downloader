@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - 'Dockerfile'
-      - 'telegram-downloader-bot/**'
+      - 'telegram-downloader/**'
       - '.github/workflows/**'
 
 jobs:
@@ -16,14 +16,14 @@ jobs:
 
       - name: Set version
         run: |
-          echo "version=$(cat telegram-downloader-bot/telegramBot.py| grep "self.BOT_VERSION =" | awk -F'=' '{print $2}' | egrep -o "[0-9.a-z-]{1,}")" >> $GITHUB_ENV
+          echo "version=$(cat telegram-downloader/telegramBot.py| grep "self.BOT_VERSION =" | awk -F'=' '{print $2}' | egrep -o "[0-9.a-z-]{1,}")" >> $GITHUB_ENV
 
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v4
         with:
           # list of Docker images to use as base name for tags
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/telegram-downloader-bot
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/telegram-downloader
           # generate Docker tags based on the following events/attributes
           tags: |
             type=raw,value=latest,enable=${{ github.ref_name == 'main' }}
