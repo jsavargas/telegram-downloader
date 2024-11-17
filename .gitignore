@@ -14,6 +14,5 @@ docker-compose.dev.yml
 _download
 download
 series
-telegram-downloader-bot/bottorrent.py
 docker-compose.telethon.yml
 update_readme.sh
