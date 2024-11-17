@@ -12,10 +12,9 @@ COPY requirements.txt .
 RUN apt-get update && \
     pip install --upgrade pip setuptools && \
     apt-get install -qy python3-dev libffi-dev build-essential ffmpeg && \
-    #apt-get install -qy ffmpeg && \
     pip install --no-cache-dir -r requirements.txt
 
-COPY telegram-downloader-bot/ .
+COPY telegram-downloader/ .
 
 
 # Ejecutar el bot
