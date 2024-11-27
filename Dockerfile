@@ -10,12 +10,12 @@ COPY requirements.txt .
 # Instalar las dependencias
 RUN apt-get update && \
     pip install --upgrade pip setuptools && \
-    apt-get install -qy python3-dev libffi-dev build-essential ffmpeg && \
+    apt-get install -qy build-essential ffmpeg && \
     pip install --no-cache-dir -r requirements.txt
 
 COPY telegram-downloader/ .
 
 
 # Ejecutar el bot
-CMD ["python", "telegramBot.py"]
+CMD ["python", "app.py"]
 

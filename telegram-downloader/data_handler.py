@@ -23,7 +23,11 @@ class FileDataHandler:
                 with open(self.data_path, "r") as data_path:
                     data = json.load(data_path)
                     return data[-5000:]
-
+            else:
+                empty_data = []  # Cambia esto si necesitas una estructura diferente
+                with open(self.data_path, "w") as data_path:
+                    json.dump(empty_data, data_path, indent=4)
+                return empty_data
         except FileNotFoundError:
             return []
         except Exception as e:

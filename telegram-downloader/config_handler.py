@@ -4,20 +4,34 @@ from env import Env
 from info_handler import InfoMessages
 from logger_config import logger
 
+from enum import Enum
+
+class ConfigKeys(Enum):
+    DEFAULT = "DEFAULT"
+    EXTENSIONS = "EXTENSIONS"
+    GROUP_PATH = "GROUP_PATH"
+    RENAME_GROUP = "RENAME_GROUP"
+    KEYWORDS = "KEYWORDS"
+    REGEX_RENAME = "REGEX_RENAME"
+    SETTINGS = "SETTINGS"
+
+class DefaultPath:
+    def __init__(self):
+        self.env = Env()
+        self.default = {'default_path': os.getenv('DEFAULT_PATH', self.env.DOWNLOAD_COMPLETED_PATH)}
+        self.extensions = {'jpg': '/download/images'}
+        self.rename_group = {'-100123456': 'yes'}
+        self.keywords = {'tanganana': '/download/tanganana'}
+        self.group_paths = {'-100123456': '/download/100123456'}
+        self.regex_rename = {'-100123456': '/old_text/new_text/'}
+        self.settings = {'chars_to_replace ': '|/'}
+
 
 class ConfigHandler:
     def __init__(self):
         self.env = Env()
         self.info_handler = InfoMessages()
-
-        self.default_extensions = {'jpg': '/download/images'}
-        self.default_group_paths = {'-100123456': '/download/completed'}
-        self.default_rename_group = {'-100123456': 'yes'}
-        self.default_keywords = {'tanganana': '/download/completed'}
-        self.default_group_paths = {'-100123456': '/download/completed'}
-        self.default_regex_rename = {'-100123456': '/old_text/new_text/'}
-        self.default_settings = {'chars_to_replace ': '|/'}
-
+        self.path = DefaultPath()
         self.config_file = os.path.join(self.env.CONFIG_PATH, "config.ini")
         self.config = self._initialize_config()
         self.config.read(self.config_file)
@@ -25,13 +39,13 @@ class ConfigHandler:
     
     def _create_default_config(self, config):
         if not os.path.exists(self.config_file):
-            config['DEFAULT'] = {'default_path': os.getenv('DEFAULT_PATH', self.env.DOWNLOAD_COMPLETED_PATH)}
-            config['EXTENSIONS'] = self.default_extensions
-            config['GROUP_PATHS'] = self.default_group_paths
-            config['RENAME_GROUP'] = self.default_rename_group
-            config['KEYWORDS'] = self.default_keywords
-            config['REGEX_RENAME'] = self.default_regex_rename
-            config['SETTINGS'] = self.default_settings
+            config[ConfigKeys.DEFAULT.value] = self.path.default
+            config[ConfigKeys.EXTENSIONS.value] = self.path.extensions
+            config[ConfigKeys.GROUP_PATH.value] = self.path.group_paths
+            config[ConfigKeys.RENAME_GROUP.value] = self.path.rename_group
+            config[ConfigKeys.KEYWORDS.value] = self.path.keywords
+            config[ConfigKeys.REGEX_RENAME.value] = self.path.regex_rename
+            config[ConfigKeys.SETTINGS.value] = self.path.settings
             with open(self.config_file, 'w') as configfile:
                 config.write(configfile)
             return config
@@ -41,15 +55,15 @@ class ConfigHandler:
         if not config.read(self.config_file):
             config = self._create_default_config(config)
 
-        config = self.createNewSection(config, "EXTENSIONS", self.default_extensions)        
-        config = self.createNewSection(config, "GROUP_PATHS", self.default_group_paths)        
-        config = self.createNewSection(config, "RENAME_GROUP", self.default_rename_group)        
-        config = self.createNewSection(config, "KEYWORDS", self.default_keywords)        
-        config = self.createNewSection(config, "REGEX_RENAME", self.default_regex_rename)        
-        config = self.createNewSection(config, "SETTINGS", self.default_settings)        
+        config = self.createNewSection(config, ConfigKeys.EXTENSIONS.value, self.path.extensions)        
+        config = self.createNewSection(config, ConfigKeys.GROUP_PATH.value, self.path.group_paths)        
+        config = self.createNewSection(config, ConfigKeys.RENAME_GROUP.value, self.path.rename_group)        
+        config = self.createNewSection(config, ConfigKeys.KEYWORDS.value, self.path.keywords)        
+        config = self.createNewSection(config, ConfigKeys.REGEX_RENAME.value, self.path.regex_rename)        
+        config = self.createNewSection(config, ConfigKeys.SETTINGS.value, self.path.settings)        
         
-        if 'default_path' not in config['DEFAULT']:
-            config['DEFAULT']['default_path'] = self.env.DOWNLOAD_COMPLETED_PATH
+        if 'default_path' not in config[ConfigKeys.DEFAULT.value]:
+            config[ConfigKeys.DEFAULT.value]['default_path'] = self.env.DOWNLOAD_COMPLETED_PATH
             with open(self.config_file, 'w') as configfile:
                 config.write(configfile)
 
@@ -63,142 +77,62 @@ class ConfigHandler:
                 config.write(config_file)
         return config
 
-    def get_chars_to_replace(self):
-        return self.config['SETTINGS'].get('chars_to_replace', '')
-
-    def get_new_download_path(self, message, origin_group='', file_name=''):
-        origin_group = self.info_handler.get_originGroup_test(message)
-        file_name = self.info_handler.getFileName(message)
-        file_size = self.info_handler.getFileSize(message)
-
-        logger.info(f"[!] get_new_download_path origin_group   : {origin_group}")
-        logger.info(f"[!] get_new_download_path file_name   : {file_name}")
-        logger.info(f"[!] get_new_download_path file_size   : {file_size}")
-
-        self.config.read(self.config_file)
-        extension = file_name.split('.')[-1]
-        caption = message.caption if message.caption else None
-        
-        if extension == 'torrent': return self.env.DOWNLOAD_PATH_TORRENTS
-
-        download_path = (
-            self.get_keyword_path(caption) or
-            self.get_group_path(origin_group) or
-            self.get_extension_path(extension)
-        )
-
-        filename = self.get_file_rename(message,origin_group,file_name)
-        filename = self.get_file_rename_regex(message,origin_group,filename)
-
-        return {
-            'origin_group' : origin_group,
-            'download_path' : download_path,
-            'file_name' : file_name,
-            'filename' : filename,
-            'fullfilename' : os.path.join(download_path, filename),
-            'file_size' : file_size,
-        }
-
-    def get_download_path(self, message, origin_group='', file_name=''):
-        origin_group = self.info_handler.get_originGroup_test(message)
-        if not file_name:
-            file_name = self.info_handler.getFileName(message)
-
-        #print(f"get_download_path origin_group: {origin_group}, file_name: {file_name}")
-        self.config.read(self.config_file)
-        extension = file_name.split('.')[-1]
-        caption = message.caption if message.caption else None
-        
-        if extension == 'torrent': return self.env.DOWNLOAD_PATH_TORRENTS
-        return (
-            self.get_keyword_path(caption) or
-            self.get_group_path(origin_group) or
-            self.get_extension_path(extension)
-        )
-
-    def get_file_rename(self, message, group_id='', file_name=''):
-        logger.info(f"[!] get_file_rename message   : {message}")
-        logger.info(f"[!] get_file_rename group_id   : {group_id}")
-        logger.info(f"[!] get_file_rename file_name   : {file_name}")
-
-        self.config.read(self.config_file)
-        if not self.config['RENAME_GROUP'].get(str(group_id), None):
-            return file_name
-
-        if not message.caption:
-            return file_name
-
-        ext = file_name.split('.')[-1]
-        caption = message.caption
-        logger.info(f"[!] get_file_rename caption   : {caption}")
-        return f"{caption}.{ext}"
-
-    def get_file_rename_regex(self, message, group_id='', file_name=''):
-        self.config.read(self.config_file)
-        if not self.config['RENAME_GROUP'].get(str(group_id), None):
-            return file_name
-
-        if not message.caption:
-            return file_name
-
-        ext = file_name.split('.')[-1]
-        caption = message.caption
-        return file_name
-
-
-    def get_keyword_path(self, text):
-        if not text: return None
-        for keyword, path in self.config['KEYWORDS'].items():
-            if keyword in text.lower():
-                return path
-        return None
-
-    def get_group_path(self, group_id):
-        return self.config['GROUP_PATHS'].get(str(group_id), None)
-
-    def get_extension_path(self, extension):
-        if extension == 'torrent': return self.env.DOWNLOAD_PATH_TORRENTS
-        DEFAULT_PATH = self.config['DEFAULT']['default_path'] if "default_path" in self.config['DEFAULT'] else self.env.DOWNLOAD_COMPLETED_PATH
-        return self.config['EXTENSIONS'].get(extension, DEFAULT_PATH)
-        
-    def add_path(self, ext, path):
-        config = configparser.ConfigParser()
-        config.read(self.config_file)
-        if 'EXTENSIONS' not in config:
-            config['EXTENSIONS'] = {}
-        config['EXTENSIONS'][ext] = path
-        with open(self.config_file, 'w') as configfile:
-            config.write(configfile)
-
-    def add_group_path(self, group_id, path):
-        self.config['GROUP_PATHS'][str(group_id)] = path
-        with open(self.config_file, 'w') as configfile:
-            self.config.write(configfile)
-
-    def add_keyword_path(self, keyword, path):
-        self.config.read(self.config_file)
-        self.config['KEYWORDS'][keyword] = path
-        with open(self.config_file, 'w') as configfile:
-            self.config.write(configfile)
-
-    def del_keyword_path(self, keyword):
-        self.config.read(self.config_file)
-        if keyword in self.config['KEYWORDS']:
-            del self.config['KEYWORDS'][keyword]
-        with open(self.config_file, 'w') as configfile:
-            self.config.write(configfile)
-
-    def add_rename_group(self, group_id):
-        self.config.read(self.config_file)
-        self.config['RENAME_GROUP'][group_id] = 'yes'
-        with open(self.config_file, 'w') as configfile:
-            self.config.write(configfile)
-
-    def del_rename_group(self, group_id):
-        self.config.read(self.config_file)
-        if group_id in self.config['RENAME_GROUP']:
-            del self.config['RENAME_GROUP'][group_id]
+    def save_config(self):
+        try:
             with open(self.config_file, 'w') as configfile:
                 self.config.write(configfile)
+                return True
+
+            return True if os.path.exists(self.config_file) else False
+        except Exception as e:
+            print(f"Error al guardar la configuración: {e}")
+            return False
+
+    def edit_key(self, section, key, new_value):
+        """Edita el valor de una clave existente en una sección."""
+        if section in self.config and key in self.config[section]:
+            self.config[section][key] = new_value
+            self.save_config()
+            return f"Valor de la clave {key} en la sección {section} actualizado a {new_value}."
+        else:
+            raise ValueError(f"Clave {key} no encontrada en la sección {section}.")
+
+    def add_key(self, section, key, value):
+        """Añade una nueva clave y su valor en la sección especificada."""
+        if section not in self.config:
+            self.config[section] = {}
+        self.config[section][str(key)] = value
+        return self.save_config()
+        return f"Clave {key} añadida a la sección {section} con el valor {value}."
+
+    def delete_key(self, section, key):
+        """Elimina una clave de una sección en el archivo de configuración."""
+        if section in self.config and key in self.config[section]:
+            del self.config[section][str(key)]
+            self.save_config()
+            return True
+        else:
+            return False
+
+    def get_value(self, section, key):
+        return self.config[section].get(str(key), None)
+
+        if section in self.config and key in self.config[section]:
+            return self.config[section][key]
+        return None
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
 
 
