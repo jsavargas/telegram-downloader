@@ -7,19 +7,21 @@ from pyrogram.types import Message
 from pyrogram import enums
 
 from data_handler import FileDataHandler
-from config_handler import ConfigHandler
+from downloadPathManager import DownloadPathManager
 from utils import Utils
 from env import Env
 from logger_config import logger
 from info_handler import InfoMessages
+from command_controller import CommandController
 
 class CommandHandler:
     def __init__(self, config):
-        self.config_handler = ConfigHandler()
+        self.downloadPathManager = DownloadPathManager()
         self.env = Env()
         self.utils = Utils()
         self.data_handler = FileDataHandler()
         self.info_handler = InfoMessages()
+        self.command_controller = CommandController()
 
         self.command_dict = {
             "ehelp": self.ehandle_help,
@@ -30,7 +32,7 @@ class CommandHandler:
             "id": self.handle_id,
             "rename": self.rename_file,
             "move": self.rename_file,
-            "addpath": self.add_path,
+            "addpathextension": self.setPathExtension,
             "addgroup": self.add_group_path,
             "addkeyword": self.add_keyword_path,
             "delkeyword": self.del_keyword_path,
@@ -68,12 +70,13 @@ class CommandHandler:
         # Verificar si la función acepta argumentos adicionales
         return hasattr(func, "__code__") and func.__code__.co_argcount > 1
 
+    def is_reply(self, message):
+        return message.reply_to_message is not None
 
     async def test(self, client: Client, message: Message):
 
         origin_group = self.info_handler.get_originGroup_test(message)
         logger.info(f"test origin_group : {origin_group}")
-
 
     async def ehandle_help(self, client: Client, message: Message):
 
@@ -82,18 +85,27 @@ class CommandHandler:
 
             Available commands:
 
-            /id - Muestra el ID del usuario/grupo.
-                - Uso: Simplemente escribe /id y el bot responderá con el ID del chat actual, ya sea un usuario o un grupo.
+            /id - Displays the user/group ID.
+                - Usage: Simply type /id and the bot will respond with the ID of the current chat, whether it is a user or a group.
+            
 
-            /rename <new_name> - Renombrar el archivo del mensaje respondido.
-                - Uso: Responde a un mensaje que contenga un archivo con /rename seguido del nuevo nombre que deseas para el archivo.
-                - Ejemplo: Si recibes un documento y quieres renombrarlo a "MiDocumento", responde al mensaje con /rename MiDocumento.
+            /addpathextension <extension> <NewDirectory> - Crea una regla de ruta de descargad e archivo segun extension
+                - Uso: Responde a un mensaje que contenga un archivo con /addpathextension seguido del nuevo nombre que deseas para la carpeta. Si no agregas una ruta
+                - Ejemplo: Si recibes un documento y quieres crear una regla para que esos archivos vayan a una carpeta "MiCarpeta", responde al mensaje con /addpathextension MiCarpeta, luego puedes escribir /move para mover el archivo a la nueva ruta creada con /addpathextension
+                    - /addpathextension 
+                    - /addpathextension <REPLY> /NuevoDirectorio
+                    - /addpathextension <extension> /NuevoDirectorio
+
+
+            /rename <new_name> - Rename the replied message file.
+                - Usage: Reply to a message containing a file with /rename followed by the new name you want for the file.
+                - Example: If you receive a document and want to rename it to "MyDocument", reply to the message with /rename MyDocument.
                     - /rename 
-                    - /rename /NuevoDirectorio
-                    - /rename NuevoNombreDeArchivo
-                    - /rename NuevoNombreDeArchivo.ext
-                    - /rename Directorio/NuevoNombreDeArchivo.ext
-                - Nota: El nuevo nombre no debe contener caracteres especiales que no estén permitidos en los nombres de archivos. Tambien puedes utilizar /rename solo y renombrara segun las reglas de archivo del config.ini
+                    - /rename /NewDirectory
+                    - /rename newFileName
+                    - /rename NewFileName.ext
+                    - /rename Directory/NewFileName.ext
+                - Note: The new name must not contain special characters that are not allowed in file names. You can also use /rename alone and it will rename according to the config.ini file rules
 
 
             /move <new_folder> - Mueve el archivo del mensaje respondido.
@@ -136,8 +148,24 @@ class CommandHandler:
         
         
         ''')
+        
+        while help_text:
+            # Toma un fragmento de texto de hasta 4096 caracteres.
+            chunk = help_text[:4096]
+            if len(help_text) > 4096:
+                # Encuentra el último espacio para no cortar palabras.
+                split_index = chunk.rfind(" ")
+                if split_index == -1:  # Si no hay espacios, corta en el límite.
+                    split_index = 4096
+                chunk = help_text[:split_index]
+                help_text = help_text[split_index:].strip()
+            else:
+                help_text = ""  # Última parte.
 
-        await message.reply_text(help_text, parse_mode=enums.ParseMode.DISABLED)
+            # Envía el fragmento.
+            await client.send_message(message.chat.id, chunk)
+        
+        #await message.reply_text(help_text, parse_mode=enums.ParseMode.DISABLED)
 
     async def handle_help(self, client: Client, message: Message):
 
@@ -173,81 +201,17 @@ class CommandHandler:
     async def handle_ytdlp_version(self, client: Client, message: Message):
         await message.reply_text(f"ytdlp version: {self.yt_dlp_version}")
 
+    async def setPathExtension(self, client: Client, message: Message):
+        await self.command_controller.setPathExtension(client, message)
 
     async def rename_file(self, client: Client, message: Message):
-        try:
-            command = message.command[0]
-            if not message.reply_to_message:
-                await message.reply_text("Please reply to a document message with the new name.")
-                return
-            if message.reply_to_message:
-                file_info = self.data_handler.get_download_file(message.reply_to_message_id)
-                logger.info(f"rename_file file_name      : {file_info}")
-                if file_info and len(message.command) > 1:
-                    new_name = message.command[1]
-                    new_filename = self.utils.combine_paths(file_info, new_name)
-                    logger.info(f"rename_file update_download_files : {new_name} => {new_filename}")
-                    if new_name: 
-                        logger.info(f"rename_file if new_name : {new_name} => {new_filename}")
-                        try:
-                            new_dir = os.path.dirname(new_filename)
-                            if not os.path.exists(new_dir):
-                                os.makedirs(new_dir)
-                            dest = shutil.move(file_info, new_filename)  
-                        except Exception as e:
-                            logger.info(f'Error renaming file: {e}')
-                            await message.reply_text(f"Error renaming file.\n{e}")
-                            return
-                        logger.info(f"rename_file os.rename : [{file_info}], [{new_filename}] => [{dest}]")
-                        update_download_files = self.data_handler.update_download_files(message.reply_to_message_id, new_filename)
-                        logger.info(f"rename_file os.rename update_download_files: [{update_download_files}]")
-                        if update_download_files:
-                            await message.reply_text(f"File renamed to {dest}")
-                        return 
-            
-                dataMessage = self.info_handler.getDataMessage(message.reply_to_message)
-                logger.info(f"rename_file dataMessage: {dataMessage}")
-                if dataMessage:
-                    downloadFile = self.config_handler.get_new_download_path(message.reply_to_message)
-                    logger.info(f"[!] rename_file downloadFile   : {downloadFile}")
-                    logger.info(f"[!] rename_file origin_group   : {downloadFile['origin_group']}")
-                    logger.info(f"[!] rename_file download_path  : {downloadFile['download_path']}")
-                    logger.info(f"[!] rename_file file_name      : {downloadFile['file_name']}")
-                    logger.info(f"[!] rename_file filename       : {downloadFile['filename']}")
-                    logger.info(f"[!] rename_file fullfilename   : {downloadFile['fullfilename']}")
-                    logger.info(f"[!] rename_file file_size      : {downloadFile['file_size']}")
-                    logger.info(f"[!] rename_file file_info      : {file_info}")
+        await self.command_controller.renameFiles(client, message)
 
-                    if file_info == downloadFile['fullfilename']:
-                        await message.reply_text(f"File renamed to {file_info}.")
-                        return
-                    
-                    if file_info != downloadFile['fullfilename']:                  
-                        
 
-                        reply = await message.reply_text(f"moving to {downloadFile['fullfilename']}.")
+    ########## ------------------------------------------------------------------------------------
 
-                        new_name = self.utils.shutil_move(file_info, downloadFile['fullfilename'])
-
-                        update_download_files = self.data_handler.update_download_files(message.reply_to_message_id, downloadFile['fullfilename'])
-                    
-                        logger.info(f"rename_file update_download_files      ::: {update_download_files}")
-                    
-                        if update_download_files: await reply.edit_text(f"File renamed to {downloadFile['fullfilename']}.")
-                        else: await reply.edit_text(f"error moving file {downloadFile['fullfilename']}.")
-                        
-        except Exception as e:
-            logger.error(f"rename_file => Exception: {e}")
-            await message.reply_text(f"File renamed Exception: {e}.")
      
 
-    async def add_path(self, client: Client, message: Message):
-        if len(message.text.split()) == 3:
-            ext, path = message.text.split()[1:]
-            self.config_handler.add_path(ext, path)
-            await message.reply_text(f"Path for .{ext} added: {path}.")
-        else:
-            await message.reply_text("Usage: /addpath <extension> <path>")
 
     async def add_group_path(self, client: Client, message: Message):
         try:
@@ -265,25 +229,25 @@ class CommandHandler:
                 if len(message.command) > 1 :
                     path = ' '.join(message.command[1:])
                     new_path = path if path.startswith('/') else os.path.join(self.env.DOWNLOAD_PATH, path)
-                    self.config_handler.add_group_path(group_id, new_path)
+                    self.downloadPathManager.setPathGroup(group_id, new_path)
                     await message.reply_text(f"Path for group {group_id} added: {new_path}.")
                     logger.info(f" [!] add_group_path group_id : {group_id} added: {new_path}")
                 else:
                     new_path = os.path.join(self.env.DOWNLOAD_PATH, str(group_id).replace('-',''))
-                    self.config_handler.add_group_path(group_id, new_path)
+                    self.downloadPathManager.setPathGroup(group_id, new_path)
                     await message.reply_text(f"Path for group {group_id} added: {new_path}.")
 
             else:
                 if len(message.command) == 2 :
                     group_id = message.command[1] 
                     new_path = os.path.join(self.env.DOWNLOAD_PATH, message.command[1] )
-                    self.config_handler.add_group_path(group_id, new_path)
+                    self.downloadPathManager.setPathGroup(group_id, new_path)
                     await message.reply_text(f"Path for group {group_id} added: {new_path}.")
                 elif len(message.command) == 3 :
                     group_id = message.command[1] 
                     path = message.command[2] 
                     new_path = path if path.startswith('/') else os.path.join(self.env.DOWNLOAD_PATH, path)
-                    self.config_handler.add_group_path(group_id, new_path)
+                    self.downloadPathManager.setPathGroup(group_id, new_path)
                     await message.reply_text(f"Path for group {group_id} added: {new_path}.")
         except Exception as e:
             logger.error(f"add_group_path Exception: {e}")
@@ -299,7 +263,7 @@ class CommandHandler:
 
         logger.info(f"add_keyword keywords: {' '.join(keywords)}, path: {path}")
 
-        self.config_handler.add_keyword_path(' '.join(keywords).lower(), path)
+        self.downloadPathManager.setPathKeywords(' '.join(keywords).lower(), path)
         await message.reply_text(f"Path for keyword '{' '.join(keywords)}' added: {path}.")
 
     async def del_keyword_path(self, client: Client, message: Message):
@@ -311,7 +275,7 @@ class CommandHandler:
 
         logger.info(f"delkeyword keywords: {' '.join(keywords)}")
 
-        self.config_handler.del_keyword_path(' '.join(keywords).lower())
+        self.downloadPathManager.delPathKeywords(' '.join(keywords).lower())
         await message.reply_text(f"Path for keyword '{' '.join(keywords)}' remove")
 
     async def add_rename_group(self, client: Client, message: Message):        
@@ -326,7 +290,7 @@ class CommandHandler:
 
             if message.reply_to_message and group_id:
                 logger.info(f"add_rename_group group_id : {group_id}")
-                self.config_handler.add_rename_group(str(group_id))
+                self.downloadPathManager.setRenameGroup(str(group_id))
                 await message.reply_text(f"Group ID {group_id} added to rename group list.")
                 return
 
@@ -335,7 +299,7 @@ class CommandHandler:
             elif not group_id and len(message.command) > 1:
                 group_id = message.command[1]
 
-                self.config_handler.add_rename_group(str(group_id))
+                self.downloadPathManager.setRenameGroup(str(group_id))
                 await message.reply_text(f"Group ID {group_id} added to rename group list.")
                 return
             else:
@@ -359,7 +323,7 @@ class CommandHandler:
 
             if message.reply_to_message and group_id:
                 logger.info(f"delrenamegroup group_id : {group_id}")
-                self.config_handler.add_rename_group(str(group_id))
+                self.downloadPathManager.setRenameGroup(str(group_id))
                 await message.reply_text(f"Group ID {group_id} removed to rename group list.")
                 return
 
@@ -367,7 +331,7 @@ class CommandHandler:
             elif not group_id and len(message.command) > 1:
                 group_id = message.command[1]
 
-                self.config_handler.add_rename_group(str(group_id))
+                self.downloadPathManager.setRenameGroup(str(group_id))
                 await message.reply_text(f"Group ID {group_id} removed to rename group list.")
                 return
             else:
@@ -376,5 +340,8 @@ class CommandHandler:
 
         except Exception as e:
             logger.error(f"del_rename_group Exception: {e}")
+
+
+
 
 

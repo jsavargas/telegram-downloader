@@ -9,6 +9,7 @@ import logging
 import uvloop
 import asyncio
 import yt_dlp
+import shutil
 
 from pyrogram import Client, errors, idle, filters, __version__ as pyrogram_version
 from pyrogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
@@ -20,7 +21,7 @@ from utils import Utils
 from logger_config import logger, get_last_error_log
 from print_handler import PartialPrinter
 from data_handler import FileDataHandler
-from config_handler import ConfigHandler
+from downloadPathManager import DownloadPathManager
 from command_handler import CommandHandler
 from url_downloader import URLDownloader
 from pending_handler import PendingMessagesHandler
@@ -32,7 +33,7 @@ logger.info(f"Starting Telegram Downloader Bot Started : {datetime.now():%Y/%m/%
 
 class Config:
     def __init__(self):
-        self.BOT_VERSION = "1.0.0-r10"
+        self.BOT_VERSION = "1.0.0-r14"
         self.PYROGRAM_VERSION = pyrogram_version
         self.YT_DLP_VERSION = yt_dlp.version.__version__
 
@@ -43,7 +44,7 @@ env = Env()
 utils = Utils()
 print_handler = PartialPrinter()
 downloadFilesDB = FileDataHandler()
-config_handler = ConfigHandler()
+downloadPathManager = DownloadPathManager()
 command_handler = CommandHandler(config)
 url_downloader = URLDownloader()
 pendingMessagesHandler = PendingMessagesHandler()
@@ -117,12 +118,11 @@ async def handle_files(client: Client, message: Message):
                     file_name = info_handler.getFileName(message)
                     _FileSize = info_handler.getFileSize(message)
 
-                    download_path = config_handler.get_download_path(message, origin_group, file_name)
-                    file_name = config_handler.get_file_rename(message, origin_group, file_name)
+                    download_path = downloadPathManager.getDownloadPathT(message, origin_group, file_name)
+                    file_name = downloadPathManager.getFileRename(message, origin_group, file_name)
 
                     
-                    
-                    file_name = utils.replace_chars_with_underscore(file_name, config_handler.get_chars_to_replace())
+                    file_name = utils.replace_chars_with_underscore(file_name, downloadPathManager.get_chars_to_replace())
 
                     start_time, start_hour = utils.startTime()
 
@@ -149,14 +149,23 @@ async def handle_files(client: Client, message: Message):
                                 file_name = f"{name}_2{ext}"
                                 file_name_download = os.path.join(directory, file_name)
 
-                            logger.info(f"[****] File download start : [{attempt}]  {file_name_download}")
+                            DOWNLOAD_INCOMPLETED_PATH = os.path.join(env.DOWNLOAD_INCOMPLETED_PATH, file_name)
+
+                            utils.create_folders(DOWNLOAD_INCOMPLETED_PATH)
+                            utils.create_folders(file_name_download)
+
+                            logger.info(f"[****] File download start file_name_download: [{attempt}]  [{DOWNLOAD_INCOMPLETED_PATH}]")
                             if env.PROGRESS_DOWNLOAD:
-                                #file_path = await message.download(file_name=file_name_download)
-                                file_path = await message.download(file_name=file_name_download, progress=progress_callback(start_msg, summary))
+                                file_path = await message.download(file_name=DOWNLOAD_INCOMPLETED_PATH, progress=progress_callback(start_msg, summary))
                             else:
-                                file_path = await message.download(file_name=file_name_download)
+                                file_path = await message.download(file_name=DOWNLOAD_INCOMPLETED_PATH)
+
                             
                             if _FileSize == os.path.getsize(file_path):
+                                shutil.move(file_path, file_name_download)
+
+                                file_path = file_name_download
+
                                 logger.info(f"[!!] File download finish: [{attempt}] {file_path},  [{_FileSize}] == [{os.path.getsize(file_path)}] => [{message.id}]")
                                 pendingMessagesHandler.remove_pending_message(message.id, message)
                                 downloadFilesDB.add_download_files(file_path, message)
@@ -211,7 +220,6 @@ async def handle_files(client: Client, message: Message):
                             time.sleep(60)
                             if attempt == env.MAX_RETRIES:
                                 logger.error("Maximum retries reached. Download failed.")
-                                # Optionally, you can handle the failure case here, like logging or notifying.
 
 
                     if not _FileSize == os.path.getsize(file_path):
@@ -240,27 +248,8 @@ async def handle_files(client: Client, message: Message):
                         'message': message
                     }
 
-                    ## file_name_download = getFolderDownload()
-                    ## startTime()
-                    ## file_path = await message.download(file_name=file_name_download, block=True)
-                    ## endTime()
-                    ## downloadInfo() # summary
-                    ## changePermissionsFile() 
-
-                    #summary = await download_file(message)
-
-                    ## TODO
-                    ## guardar archivo descargado en json de descargas, para poder 
-                    ##  renombrar
-                    ##  mover
-                    ##  etc
-                    ## 
-
                     summary = utils.create_download_summary(download_info)
                     await start_msg.edit_text(summary)
-                #else:
-                #await message.reply_text("No tienes permiso para descargar este archivo.")
-
                 if env.IS_DELETE: await message.delete()
 
     except Exception as e:

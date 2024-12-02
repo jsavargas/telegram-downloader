@@ -91,6 +91,15 @@ Enjoy an automated and organized downloading experience with telethon_downloader
 
 - **/watch:** Folder used for storing torrent files that will be managed by the *transmission/qbittorrent* system. Files in this folder will be automatically uploaded and handled by the torrent client.
 
+## Command Usage
+
+ - **/help:** Shows enabled commands
+ - **/version:** Show the version of the bot
+ - **/pyrogram:** Show the pyrogram version
+ - **/ytdlp:** Show the ytdlp version
+ - **/id:**  Shows the user/group ID.
+                - Usage: Simply type /id and the bot will respond with the ID of the current chat, whether it is a user or a group.
+ - **/rename:** Allows renaming files
 
 
 ## DOCKER-COMPOSE
