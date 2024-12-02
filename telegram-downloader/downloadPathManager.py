@@ -3,6 +3,7 @@ from env import Env
 from info_handler import InfoMessages
 from logger_config import logger
 
+import os
 
 class DownloadPathManager:
     def __init__(self):
@@ -15,6 +16,11 @@ class DownloadPathManager:
 
     def getDefaultPath(self):
         return self.config_handler.get_value(ConfigKeys.DEFAULT.value, "default_path")
+    
+    def getBasePath(self, path):
+        if not path.startswith('/'):
+            return os.path.join(self.env.DOWNLOAD_PATH, path)
+        return path
 
     def getDefaultPathExtension(self, extension):
         """Retorna la ruta para la extensión dada, usando un 'switch' simulado"""
@@ -28,6 +34,7 @@ class DownloadPathManager:
         return path if path else self.config_handler.get_value(ConfigKeys.EXTENSIONS.value, key) or self.getDefaultPath()
 
     def setPathExtension(self, key, value):
+        value = self.getBasePath(value)
         return self.config_handler.add_key(ConfigKeys.EXTENSIONS.value, key, value)
 
     def getPathGroup(self, key):
@@ -128,7 +135,7 @@ class DownloadPathManager:
 
 
 
-    #  downloadPathManager.getFileRename
+    #  downloadPathManager.setRenameGroup
     #   config_handler
 
 

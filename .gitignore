@@ -18,3 +18,4 @@ docker-compose.telethon.yml
 update_readme.sh
 test.py
 *.bak
+test*

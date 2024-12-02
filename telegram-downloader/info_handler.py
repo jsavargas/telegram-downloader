@@ -1,6 +1,7 @@
 from pyrogram.types import Message
-
 from logger_config import logger
+
+import os
 
 class InfoMessages:
     def __init__(self):
@@ -24,24 +25,32 @@ class InfoMessages:
 
     def getFileName(self, message: Message) -> str:
         if message.document:
-            #logger.info(f"message.document: {message.document}")
             return message.document.file_name
         elif message.photo:
-            #logger.info(f"message.photo: {message.photo}")
             return f"{message.photo.file_unique_id}.jpg"
         elif message.video:
-            #logger.info(f"message.video: {message.video}")
             return message.video.file_name if message.video.file_name else f"{message.video.file_unique_id}.{message.video.mime_type.split('/')[-1]}"
         elif message.animation:
-            #logger.info(f"message.animation: {message.animation}")
             return message.animation.file_name if message.animation.file_name else f"{message.animation.file_unique_id}.{message.animation.mime_type.split('/')[-1]}"
         elif message.audio:
-            #logger.info(f"message.audio: {message.audio}")
             return f"{message.audio.title}.{message.audio.mime_type.split('/')[1].replace('x-', '')}" or message.audio.file_name or f"{message.audio.file_unique_id}.{message.audio.mime_type.split('/')[1].replace('x-', '')}"
-            return message.audio.file_name if message.audio.file_name else f"{message.audio.title}.{message.audio.mime_type[-3:]}"
         else:
-            #logger.info(f"message: {message}")
             return "Archivo"
+
+    def getFileExtension(self, message: Message) -> str:
+        if message.document:
+            name, extension = os.path.splitext(message.document.file_name)
+            return extension
+        elif message.photo:
+            return "jpg"
+        elif message.video:
+            return os.path.splitext(message.video.file_name)[1] if message.video.file_name else f"{message.video.mime_type.split('/')[-1]}"
+        elif message.animation:
+            return os.path.splitext(message.animation.file_name)[1] if message.animation.file_name else f"{message.animation.mime_type.split('/')[-1]}"
+        elif message.audio:
+            return os.path.splitext(message.audio.file_name)[1] if message.audio.file_name else f"{message.audio.mime_type.split('/')[1].replace('x-', '')}"
+        else:
+            return None
 
     def getFileSize(self, message: Message) -> str:
         if message.document:
