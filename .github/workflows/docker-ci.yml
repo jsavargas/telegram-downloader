@@ -16,7 +16,7 @@ jobs:
 
       - name: Set version
         run: |
-          echo "version=$(cat telegram-downloader/telegramBot.py| grep "self.BOT_VERSION =" | awk -F'=' '{print $2}' | egrep -o "[0-9.a-z-]{1,}")" >> $GITHUB_ENV
+          echo "version=$(cat telegram-downloader/app.py| grep "self.BOT_VERSION =" | awk -F'=' '{print $2}' | egrep -o "[0-9.a-z-]{1,}")" >> $GITHUB_ENV
 
       - name: Docker meta
         id: meta

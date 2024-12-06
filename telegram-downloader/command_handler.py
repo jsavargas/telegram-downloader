@@ -33,6 +33,7 @@ class CommandHandler:
             "rename": self.rename_file,
             "move": self.rename_file,
             "addpathextension": self.setPathExtension,
+            "delpathextension": self.delPathExtension,
             "addgroup": self.add_group_path,
             "addkeyword": self.add_keyword_path,
             "delkeyword": self.del_keyword_path,
@@ -203,6 +204,9 @@ class CommandHandler:
 
     async def setPathExtension(self, client: Client, message: Message):
         await self.command_controller.setPathExtension(client, message)
+
+    async def delPathExtension(self, client: Client, message: Message):
+        await self.command_controller.delPathExtension(client, message)
 
     async def rename_file(self, client: Client, message: Message):
         await self.command_controller.renameFiles(client, message)

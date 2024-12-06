@@ -34,8 +34,12 @@ class DownloadPathManager:
         return path if path else self.config_handler.get_value(ConfigKeys.EXTENSIONS.value, key) or self.getDefaultPath()
 
     def setPathExtension(self, key, value):
+        value = value.replace(".", "")
         value = self.getBasePath(value)
         return self.config_handler.add_key(ConfigKeys.EXTENSIONS.value, key, value)
+
+    def delPathExtension(self, key, value):
+        return self.config_handler.delete_key(ConfigKeys.EXTENSIONS.value, key)
 
     def getPathGroup(self, key):
         return self.config_handler.get_value(ConfigKeys.GROUP_PATH.value, key)
@@ -44,7 +48,16 @@ class DownloadPathManager:
         return self.config_handler.add_key(ConfigKeys.GROUP_PATH.value, key, value)
 
     def getPathKeywords(self, key):
-        return self.config_handler.get_value(ConfigKeys.KEYWORDS.value, key)
+        sections = self.config_handler.get_values(ConfigKeys.KEYWORDS.value, key)
+        logger.info(f"[!] if getPathKeywords key : [{key}]")
+        if not key: return None
+        for section in sections:
+            if section in key.lower():
+                return sections[section]
+                logger.info(f"[!] if getPathKeywords section : [{section}] => [{sections[section]}]")
+
+        return None
+        return self.config_handler.get_values(ConfigKeys.KEYWORDS.value, key)
     
     def setPathKeywords(self, key, value):
         return self.config_handler.add_key(ConfigKeys.KEYWORDS.value, key, value)
@@ -142,21 +155,24 @@ class DownloadPathManager:
 if __name__ == "__main__":
     download_path_manager = DownloadPathManager()
 
-    print(f"set path_extension:: {download_path_manager.setPathExtension("mp4", "/download/mp4")}")
-    print(f"set path_extension:: {download_path_manager.setPathExtension("mp3", "/download/music")}")
+    #print(f"set path_extension:: {download_path_manager.setPathExtension("mp4", "/download/mp4")}")
+    #print(f"set path_extension:: {download_path_manager.setPathExtension("mp3", "/download/music")}")
+    #
+    #print(f"get path_extension:: {download_path_manager.getPathExtension("torrent")}")
+    #print(f"get path_extension:: {download_path_manager.getPathExtension("jpg")}")
+    #print(f"get path_extension:: {download_path_manager.getPathExtension("mp3")}")
+    #
+    #
+    #print(f"get getPathGroup:: {download_path_manager.getPathGroup(-1001186275022)}")
+    #print(f"get setPathGroup:: {download_path_manager.setPathGroup(-1001186275022, "/download/1001186275022")}")
+    #
 
-    print(f"get path_extension:: {download_path_manager.getPathExtension("torrent")}")
-    print(f"get path_extension:: {download_path_manager.getPathExtension("jpg")}")
-    print(f"get path_extension:: {download_path_manager.getPathExtension("mp3")}")
-    
-    
-    print(f"get getPathGroup:: {download_path_manager.getPathGroup(-1001186275022)}")
-    print(f"get setPathGroup:: {download_path_manager.setPathGroup(-1001186275022, "/download/1001186275022")}")
-
-
-    print(f"get getPathKeywords:: {download_path_manager.getPathKeywords("tanganana")}")
-    print(f"get setPathKeywords:: {download_path_manager.setPathKeywords("tanganana", "/download/tanganana")}")
-    print(f"get delPathKeywords:: {download_path_manager.delPathKeywords("tangananaaaa")}")
+    print(f"get getPathKeywords:: {download_path_manager.getPathKeywords("Hugh")}")
+    print(f"get getPathKeywords:: {download_path_manager.getPathKeywords("Espejismo - Hugh Howey")}")
+    #print(f"get getPathKeywords:: {download_path_manager.getPathKeywords("Espejismo - Hugh Howey.epub")}")
+    #print(f"get getPathKeywords:: {download_path_manager.getPathKeywords("Espejismo - Hugh Howey")}")
+    #print(f"get setPathKeywords:: {download_path_manager.setPathKeywords("tanganana", "/download/tanganana")}")
+    #print(f"get delPathKeywords:: {download_path_manager.delPathKeywords("tangananaaaa")}")
 
 
     
