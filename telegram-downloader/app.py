@@ -33,7 +33,7 @@ logger.info(f"Starting Telegram Downloader Bot Started : {datetime.now():%Y/%m/%
 
 class Config:
     def __init__(self):
-        self.BOT_VERSION = "1.0.0-r15"
+        self.BOT_VERSION = "1.0.0-r16"
         self.PYROGRAM_VERSION = pyrogram_version
         self.YT_DLP_VERSION = yt_dlp.version.__version__
 
@@ -120,9 +120,10 @@ async def handle_files(client: Client, message: Message):
 
                     download_path = downloadPathManager.getDownloadPathT(message, origin_group, file_name)
                     file_name = downloadPathManager.getFileRename(message, origin_group, file_name)
+                    file_name = downloadPathManager.rename(message, origin_group, file_name)
 
                     
-                    file_name = utils.replace_chars_with_underscore(file_name, downloadPathManager.get_chars_to_replace())
+                    #file_name = utils.replace_chars_with_underscore(file_name, downloadPathManager.get_chars_to_replace())
 
                     start_time, start_hour = utils.startTime()
 

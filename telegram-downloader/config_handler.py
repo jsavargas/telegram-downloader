@@ -13,6 +13,7 @@ class ConfigKeys(Enum):
     RENAME_GROUP = "RENAME_GROUP"
     KEYWORDS = "KEYWORDS"
     REGEX_RENAME = "REGEX_RENAME"
+    REMOVE_PATTERNS = "REMOVE_PATTERNS"
     SETTINGS = "SETTINGS"
 
 class DefaultPath:
@@ -24,6 +25,7 @@ class DefaultPath:
         self.keywords = {'tanganana': '/download/tanganana'}
         self.group_paths = {'-100123456': '/download/100123456'}
         self.regex_rename = {'-100123456': '/old_text/new_text/'}
+        self.remove_patterns = {'-100123456': '[tif_', 'pattern1': '[tif_', 'pattern2': '[tof_'}
         self.settings = {'chars_to_replace ': '|/'}
 
 
@@ -45,6 +47,7 @@ class ConfigHandler:
             config[ConfigKeys.RENAME_GROUP.value] = self.path.rename_group
             config[ConfigKeys.KEYWORDS.value] = self.path.keywords
             config[ConfigKeys.REGEX_RENAME.value] = self.path.regex_rename
+            config[ConfigKeys.REMOVE_PATTERNS.value] = self.path.remove_patterns
             config[ConfigKeys.SETTINGS.value] = self.path.settings
             with open(self.config_file, 'w') as configfile:
                 config.write(configfile)
@@ -60,6 +63,7 @@ class ConfigHandler:
         config = self.createNewSection(config, ConfigKeys.RENAME_GROUP.value, self.path.rename_group)        
         config = self.createNewSection(config, ConfigKeys.KEYWORDS.value, self.path.keywords)        
         config = self.createNewSection(config, ConfigKeys.REGEX_RENAME.value, self.path.regex_rename)        
+        config = self.createNewSection(config, ConfigKeys.REMOVE_PATTERNS.value, self.path.remove_patterns)        
         config = self.createNewSection(config, ConfigKeys.SETTINGS.value, self.path.settings)        
         
         if 'default_path' not in config[ConfigKeys.DEFAULT.value]:
