@@ -202,14 +202,15 @@ class CommandHandler:
     async def handle_ytdlp_version(self, client: Client, message: Message):
         await message.reply_text(f"ytdlp version: {self.yt_dlp_version}")
 
+    async def rename_file(self, client: Client, message: Message):
+        await self.command_controller.renameFiles(client, message)
+
     async def setPathExtension(self, client: Client, message: Message):
         await self.command_controller.setPathExtension(client, message)
 
     async def delPathExtension(self, client: Client, message: Message):
         await self.command_controller.delPathExtension(client, message)
 
-    async def rename_file(self, client: Client, message: Message):
-        await self.command_controller.renameFiles(client, message)
 
 
     ########## ------------------------------------------------------------------------------------

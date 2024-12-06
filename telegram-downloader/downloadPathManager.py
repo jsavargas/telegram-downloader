@@ -4,6 +4,7 @@ from info_handler import InfoMessages
 from logger_config import logger
 
 import os
+import re
 
 class DownloadPathManager:
     def __init__(self):
@@ -23,7 +24,6 @@ class DownloadPathManager:
         return path
 
     def getDefaultPathExtension(self, extension):
-        """Retorna la ruta para la extensión dada, usando un 'switch' simulado"""
         switch = {
             'torrent': self.env.DOWNLOAD_PATH_TORRENTS
         }
@@ -146,7 +146,26 @@ class DownloadPathManager:
 
 
 
+    def rename(self, message, origin_group, file_name):
 
+        logger.info(f"[!] rename origin_group   : {origin_group}")
+        logger.info(f"[!] rename file_name   : {file_name}")
+
+        pattern = '[' + re.escape(self.get_chars_to_replace()) + ']'
+        file_name = re.sub(pattern, '', file_name)
+
+        value = self.config_handler.get_value(ConfigKeys.REMOVE_PATTERNS.value, origin_group)
+        logger.info(f"[!] rename value : {value}")
+        if value:
+            file_name = file_name.replace(value,"")
+        else:
+            pattern = self.config_handler.get_values(ConfigKeys.REMOVE_PATTERNS.value, origin_group)
+            for value in pattern:
+                if value.startswith("pattern"):
+                    logger.info(f"[!] rename pattern : {value} => {pattern[value]}")
+                    file_name = file_name.replace(pattern[value],"")
+
+        return file_name
 
     #  downloadPathManager.setRenameGroup
     #   config_handler
@@ -175,4 +194,11 @@ if __name__ == "__main__":
     #print(f"get delPathKeywords:: {download_path_manager.delPathKeywords("tangananaaaa")}")
 
 
-    
+    result = download_path_manager.rename("Hugh", "-100123456", "Espejismo -| Hugh Howey.epub")
+    print(f"get rename:: {result}")
+
+
+    result = download_path_manager.rename("Hugh", "-100123456", "Espejismo -[tif_ Hugh Howey.epub")
+    print(f"get rename:: {result}")
+
+
