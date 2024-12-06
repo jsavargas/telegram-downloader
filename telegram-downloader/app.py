@@ -33,7 +33,7 @@ logger.info(f"Starting Telegram Downloader Bot Started : {datetime.now():%Y/%m/%
 
 class Config:
     def __init__(self):
-        self.BOT_VERSION = "1.0.0-r14"
+        self.BOT_VERSION = "1.0.0-r15"
         self.PYROGRAM_VERSION = pyrogram_version
         self.YT_DLP_VERSION = yt_dlp.version.__version__
 
@@ -166,7 +166,7 @@ async def handle_files(client: Client, message: Message):
 
                                 file_path = file_name_download
 
-                                logger.info(f"[!!] File download finish: [{attempt}] {file_path},  [{_FileSize}] == [{os.path.getsize(file_path)}] => [{message.id}]")
+                                logger.info(f"[****] File download finish: [{attempt}] {file_path},  [{_FileSize}] == [{os.path.getsize(file_path)}] => [{message.id}]")
                                 pendingMessagesHandler.remove_pending_message(message.id, message)
                                 downloadFilesDB.add_download_files(file_path, message)
                                 break

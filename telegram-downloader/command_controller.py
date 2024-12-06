@@ -8,6 +8,8 @@ from info_handler import InfoMessages
 import os
 import shutil
 
+from pyrogram import enums
+
 class CommandController:
     def __init__(self):
         self.downloadPathManager = DownloadPathManager()
@@ -23,7 +25,8 @@ class CommandController:
 
         try:
             if self.is_reply(message):
-                ext = self.info_handler.getFileExtension(message.reply_to_message)
+                ext = self.info_handler.getFileExtension(message.reply_to_message).replace(".", "")
+                logger.info(f"setPathExtension ext: {ext}")
 
                 if ext and len(message.command) > 1:
                     path = message.command[-1]
@@ -35,18 +38,42 @@ class CommandController:
                     logger.info(f"setPathExtension path: {path}")
                     await message.reply_text(f"Path for .{ext} added: {path}.")
             else:
-                if len(message.text.split()) == 3:
-                    ext, path = message.text.split()[1:]
-                    self.downloadPathManager.setPathExtension(ext, path)
+                if len(message.command) == 3:
+                    ext, path = message.command[1:3]
+                    logger.info(f"setPathExtension ext: [{ext}] path: [{path}]")
+
+                    path = self.downloadPathManager.setPathExtension(ext, path)
+                    await message.reply_text(f"Path for .{ext} added: {path}.")
+                elif len(message.command) == 2:
+                    ext = message.command[1]
+                    path = self.downloadPathManager.setPathExtension(ext, ext)
                     await message.reply_text(f"Path for .{ext} added: {path}.")
                 else:
-                    await message.reply_text("Usage: /addpathextension <extension> <path>")
+                    await message.reply_text("Usage: /addpathextension <extension> <path>", parse_mode=enums.ParseMode.DISABLED)
 
         except Exception as e:
             logger.error(f"setPathExtension => Exception: {e}")
 
-    
-    
+    async def delPathExtension(self, client, message):
+        try:
+            if self.is_reply(message):
+                ext = self.info_handler.getFileExtension(message.reply_to_message).replace(".", "")
+                logger.info(f"delPathExtension ext: {ext}")
+                self.downloadPathManager.delPathExtension(ext)
+                await message.reply_text(f"Extension {ext} removed to EXTENSIONS list.")
+            else:
+                ext = message.command[1]
+                path = self.downloadPathManager.delPathExtension(ext)
+                await message.reply_text(f"Extension {ext} removed to EXTENSIONS list.")
+        except Exception as e:
+            logger.error(f"delPathExtension => Exception: {e}")
+
+    async def getPathExtension(self, client, message):
+        pass
+
+
+
+
     async def renameFiles(self, client, message):
         try:
             command = message.command[0]
@@ -56,7 +83,7 @@ class CommandController:
                 logger.info(f"rename_file file_name      : {file_info}")
 
                 if file_info and len(message.command) > 1:
-                    new_name = message.command[1]
+                    new_name = ' '.join(message.command[1:])
                     new_filename = self.utils.combine_paths(file_info, new_name)
                     logger.info(f"rename_file update_download_files : {new_name} => {new_filename}")
                     logger.info(f"rename_file if new_name : {new_name} => {new_filename}")

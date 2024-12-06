@@ -89,7 +89,6 @@ class ConfigHandler:
             return False
 
     def edit_key(self, section, key, new_value):
-        """Edita el valor de una clave existente en una sección."""
         if section in self.config and key in self.config[section]:
             self.config[section][key] = new_value
             self.save_config()
@@ -98,15 +97,14 @@ class ConfigHandler:
             raise ValueError(f"Clave {key} no encontrada en la sección {section}.")
 
     def add_key(self, section, key, value):
-        """Añade una nueva clave y su valor en la sección especificada."""
         if section not in self.config:
             self.config[section] = {}
         self.config[section][str(key)] = value
-        return self.save_config()
+        self.save_config()
+        return value
         return f"Clave {key} añadida a la sección {section} con el valor {value}."
 
     def delete_key(self, section, key):
-        """Elimina una clave de una sección en el archivo de configuración."""
         if section in self.config and key in self.config[section]:
             del self.config[section][str(key)]
             self.save_config()
@@ -119,6 +117,14 @@ class ConfigHandler:
 
         if section in self.config and key in self.config[section]:
             return self.config[section][key]
+        return None
+
+    def get_values(self, section, key):
+        if section in self.config:
+            keywords = {key: value for key, value in self.config.items(section) if key not in self.config.defaults()}
+            return keywords
+        else:
+            return None
         return None
 
 
