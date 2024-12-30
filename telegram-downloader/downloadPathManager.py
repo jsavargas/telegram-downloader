@@ -112,7 +112,7 @@ class DownloadPathManager:
             self.getPathExtension(extension)
         )
 
-        print(f"[!] returnPathDownload:: [{returnPathDownload}]")
+        logger.info(f"[!] returnPathDownload:: [{returnPathDownload}]")
         return returnPathDownload
 
 
