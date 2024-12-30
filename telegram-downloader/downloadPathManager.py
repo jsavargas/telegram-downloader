@@ -81,7 +81,7 @@ class DownloadPathManager:
         return file_name
 
     def getFileRename(self, message, group_id, file_name):
-        logger.info(f"[!] get_file_rename message   : {message}")
+        #logger.info(f"[!] get_file_rename message   : {message}")
         logger.info(f"[!] get_file_rename group_id   : {group_id}")
         logger.info(f"[!] get_file_rename file_name   : {file_name}")
 
@@ -102,14 +102,19 @@ class DownloadPathManager:
             file_name = self.info_handler.getFileName(message)
 
         extension = file_name.split('.')[-1]
-        caption = message.caption if message.caption else None
+        textName = message.caption if message.caption else file_name
         
         if extension == 'torrent': return self.env.DOWNLOAD_PATH_TORRENTS
-        return (
-            self.getPathKeywords(caption) or
+
+        returnPathDownload = (
+            self.getPathKeywords(textName) or
             self.getPathGroup(origin_group) or
             self.getPathExtension(extension)
         )
+
+        print(f"[!] returnPathDownload:: [{returnPathDownload}]")
+        return returnPathDownload
+
 
     def getNewDownloadPath(self, message, origin_group='', file_name=''):
         origin_group = self.info_handler.get_originGroup_test(message)
@@ -142,9 +147,6 @@ class DownloadPathManager:
             'fullfilename' : os.path.join(download_path, filename),
             'file_size' : file_size,
         }
-
-
-
 
     def rename(self, message, origin_group, file_name):
 
@@ -186,19 +188,19 @@ if __name__ == "__main__":
     #print(f"get setPathGroup:: {download_path_manager.setPathGroup(-1001186275022, "/download/1001186275022")}")
     #
 
-    print(f"get getPathKeywords:: {download_path_manager.getPathKeywords("Hugh")}")
-    print(f"get getPathKeywords:: {download_path_manager.getPathKeywords("Espejismo - Hugh Howey")}")
+    #print(f"get getPathKeywords:: {download_path_manager.getPathKeywords('Hugh')}")
+    print(f"get getPathKeywords:: {download_path_manager.getPathKeywords('The Changeling.flac')}")
     #print(f"get getPathKeywords:: {download_path_manager.getPathKeywords("Espejismo - Hugh Howey.epub")}")
     #print(f"get getPathKeywords:: {download_path_manager.getPathKeywords("Espejismo - Hugh Howey")}")
     #print(f"get setPathKeywords:: {download_path_manager.setPathKeywords("tanganana", "/download/tanganana")}")
     #print(f"get delPathKeywords:: {download_path_manager.delPathKeywords("tangananaaaa")}")
 
 
-    result = download_path_manager.rename("Hugh", "-100123456", "Espejismo -| Hugh Howey.epub")
-    print(f"get rename:: {result}")
+    #result = download_path_manager.rename("Hugh", "-100123456", "Espejismo -| Hugh Howey.epub")
+    #print(f"get rename:: {result}")
 
 
-    result = download_path_manager.rename("Hugh", "-100123456", "Espejismo -[tif_ Hugh Howey.epub")
-    print(f"get rename:: {result}")
+    #result = download_path_manager.rename("Hugh", "-100123456", "Espejismo -[tif_ Hugh Howey.epub")
+    #print(f"get rename:: {result}")
 
 
