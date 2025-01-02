@@ -21,3 +21,4 @@ test.py
 test*
 *.temp
 *~
+*.excalidraw
