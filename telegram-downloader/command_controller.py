@@ -175,7 +175,22 @@ class CommandController:
             logger.error(f"addExtensionPath Exception [{e}]")
 
     async def delExtensionPath(self, client, message):
-        pass
+        try:
+            if self.is_reply(message):
+                ext = self.info_handler.getFileExtension(message.reply_to_message).replace(".", "")
+                delete_key = self.config_handler.delete_key(ConfigKeys.EXTENSIONS.value, ext)
+                logger.info(f"delExtensionPath ext: {ext}")
+                logger.info(f"delExtensionPath delete_key: {delete_key}")
+                await message.reply_text(f"Extension {ext} removed to EXTENSIONS list.")
+            elif len(message.command) > 1:
+                ext = message.command[1]
+                delete_key = self.config_handler.delete_key(ConfigKeys.EXTENSIONS.value, ext)
+                logger.info(f"delExtensionPath ext: {ext}")
+                logger.info(f"delExtensionPath delete_key: {delete_key}")
+                await message.reply_text(f"Extension {ext} removed to EXTENSIONS list.")
+        except Exception as e:
+            logger.error(f"delExtensionPath Exception [{e}]")
+
 
     def getGroupPath(self, key):
         return self.config_handler.get_value(ConfigKeys.GROUP_PATH.value, key)
