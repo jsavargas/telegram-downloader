@@ -19,3 +19,5 @@ update_readme.sh
 test.py
 *.bak
 test*
+*.temp
+*~

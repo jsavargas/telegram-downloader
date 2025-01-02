@@ -1,37 +1,50 @@
 import textwrap
 
 class CommandHelp:
-    help_text = (
-        "Welcome to the bot!\n\n"
-        "Available commands:\n"
-        "/id - Shows the user/group ID\n"
-        "/rename <new_name> - Rename the file from the replied message.\n"
-        "/addpath <extension> <path> - Add a download path for a specific file extension.\n"
-        "/addgroup <path> - Add a download path for a specific group. Use by replying to a message in the group.\n"
-        "/addkeyword <keyword1> <keyword2> ... <path> - Add download paths for messages containing specific keywords or phrases.\n"
-        "/delkeyword <keyword1> <keyword2> ... <path> - Remove download paths for messages containing specific keywords or phrases.\n"
-        "/addrenamegroup <group_id> - Adds a group ID to the rename group list\n"
-        "/delrenamegroup <group_id> - Remove a group ID to the rename group list\n"
-        "/pyrogram - Displays the Telethon version\n"
-        "/ytdlp - Displays the ytdlp version\n"
-        "/version - Displays the bot version"
-    )
+    help_text = textwrap.dedent('''
+        Welcome to the bot!
+
+        Available commands:
+        /pyrogram - Displays the Telethon version
+        /ytdlp - Displays the ytdlp version
+        /version - Displays the bot version
+        /id - Displays the user/group ID.
+            - Usage: Simply type /id and the bot will respond with the ID of the current chat, whether it is a user or a group.
+
+        /rename <new_name> - Rename the replied message file.
+            - Usage: Reply to a message containing a file with /rename followed by the new name you want for the file.
+            - Example: If you receive a document and want to rename it to "MyDocument", reply to the message with /rename MyDocument.
+                - /rename 
+                - /rename /NewDirectory
+                - /rename newFileName
+                - /rename NewFileName.ext
+                - /rename Directory/NewFileName.ext
+            - Note: The new name must not contain special characters that are not allowed in file names. You can also use /rename alone and it will rename according to the config.ini file rules
+
+        /move <new_folder> - Moves the file from the replied message.
+            - Usage: Reply to a message containing a file with /move followed by the new folder name you want. If no path is provided, it will move the file to the folder specified for the file or group in the config.ini file.
+            - Example: If you receive a document and want to move it to "MyDocument", reply to the message with /move MyDocument.
+                - /move
+                - /move /NewDirectory
+
+        /addextensionpath
+        /delextensionpath
+
+    ''')
 
     ehelp_text = textwrap.dedent('''
         Welcome to the bot!
 
         Available commands:
 
-        /id - Displays the user/group ID.
-            - Usage: Simply type /id and the bot will respond with the ID of the current chat, whether it is a user or a group.
         
 
-        /addpathextension <extension> <NewDirectory> - Crea una regla de ruta de descargad e archivo segun extension
-            - Uso: Responde a un mensaje que contenga un archivo con /addpathextension seguido del nuevo nombre que deseas para la carpeta. Si no agregas una ruta
-            - Ejemplo: Si recibes un documento y quieres crear una regla para que esos archivos vayan a una carpeta "MiCarpeta", responde al mensaje con /addpathextension MiCarpeta, luego puedes escribir /move para mover el archivo a la nueva ruta creada con /addpathextension
-                - /addpathextension 
-                - /addpathextension <REPLY> /NuevoDirectorio
-                - /addpathextension <extension> /NuevoDirectorio
+        /addextensionpath <extension> <NewDirectory> - Crea una regla de ruta de descargad e archivo segun extension
+            - Uso: Responde a un mensaje que contenga un archivo con /addextensionpath seguido del nuevo nombre que deseas para la carpeta. Si no agregas una ruta
+            - Ejemplo: Si recibes un documento y quieres crear una regla para que esos archivos vayan a una carpeta "MiCarpeta", responde al mensaje con /addextensionpath MiCarpeta, luego puedes escribir /move para mover el archivo a la nueva ruta creada con /addextensionpath
+                - /addextensionpath 
+                - /addextensionpath <REPLY> /NuevoDirectorio
+                - /addextensionpath <extension> /NuevoDirectorio
 
 
         /rename <new_name> - Rename the replied message file.

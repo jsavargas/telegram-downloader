@@ -108,11 +108,9 @@ class Utils:
             return
 
         try:
-            # Check if it's a file
             if os.path.isfile(path):
                 os.chmod(path, 0o677)
                 logger.info(f"Permissions 677 assigned to the file: {path}")
-            # Check if it's a directory
             elif os.path.isdir(path):
                 os.chmod(path, 0o777)
                 logger.info(f"Permissions 777 assigned to the directory: {path}")
@@ -128,13 +126,12 @@ class Utils:
 
 
     def change_permissions_owner(self, file_name):
-        """Changes the permissions and owner of the specified file."""
         try:
             if os.path.isfile(file_name): os.chmod(file_name, self.permissions_file)
             elif os.path.isdir(file_name): os.chmod(file_name, self.permissions_folder)
             else: os.chmod(file_name, self.permissions_file)
             os.chown(file_name, self.PUID, self.PGID)
-            logger.info(f"Successfully changed permissions and owner of {file_name}")
+            logger.info(f"[!] change_permissions_owner changed permissions and owner of {file_name}")
         except Exception as e:
             logger.info(f"Failed to change permissions and owner: {e}")
 
@@ -172,26 +169,20 @@ class Utils:
 
     def create_folders(self, folder_name):
         try:
-            logger.info(f"create_folders folder_name: {folder_name}")
-            # Verificar si la folder_name es un archivo
+            logger.info(f"[!] create_folders folder_name: {folder_name}")
             if os.path.isfile(folder_name):
-                logger.info(f"create_folders isfile: {folder_name}")
                 base_directory = os.path.dirname(folder_name)
                 os.makedirs(base_directory, exist_ok=True) 
                 self.change_permissions_owner(base_directory)
             elif os.path.isdir(folder_name):
-                logger.info(f"create_folders isdir: {folder_name}")
                 os.makedirs(folder_name, exist_ok=True) 
                 self.change_permissions_owner(folder_name)
             else:
-                logger.info(f"create_folders else: {folder_name}")
                 dirname = os.path.dirname(folder_name)
                 base_directory = os.path.basename(folder_name)
                 if "." not in base_directory:
-                    logger.info(f"create_folders else: {folder_name}")
                     os.makedirs(folder_name, exist_ok=True) 
                 else:
-                    logger.info(f"create_folders else: {dirname}")
                     os.makedirs(dirname, exist_ok=True) 
         except FileExistsError as e:
             logger.info(f"The folder {folder_name} already exists: {e}")
