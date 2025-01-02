@@ -2,7 +2,6 @@ from env import Env
 from info_handler import InfoMessages
 from logger_config import logger
 from command_controller import CommandController
-from downloadPathManagerController import DownloadPathManagerCommandController
 
 import os
 import re

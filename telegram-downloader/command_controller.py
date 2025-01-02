@@ -119,8 +119,7 @@ class CommandController:
 
         except Exception as e:
             logger.error(f"renameFiles Exception [{e}]")
-
-        
+   
     def getTempFilename(self, client, message):
         try:
             origin_group = self.info_handler.get_originGroup_test(message)
@@ -136,13 +135,44 @@ class CommandController:
         except Exception as e:
             logger.error(f"getTempFilename Exception [{e}]")
 
-
     def getExtensionPath(self, key):
         path = self.getDefaultPathExtension(key)
         return path if path else self.config_handler.get_value(ConfigKeys.EXTENSIONS.value, key) or self.getDefaultPath()
 
     async def addExtensionPath(self, client, message):
-        pass
+        try:
+            if self.is_reply(message):
+                ext = self.info_handler.getFileExtension(message.reply_to_message).replace(".", "")
+                logger.info(f"addExtensionPath ext: {ext}")
+                if ext and len(message.command) == 1:
+                    path = os.path.join(self.env.DOWNLOAD_PATH, ext)
+                    add_key = self.config_handler.add_key(ConfigKeys.EXTENSIONS.value, ext, path)
+                    logger.info(f"addExtensionPath path: {add_key}")
+                    await message.reply_text(f"Path for .{ext} added: {path}.")
+                if ext and len(message.command) > 1:
+                    path = ' '.join(message.command[1:])
+                    if not path.startswith('/'):
+                        path = os.path.join(self.env.DOWNLOAD_PATH, path)
+                    add_key = self.config_handler.add_key(ConfigKeys.EXTENSIONS.value, ext, path)
+                    logger.info(f"addExtensionPath path: {add_key}")
+                    await message.reply_text(f"Path for .{ext} added: {path}.")
+            else:
+                if len(message.command) == 2:
+                    ext = message.command[1]
+                    path = os.path.join(self.env.DOWNLOAD_PATH, ext)
+                    add_key = self.config_handler.add_key(ConfigKeys.EXTENSIONS.value, ext, path)
+                    logger.info(f"addExtensionPath path: {add_key}")
+                    await message.reply_text(f"Path for .{ext} added: {path}.")
+                if len(message.command) > 2:
+                    ext = message.command[1]
+                    path = ' '.join(message.command[2:])
+                    if not path.startswith('/'):
+                        path = os.path.join(self.env.DOWNLOAD_PATH, path)
+                    add_key = self.config_handler.add_key(ConfigKeys.EXTENSIONS.value, ext, path)
+                    logger.info(f"addExtensionPath path: {add_key}")
+                    await message.reply_text(f"Path for .{ext} added: {path}.")
+        except Exception as e:
+            logger.error(f"addExtensionPath Exception [{e}]")
 
     async def delExtensionPath(self, client, message):
         pass
