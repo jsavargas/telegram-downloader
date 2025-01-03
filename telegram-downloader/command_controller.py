@@ -198,13 +198,12 @@ class CommandController:
         try:
             if self.is_reply(message):
                 origin_group = self.info_handler.get_originGroup_test(message)
-                if origin_group and len(message.command) == 1:
-                    path = os.path.join(self.env.DOWNLOAD_PATH, str(origin_group).replace('-',''))
-                    add_key = self.config_handler.add_key(ConfigKeys.GROUP_PATH.value, origin_group, path)
-                    logger.info(f"addGroupPath path: {add_key}")
-                    await message.reply_text(f"Path for {origin_group} added: {path}.")
-                if origin_group and len(message.command) > 1:
-                    path = ' '.join(message.command[1:])
+                if origin_group:
+                    path = (
+                        os.path.join(self.env.DOWNLOAD_PATH, str(origin_group).replace('-', '')) 
+                        if len(message.command) == 1 else 
+                        ' '.join(message.command[1:])
+                    )
                     if not path.startswith('/'):
                         path = os.path.join(self.env.DOWNLOAD_PATH, path)
                     add_key = self.config_handler.add_key(ConfigKeys.GROUP_PATH.value, origin_group, path)
@@ -220,18 +219,17 @@ class CommandController:
                     )
                     if not path.startswith('/'):
                         path = os.path.join(self.env.DOWNLOAD_PATH, path)
-                    
                     add_key = self.config_handler.add_key(ConfigKeys.GROUP_PATH.value, origin_group, path)
                     logger.info(f"addGroupPath path: {add_key}")
-                    
                     await message.reply_text(f"Path for {origin_group} added: {path}.")
-
         except Exception as e:
             logger.error(f"addGroupPath Exception [{e}]")
 
-
     async def delGroupPath(self, client, message):
-        pass
+        try:
+            pass
+        except Exception as e:
+            logger.error(f"delGroupPath Exception [{e}]")
 
     def getKeywordPath(self, key):
         sections = self.config_handler.get_values(ConfigKeys.KEYWORDS.value, key)
