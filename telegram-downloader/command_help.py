@@ -27,9 +27,22 @@ class CommandHelp:
                 - /move
                 - /move /NewDirectory
 
-        /addextensionpath
-        /delextensionpath
+        /addextensionpath <extension> <NewDirectory> - Creates a download path rule based on file extension
+            - Usage: Reply to a message containing a file with /addextensionpath followed by the new folder name you want. If no path is provided, it will create the rule using the extension as the folder name.
+            - Example: If you receive a document and want to create a rule to direct those files to a folder named "MyFolder", reply to the message with /addextensionpath MyFolder. Then, you can use /move to move the file to the new path created with /addextensionpath.
+                - /addextensionpath
+                - /addextensionpath <REPLY>
+                - /addextensionpath <REPLY> /NewDirectory
+                - /addextensionpath <extension> /NewDirectory
+
+        /delextensionpath <extension> - Deletes the download folder rule for the specified extension
+            - Usage: Reply to a message containing a file with /delextensionpath to delete the extension rule.
+            - Example: If you want to delete a rule, reply to the message with /delextensionpath.
+                - /delextensionpath <extension>
+                - /delextensionpath <REPLY>
+
         /addgrouppath
+        /delgrouppath
 
     ''')
 
