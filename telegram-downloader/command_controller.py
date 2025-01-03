@@ -227,7 +227,15 @@ class CommandController:
 
     async def delGroupPath(self, client, message):
         try:
-            pass
+            origin_group = None
+            if self.is_reply(message):
+                origin_group = self.info_handler.get_originGroup_test(message)
+            elif len(message.command) > 1:
+                origin_group = message.command[1]
+            if origin_group:
+                delete_key = self.config_handler.delete_key(ConfigKeys.GROUP_PATH.value, origin_group)
+                logger.info(f"delGroupPath delete_key: {delete_key}")
+                await message.reply_text(f"Group {origin_group} removed from GROUP_PATH list.")
         except Exception as e:
             logger.error(f"delGroupPath Exception [{e}]")
 

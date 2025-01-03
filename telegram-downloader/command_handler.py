@@ -137,6 +137,3 @@ class CommandHandler:
     async def delRenameGroup(self, client: Client, message: Message):
         await self.command_controller.delRenameGroup(client, message)
 
-
-
-     

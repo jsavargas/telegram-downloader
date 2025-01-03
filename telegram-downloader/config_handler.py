@@ -109,7 +109,7 @@ class ConfigHandler:
         return f"Clave {key} añadida a la sección {section} con el valor {value}."
 
     def delete_key(self, section, key):
-        if section in self.config and key in self.config[section]:
+        if section in self.config and str(key) in self.config[section]:
             del self.config[section][str(key)]
             self.save_config()
             return True
