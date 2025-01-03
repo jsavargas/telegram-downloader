@@ -191,13 +191,44 @@ class CommandController:
         except Exception as e:
             logger.error(f"delExtensionPath Exception [{e}]")
 
-
     def getGroupPath(self, key):
         return self.config_handler.get_value(ConfigKeys.GROUP_PATH.value, key)
 
-
     async def addGroupPath(self, client, message):
-        pass
+        try:
+            if self.is_reply(message):
+                origin_group = self.info_handler.get_originGroup_test(message)
+                if origin_group and len(message.command) == 1:
+                    path = os.path.join(self.env.DOWNLOAD_PATH, str(origin_group).replace('-',''))
+                    add_key = self.config_handler.add_key(ConfigKeys.GROUP_PATH.value, origin_group, path)
+                    logger.info(f"addGroupPath path: {add_key}")
+                    await message.reply_text(f"Path for {origin_group} added: {path}.")
+                if origin_group and len(message.command) > 1:
+                    path = ' '.join(message.command[1:])
+                    if not path.startswith('/'):
+                        path = os.path.join(self.env.DOWNLOAD_PATH, path)
+                    add_key = self.config_handler.add_key(ConfigKeys.GROUP_PATH.value, origin_group, path)
+                    logger.info(f"addGroupPath path: {add_key}")
+                    await message.reply_text(f"Path for {origin_group} added: {path}.")
+            else:
+                if 2 <= len(message.command):
+                    origin_group = message.command[1]
+                    path = (
+                        os.path.join(self.env.DOWNLOAD_PATH, ' '.join(message.command[2:]))
+                        if len(message.command) > 2 else
+                        os.path.join(self.env.DOWNLOAD_PATH, origin_group)
+                    )
+                    if not path.startswith('/'):
+                        path = os.path.join(self.env.DOWNLOAD_PATH, path)
+                    
+                    add_key = self.config_handler.add_key(ConfigKeys.GROUP_PATH.value, origin_group, path)
+                    logger.info(f"addGroupPath path: {add_key}")
+                    
+                    await message.reply_text(f"Path for {origin_group} added: {path}.")
+
+        except Exception as e:
+            logger.error(f"addGroupPath Exception [{e}]")
+
 
     async def delGroupPath(self, client, message):
         pass

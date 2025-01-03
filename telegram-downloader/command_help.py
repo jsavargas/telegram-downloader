@@ -29,6 +29,7 @@ class CommandHelp:
 
         /addextensionpath
         /delextensionpath
+        /addgrouppath
 
     ''')
 

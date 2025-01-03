@@ -117,11 +117,8 @@ class ConfigHandler:
             return False
 
     def get_value(self, section, key):
+        self.config.read(self.config_file)
         return self.config[section].get(str(key), None)
-
-        if section in self.config and key in self.config[section]:
-            return self.config[section][key]
-        return None
 
     def get_values(self, section, key):
         if section in self.config:
