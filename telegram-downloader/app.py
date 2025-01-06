@@ -33,7 +33,7 @@ logger.info(f"Starting Telegram Downloader Bot Started : {datetime.now():%Y/%m/%
 
 class Config:
     def __init__(self):
-        self.BOT_VERSION = "1.0.0-r17"
+        self.BOT_VERSION = "1.0.0-r18"
         self.PYROGRAM_VERSION = pyrogram_version
         self.YT_DLP_VERSION = yt_dlp.version.__version__
 
@@ -101,16 +101,11 @@ async def handle_files(client: Client, message: Message):
         file_path = ""
 
         async with semaphore:
-
                 logger.info("download_document")
-                #print("download_document: ", message)
                 message2file(message)
-
                 
-                user_id = info_handler.get_userId(message) #message.from_user.id if message.from_user else None
-                origin_group = info_handler.get_originGroup(message) #message.forward_from.id if message.forward_from else message.forward_from_chat.id if message.forward_from_chat else None
-
-                logger.info(f"download_document user_id: [{user_id}] => [{env.AUTHORIZED_USER_ID}]")
+                user_id = info_handler.get_userId(message)
+                origin_group = info_handler.get_originGroup(message) 
 
                 if user_id and str(user_id) in env.AUTHORIZED_USER_ID:
                     start_msg = await message.reply_text(f"Pendiente de descarga: ", reply_to_message_id=message.id)
@@ -118,13 +113,10 @@ async def handle_files(client: Client, message: Message):
                     file_name = info_handler.getFileName(message)
                     _FileSize = info_handler.getFileSize(message)
 
-                    download_path = downloadPathManager.getDownloadPathT(message, origin_group, file_name)
-                    file_name = downloadPathManager.getFileRename(message, origin_group, file_name)
-                    file_name = downloadPathManager.rename(message, origin_group, file_name)
+                    download_path = downloadPathManager.getDownloadPath(message, origin_group, file_name)
+                    file_name = downloadPathManager.getDownloadFilename(message, origin_group, file_name)
 
                     
-                    #file_name = utils.replace_chars_with_underscore(file_name, downloadPathManager.get_chars_to_replace())
-
                     start_time, start_hour = utils.startTime()
 
                     summary = f"**Downloading file:**"
@@ -161,7 +153,12 @@ async def handle_files(client: Client, message: Message):
                             else:
                                 file_path = await message.download(file_name=DOWNLOAD_INCOMPLETED_PATH)
 
-                            
+                            tempFilename = command_handler.getTempFilename(client, message)
+                            if tempFilename:
+                                file_name = tempFilename
+                                file_name_download = os.path.join(download_path, file_name)
+                            logger.info(f"[****] File download tempFilename: [{tempFilename}]  [{file_name_download}]")
+
                             if _FileSize == os.path.getsize(file_path):
                                 shutil.move(file_path, file_name_download)
 

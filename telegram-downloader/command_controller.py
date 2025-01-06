@@ -1,92 +1,46 @@
-from data_handler import FileDataHandler
-from downloadPathManager import DownloadPathManager
-from utils import Utils
-from env import Env
 from logger_config import logger
+from env import Env
+from config_handler import ConfigKeys, ConfigHandler
+from data_handler import FileDataHandler
+from utils import Utils
 from info_handler import InfoMessages
 
 import os
 import shutil
 
-from pyrogram import enums
 
 class CommandController:
     def __init__(self):
-        self.downloadPathManager = DownloadPathManager()
         self.env = Env()
-        self.utils = Utils()
+        self.config_handler = ConfigHandler()
         self.data_handler = FileDataHandler()
+        self.utils = Utils()
         self.info_handler = InfoMessages()
+        self.tempFilename = {}
 
     def is_reply(self, message):
         return message.reply_to_message is not None
 
-    async def setPathExtension(self, client, message):
+    def getDefaultPath(self):
+        return self.config_handler.get_value(ConfigKeys.DEFAULT.value, "default_path")
 
-        try:
-            if self.is_reply(message):
-                ext = self.info_handler.getFileExtension(message.reply_to_message).replace(".", "")
-                logger.info(f"setPathExtension ext: {ext}")
+    def getDefaultPathExtension(self, extension):
+        switch = {
+            'torrent': self.env.DOWNLOAD_PATH_TORRENTS
+        }
+        return switch.get(extension, None)
 
-                if ext and len(message.command) > 1:
-                    path = message.command[-1]
-                    path = self.downloadPathManager.setPathExtension(ext, path)
-                    logger.info(f"setPathExtension path: {path}")
-                    await message.reply_text(f"Path for .{ext} added: {path}.")
-                if ext and len(message.command) == 1:
-                    path = self.downloadPathManager.setPathExtension(ext, ext)
-                    logger.info(f"setPathExtension path: {path}")
-                    await message.reply_text(f"Path for .{ext} added: {path}.")
-            else:
-                if len(message.command) == 3:
-                    ext, path = message.command[1:3]
-                    logger.info(f"setPathExtension ext: [{ext}] path: [{path}]")
-
-                    path = self.downloadPathManager.setPathExtension(ext, path)
-                    await message.reply_text(f"Path for .{ext} added: {path}.")
-                elif len(message.command) == 2:
-                    ext = message.command[1]
-                    path = self.downloadPathManager.setPathExtension(ext, ext)
-                    await message.reply_text(f"Path for .{ext} added: {path}.")
-                else:
-                    await message.reply_text("Usage: /addpathextension <extension> <path>", parse_mode=enums.ParseMode.DISABLED)
-
-        except Exception as e:
-            logger.error(f"setPathExtension => Exception: {e}")
-
-    async def delPathExtension(self, client, message):
-        try:
-            if self.is_reply(message):
-                ext = self.info_handler.getFileExtension(message.reply_to_message).replace(".", "")
-                logger.info(f"delPathExtension ext: {ext}")
-                self.downloadPathManager.delPathExtension(ext)
-                await message.reply_text(f"Extension {ext} removed to EXTENSIONS list.")
-            else:
-                ext = message.command[1]
-                path = self.downloadPathManager.delPathExtension(ext)
-                await message.reply_text(f"Extension {ext} removed to EXTENSIONS list.")
-        except Exception as e:
-            logger.error(f"delPathExtension => Exception: {e}")
-
-    async def getPathExtension(self, client, message):
-        pass
-
-
-
-
-    async def renameFiles(self, client, message):
+    async def renameFiles(self, client, message):        
         try:
             command = message.command[0]
-
             if self.is_reply(message):
                 file_info = self.data_handler.get_download_file(message.reply_to_message_id)
-                logger.info(f"rename_file file_name      : {file_info}")
-
+                logger.info(f"rename_file file_info      : {file_info}")
+             
                 if file_info and len(message.command) > 1:
                     new_name = ' '.join(message.command[1:])
                     new_filename = self.utils.combine_paths(file_info, new_name)
                     logger.info(f"rename_file update_download_files : {new_name} => {new_filename}")
-                    logger.info(f"rename_file if new_name : {new_name} => {new_filename}")
 
                     new_dir = os.path.dirname(new_filename)
                     if not os.path.exists(new_dir):
@@ -100,30 +54,219 @@ class CommandController:
                         await message.reply_text(f"File renamed to {dest}")
                     return True
 
-                else:
-                    downloadFile = self.downloadPathManager.getNewDownloadPath(message.reply_to_message)
-                    logger.info(f"[!] rename_file downloadFile   : {downloadFile}")
-                    logger.info(f"[!] rename_file origin_group   : {downloadFile['origin_group']}")
-                    logger.info(f"[!] rename_file download_path  : {downloadFile['download_path']}")
-                    logger.info(f"[!] rename_file file_name      : {downloadFile['file_name']}")
-                    logger.info(f"[!] rename_file filename       : {downloadFile['filename']}")
-                    logger.info(f"[!] rename_file fullfilename   : {downloadFile['fullfilename']}")
-                    logger.info(f"[!] rename_file file_size      : {downloadFile['file_size']}")
-                    logger.info(f"[!] rename_file file_info      : {file_info}")
-          
-                    if file_info == downloadFile['fullfilename']:
-                        await message.reply_text(f"File renamed to {file_info}.")
-                        return
-                    else:
+                if file_info and len(message.command) == 1:
+                    from downloadPathManager import DownloadPathManager
+                    manager = DownloadPathManager()
 
-                        reply = await message.reply_text(f"moving to {downloadFile['fullfilename']}.")
-                        new_name = self.utils.shutil_move(file_info, downloadFile['fullfilename'])
-                        update_download_files = self.data_handler.update_download_files(message.reply_to_message_id, downloadFile['fullfilename'])
-                        logger.info(f"rename_file update_download_files      ::: {update_download_files}")
-            
-                        if update_download_files: await reply.edit_text(f"File renamed to {downloadFile['fullfilename']}.")
-                        else: await reply.edit_text(f"error moving file {downloadFile['fullfilename']}.")
+                    download_path = manager.getDownloadPath(message, None, None)
+                    file_name = manager.getDownloadFilename(message.reply_to_message, None, None)
+                    new_filename = os.path.join(download_path, file_name)
+
+
+                    if not os.path.exists(download_path):
+                        os.makedirs(download_path)
+                    dest = shutil.move(file_info, new_filename)  
+
+                    update_download_files = self.data_handler.update_download_files(message.reply_to_message_id, new_filename)
+                    logger.info(f"rename_file os.rename update_download_files: [{update_download_files}]")
+
+                    await message.reply_text(f"File renamed to {dest}")
+
+                    logger.info(f"[!] renameFiles file_info   : {file_info}")
+                    logger.info(f"[!] renameFiles download_path   : {download_path}")
+                    logger.info(f"[!] renameFiles file_name   : {file_name}")
+                    logger.info(f"[!] renameFiles new_filename   : {new_filename}")
+
+
+
+                elif file_info is None and len(message.command) > 1:
+
+                    from downloadPathManager import DownloadPathManager
+                    manager = DownloadPathManager()
+
+                    filename = ' '.join(message.command[1:])
+
+                    download_path = manager.getDownloadPath(message, None, None)
+                    file_name = manager.getDownloadFilename(message.reply_to_message, None, None)
+
+                    logger.info(f"[!] renameFiles download_path   : {download_path}")
+                    logger.info(f"[!] renameFiles file_name   : {file_name}")
+                    logger.info(f"[!] renameFiles filename   : {filename}")
+
+                    new_filename = filename
+
+                    base_a, ext_a = os.path.splitext(filename)
+                    _, ext_b = os.path.splitext(file_name)
+                    
+                    if not ext_a and ext_b:
+                        new_filename = f"{base_a}{ext_b}"
+
+                    origin_group = self.info_handler.get_originGroup_test(message)
+                    
+                    logger.info(f"[!] renameFiles new_filename   : {new_filename}")
+                    logger.info(f"[!] renameFiles id   : {message.reply_to_message_id}")
+                    logger.info(f"[!] renameFiles origin_group   : {origin_group}")
+
+                    key = (origin_group, message.reply_to_message_id)
+
+                    # Agregar al diccionario
+                    self.tempFilename[key] = {
+                        "origin_group": origin_group,
+                        "message_id": message.reply_to_message_id,
+                        "new_filename": new_filename,
+                    }
+                    reply = await message.reply_text(f"New file name {new_filename}.")
 
         except Exception as e:
-            logger.error(f"rename_file => Exception: {e}")
-            await message.reply_text(f"File renamed Exception: {e}.")
+            logger.error(f"renameFiles Exception [{e}]")
+   
+    def getTempFilename(self, client, message):
+        try:
+            origin_group = self.info_handler.get_originGroup_test(message)
+            key = (origin_group, message.id)
+            
+            if key in self.tempFilename:
+                logger.info(f"[!] getTempFilename new_filename   : {self.tempFilename[key]['new_filename']}")
+                new_filename = self.tempFilename[key]['new_filename']
+                del self.tempFilename[key]
+                return new_filename
+            else: 
+                return None
+        except Exception as e:
+            logger.error(f"getTempFilename Exception [{e}]")
+
+    def getExtensionPath(self, key):
+        path = self.getDefaultPathExtension(key)
+        return path if path else self.config_handler.get_value(ConfigKeys.EXTENSIONS.value, key) or self.getDefaultPath()
+
+    async def addExtensionPath(self, client, message):
+        try:
+            if self.is_reply(message):
+                ext = self.info_handler.getFileExtension(message.reply_to_message).replace(".", "")
+                logger.info(f"addExtensionPath ext: {ext}")
+                if ext and len(message.command) == 1:
+                    path = os.path.join(self.env.DOWNLOAD_PATH, ext)
+                    add_key = self.config_handler.add_key(ConfigKeys.EXTENSIONS.value, ext, path)
+                    logger.info(f"addExtensionPath path: {add_key}")
+                    await message.reply_text(f"Path for .{ext} added: {path}.")
+                if ext and len(message.command) > 1:
+                    path = ' '.join(message.command[1:])
+                    if not path.startswith('/'):
+                        path = os.path.join(self.env.DOWNLOAD_PATH, path)
+                    add_key = self.config_handler.add_key(ConfigKeys.EXTENSIONS.value, ext, path)
+                    logger.info(f"addExtensionPath path: {add_key}")
+                    await message.reply_text(f"Path for .{ext} added: {path}.")
+            else:
+                if len(message.command) == 2:
+                    ext = message.command[1]
+                    path = os.path.join(self.env.DOWNLOAD_PATH, ext)
+                    add_key = self.config_handler.add_key(ConfigKeys.EXTENSIONS.value, ext, path)
+                    logger.info(f"addExtensionPath path: {add_key}")
+                    await message.reply_text(f"Path for .{ext} added: {path}.")
+                if len(message.command) > 2:
+                    ext = message.command[1]
+                    path = ' '.join(message.command[2:])
+                    if not path.startswith('/'):
+                        path = os.path.join(self.env.DOWNLOAD_PATH, path)
+                    add_key = self.config_handler.add_key(ConfigKeys.EXTENSIONS.value, ext, path)
+                    logger.info(f"addExtensionPath path: {add_key}")
+                    await message.reply_text(f"Path for .{ext} added: {path}.")
+        except Exception as e:
+            logger.error(f"addExtensionPath Exception [{e}]")
+
+    async def delExtensionPath(self, client, message):
+        try:
+            if self.is_reply(message):
+                ext = self.info_handler.getFileExtension(message.reply_to_message).replace(".", "")
+                delete_key = self.config_handler.delete_key(ConfigKeys.EXTENSIONS.value, ext)
+                logger.info(f"delExtensionPath ext: {ext}")
+                logger.info(f"delExtensionPath delete_key: {delete_key}")
+                await message.reply_text(f"Extension {ext} removed to EXTENSIONS list.")
+            elif len(message.command) > 1:
+                ext = message.command[1]
+                delete_key = self.config_handler.delete_key(ConfigKeys.EXTENSIONS.value, ext)
+                logger.info(f"delExtensionPath ext: {ext}")
+                logger.info(f"delExtensionPath delete_key: {delete_key}")
+                await message.reply_text(f"Extension {ext} removed to EXTENSIONS list.")
+        except Exception as e:
+            logger.error(f"delExtensionPath Exception [{e}]")
+
+    def getGroupPath(self, key):
+        return self.config_handler.get_value(ConfigKeys.GROUP_PATH.value, key)
+
+    async def addGroupPath(self, client, message):
+        try:
+            if self.is_reply(message):
+                origin_group = self.info_handler.get_originGroup_test(message)
+                if origin_group:
+                    path = (
+                        os.path.join(self.env.DOWNLOAD_PATH, str(origin_group).replace('-', '')) 
+                        if len(message.command) == 1 else 
+                        ' '.join(message.command[1:])
+                    )
+                    if not path.startswith('/'):
+                        path = os.path.join(self.env.DOWNLOAD_PATH, path)
+                    add_key = self.config_handler.add_key(ConfigKeys.GROUP_PATH.value, origin_group, path)
+                    logger.info(f"addGroupPath path: {add_key}")
+                    await message.reply_text(f"Path for {origin_group} added: {path}.")
+            else:
+                if 2 <= len(message.command):
+                    origin_group = message.command[1]
+                    path = (
+                        os.path.join(self.env.DOWNLOAD_PATH, ' '.join(message.command[2:]))
+                        if len(message.command) > 2 else
+                        os.path.join(self.env.DOWNLOAD_PATH, origin_group)
+                    )
+                    if not path.startswith('/'):
+                        path = os.path.join(self.env.DOWNLOAD_PATH, path)
+                    add_key = self.config_handler.add_key(ConfigKeys.GROUP_PATH.value, origin_group, path)
+                    logger.info(f"addGroupPath path: {add_key}")
+                    await message.reply_text(f"Path for {origin_group} added: {path}.")
+        except Exception as e:
+            logger.error(f"addGroupPath Exception [{e}]")
+
+    async def delGroupPath(self, client, message):
+        try:
+            origin_group = None
+            if self.is_reply(message):
+                origin_group = self.info_handler.get_originGroup_test(message)
+            elif len(message.command) > 1:
+                origin_group = message.command[1]
+            if origin_group:
+                delete_key = self.config_handler.delete_key(ConfigKeys.GROUP_PATH.value, origin_group)
+                logger.info(f"delGroupPath delete_key: {delete_key}")
+                await message.reply_text(f"Group {origin_group} removed from GROUP_PATH list.")
+        except Exception as e:
+            logger.error(f"delGroupPath Exception [{e}]")
+
+    def getKeywordPath(self, key):
+        sections = self.config_handler.get_values(ConfigKeys.KEYWORDS.value, key)
+        if not key: return None
+        for section in sections:
+            if section.lower() in key.lower():
+                return sections[section]
+        return None
+
+
+    async def addKeywordPath(self, client, message):
+        pass
+
+    async def delKeywordPath(self, client, message):
+        pass
+
+    async def addRenameGroup(self, client, message):
+        pass
+
+    async def delRenameGroup(self, client, message):
+        pass
+
+
+
+    def getRemovePattern(self, key):
+        return self.config_handler.get_value(ConfigKeys.REMOVE_PATTERNS.value, key)
+
+    def getRemovePatterns(self, key):
+        return self.config_handler.get_values(ConfigKeys.REMOVE_PATTERNS.value, key)
+
+    def get_chars_to_replace(self):
+        return self.config_handler.get_value(ConfigKeys.SETTINGS.value, "chars_to_replace")

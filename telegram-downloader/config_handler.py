@@ -109,7 +109,7 @@ class ConfigHandler:
         return f"Clave {key} añadida a la sección {section} con el valor {value}."
 
     def delete_key(self, section, key):
-        if section in self.config and key in self.config[section]:
+        if section in self.config and str(key) in self.config[section]:
             del self.config[section][str(key)]
             self.save_config()
             return True
@@ -117,11 +117,8 @@ class ConfigHandler:
             return False
 
     def get_value(self, section, key):
+        self.config.read(self.config_file)
         return self.config[section].get(str(key), None)
-
-        if section in self.config and key in self.config[section]:
-            return self.config[section][key]
-        return None
 
     def get_values(self, section, key):
         if section in self.config:
