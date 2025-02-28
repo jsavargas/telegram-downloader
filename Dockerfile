@@ -19,10 +19,8 @@ RUN python3 -m pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 
-
 COPY telegram-downloader/ .
 
 
-# Ejecutar el bot
 CMD ["python", "app.py"]
 
