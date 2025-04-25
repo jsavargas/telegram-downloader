@@ -16,6 +16,7 @@ RUN python3 -m pip install --no-cache-dir --upgrade pip setuptools && \
 
 COPY telegram-downloader/ .
 
+VOLUME /download /watch /config
 
 CMD ["python", "app.py"]
 

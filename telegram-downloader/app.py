@@ -86,11 +86,14 @@ while True:
 
 
 def message2file(message: Message) -> str:
+
     if not env.MESSAGE_FILE:
         return False
+    logger.info(f"message2file [{env.MESSAGE_FILE}]")
+    logger.info(f"message2file [{os.path.join(env.CONFIG_PATH, "messages.txt")}]")
     message_str = str(message)
     with open(os.path.join(env.CONFIG_PATH, "messages.txt"), "a") as file:
-        file.write(f"{datetime.now():%Y/%m/%d %H:%M:%S}\n{message_str}\n\n\n\n")
+        file.write(f"MESSAGE_FILE:: {datetime.now():%Y/%m/%d %H:%M:%S}\n{message_str}\n\n\n\n")
 
 @app.on_message(filters.document | filters.photo | filters.video | filters.audio | filters.animation)
 async def handle_files(client: Client, message: Message):
@@ -101,7 +104,7 @@ async def handle_files(client: Client, message: Message):
         file_path = ""
 
         async with semaphore:
-                logger.info("download_document")
+                logger.info("Start Download")
                 message2file(message)
                 
                 user_id = info_handler.get_userId(message)
