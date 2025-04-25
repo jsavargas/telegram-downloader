@@ -80,7 +80,7 @@ def get_file_name(message: Message) -> str:
     elif message.video:
         return message.video.file_name
     elif message.audio:
-        return message.audio.title
+        return message.audio.file_name
     else:
         return "Archivo"
 

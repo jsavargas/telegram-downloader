@@ -15,6 +15,7 @@ class CommandHandler:
 
         self.command_dict = {
             "ehelp": self.ehandle_help,
+            "start": self.handle_help,
             "help": self.handle_help,
             "pyrogram": self.handle_pyrogram_version,
             "ytdlp": self.handle_ytdlp_version,

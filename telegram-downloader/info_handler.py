@@ -33,7 +33,7 @@ class InfoMessages:
         elif message.animation:
             return message.animation.file_name if message.animation.file_name else f"{message.animation.file_unique_id}.{message.animation.mime_type.split('/')[-1]}"
         elif message.audio:
-            return f"{message.audio.title}.{message.audio.mime_type.split('/')[1].replace('x-', '')}" or message.audio.file_name or f"{message.audio.file_unique_id}.{message.audio.mime_type.split('/')[1].replace('x-', '')}"
+            return message.audio.file_name or f"{message.audio.title}.{message.audio.mime_type.split('/')[1].replace('x-', '')}" or f"{message.audio.file_unique_id}.{message.audio.mime_type.split('/')[1].replace('x-', '')}"
         else:
             return "Archivo"
 
