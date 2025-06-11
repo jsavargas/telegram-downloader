@@ -6,7 +6,7 @@ import re
 import time
 from datetime import datetime
 import logging
-import uvloop
+#import uvloop
 import asyncio
 import yt_dlp
 import shutil
@@ -27,13 +27,13 @@ from url_downloader import URLDownloader
 from pending_handler import PendingMessagesHandler
 from info_handler import InfoMessages
 
-uvloop.install()
+#uvloop.install()
 
 logger.info(f"Starting Telegram Downloader Bot Started : {datetime.now():%Y/%m/%d %H:%M:%S}")
 
 class Config:
     def __init__(self):
-        self.BOT_VERSION = "1.0.0-r20"
+        self.BOT_VERSION = "1.0.0-r22"
         self.PYROGRAM_VERSION = pyrogram_version
         self.YT_DLP_VERSION = yt_dlp.version.__version__
 

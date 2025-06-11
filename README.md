@@ -132,6 +132,11 @@ services:
 
 # Changelog
 
+## [Version 1.0.0-r22] - 2025.06.09
+- **Update:** Updated `pyrogram` to version 2.0.106.
+- **Update:** Updated `yt_dlp` to version 2025.05.22.
+
+
 ## Backlog (Upcoming Features)
 - **Feature:** Re-downloading of files (in development).
 - **Feature:** Adding a feature to download videos and audio from YouTube.
