@@ -132,7 +132,7 @@ services:
 
 # Changelog
 
-## [Version 1.0.0-r21] - 2025-05-23
+## [Version 1.0.0-r22] - 2025.06.09
 - **Update:** Updated `pyrogram` to version 2.0.106.
 - **Update:** Updated `yt_dlp` to version 2025.05.22.
 
