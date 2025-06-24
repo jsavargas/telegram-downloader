@@ -44,6 +44,8 @@ class CommandHelp:
         /addgrouppath
         /delgrouppath
 
+        Proyect: https://github.com/jsavargas/telegram-downloader
+
     ''')
 
     ehelp_text = textwrap.dedent('''
